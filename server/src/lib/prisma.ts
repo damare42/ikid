@@ -16,7 +16,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const DB_DIR = path.resolve(__dirname, "../../../database");
+/** All user data lives here. Overridable so the desktop app (and any host)
+ *  can point it at the OS application-data folder. */
+export const DB_DIR = process.env.IKID_DATA_DIR
+  ? path.resolve(process.env.IKID_DATA_DIR)
+  : path.resolve(__dirname, "../../../database");
 const REGISTRY = path.join(DB_DIR, "profiles.json");
 const DEFAULT_PROFILE = "ikid";
 

@@ -1,0 +1,44 @@
+{
+  "name": "ikid-desktop",
+  "version": "0.3.0",
+  "private": true,
+  "description": "ikid — local-first personal finance, as a desktop app",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.24.0"
+  },
+  "build": {
+    "appId": "app.ikid.desktop",
+    "productName": "ikid",
+    "asar": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "server-bundle/**",
+      "client-dist/**",
+      "template-data/**",
+      "prisma-runtime/**"
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "identity": null
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Office"
+    }
+  }
+}

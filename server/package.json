@@ -1,6 +1,6 @@
 {
   "name": "ikid-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,8 +10,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json --noEmit",
     "start": "tsx src/index.ts",
-    "db:setup": "tsx prisma/rename-migration.ts && prisma generate && prisma db push --skip-generate && tsx prisma/seed.ts",
-    "db:reset": "tsx prisma/rename-migration.ts && prisma db push --force-reset --skip-generate && tsx prisma/seed.ts",
+    "db:setup": "tsx prisma/setup.ts",
+    "db:reset": "tsx prisma/setup.ts --reset",
     "test": "vitest run"
   },
   "prisma": {

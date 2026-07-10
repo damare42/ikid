@@ -4,7 +4,9 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../../database/ikid.db"
+  // Set by prisma/setup.ts (defaults to <repo>/database/ikid.db); the desktop
+  // app points it at the OS user-data folder instead.
+  url      = env("IKID_DATABASE_URL")
 }
 
 model Account {

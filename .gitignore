@@ -1,5 +1,10 @@
 node_modules/
 dist/
+desktop/release/
+desktop/server-bundle/
+desktop/client-dist/
+desktop/template-data/
+desktop/prisma-runtime/
 database/*
 !database/.gitkeep
 uploads/*

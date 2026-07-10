@@ -17,6 +17,14 @@ npm start       # → http://localhost:3001
 only transactions), then serves everything from a single local process.
 Open **http://localhost:3001**, sign up, and drop in a bank statement.
 
+### Desktop app (no terminal needed)
+
+Download the installer for your OS from the [Releases](https://github.com/damare42/ikid/releases)
+page — `.dmg` (macOS), `.exe` (Windows), or `.AppImage` (Linux). Double-click,
+sign up, import a statement. Builds are unsigned for now: see
+[docs/DESKTOP.md](docs/DESKTOP.md) for the one-time "Open Anyway" step and
+how the app is put together.
+
 ### Docker (self-hosting / home server)
 
 ```bash

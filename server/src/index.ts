@@ -6,7 +6,9 @@ import { logger } from "./lib/logger.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CLIENT_DIST = path.resolve(__dirname, "../../client/dist");
+const CLIENT_DIST = process.env.IKID_CLIENT_DIST
+  ? path.resolve(process.env.IKID_CLIENT_DIST)
+  : path.resolve(__dirname, "../../client/dist");
 
 createApp().listen(PORT, () => {
   if (fs.existsSync(CLIENT_DIST)) {

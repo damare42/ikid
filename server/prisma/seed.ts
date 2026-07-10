@@ -3,8 +3,19 @@
  * settings. No sample transactions — all data comes from your imports.
  * Run `npm run db:reset --prefix server` to wipe and re-seed.
  */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { seedDefaults } from "../src/services/seedDefaults.js";
+
+// Standalone-run fallback (setup.ts normally provides this)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+process.env.IKID_DATABASE_URL ??=
+  "file:" +
+  path.join(
+    process.env.IKID_DATA_DIR ?? path.resolve(__dirname, "../../database"),
+    "ikid.db",
+  );
 
 const prisma = new PrismaClient();
 

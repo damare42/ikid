@@ -37,7 +37,9 @@ export function createApp() {
   // (created by `npm run build`). Static assets stay public — the login
   // and landing pages must load before a session exists.
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const CLIENT_DIST = path.resolve(__dirname, "../../client/dist");
+  const CLIENT_DIST = process.env.IKID_CLIENT_DIST
+    ? path.resolve(process.env.IKID_CLIENT_DIST)
+    : path.resolve(__dirname, "../../client/dist");
   const serveClient = fs.existsSync(CLIENT_DIST);
   if (serveClient) {
     app.use(express.static(CLIENT_DIST));

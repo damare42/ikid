@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — desktop app
+
+- Electron desktop app (`desktop/`): double-clickable ikid for macOS (.dmg, arm64 + Intel), Windows (.exe), and Linux (.AppImage) — no terminal or npm required
+- Data lives in the OS per-user application folder; first launch installs a seeded template database
+- Automatic on-upgrade schema migration per profile via bundled Prisma CLI, with pre-upgrade backups
+- Release workflow: pushing a `v*` tag builds installers on GitHub Actions and attaches them to a draft release
+- Portable data directory: `IKID_DATA_DIR` / `IKID_DATABASE_URL` / `IKID_CLIENT_DIST` env overrides; database setup unified behind `prisma/setup.ts`
+- Desktop guide (`docs/DESKTOP.md`) including unsigned-build first-open instructions
+
 ## 0.2.0 — self-hosting
 
 - Docker support: multi-stage image with healthcheck, persistent `/app/database` volume, and `docker-compose.yml` with an optional Ollama service (`--profile ai`)
