@@ -15,7 +15,7 @@ COPY client/package.json client/
 RUN npm install
 
 COPY . .
-RUN npx prisma generate --schema server/prisma/schema.prisma \
+RUN npm run generate --workspace server \
   && npm run build --workspace client
 
 # ---------- runtime ----------

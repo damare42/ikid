@@ -22,17 +22,21 @@ process.env.IKID_DATA_DIR = DATA_DIR;
 process.env.IKID_DATABASE_URL ??= "file:" + path.join(DATA_DIR, "ikid.db");
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
-// Legacy renames + version-change backup (side-effect module, env-aware)
-await import("./rename-migration.js");
-
 const schema = path.join(__dirname, "schema.prisma");
 const reset = process.argv.includes("--reset");
+// --generate-only: just produce the typed client (used by `npm run build`
+// so a fresh clone can typecheck before ever touching a database).
+const generateOnly = process.argv.includes("--generate-only");
 
 function run(cmd: string): void {
   execSync(cmd, { stdio: "inherit", env: process.env, cwd: path.resolve(__dirname, "..") });
 }
 
 run(`npx prisma generate --schema "${schema}"`);
-run(`npx prisma db push --skip-generate ${reset ? "--force-reset" : ""} --schema "${schema}"`);
 
-await import("./seed.js");
+if (!generateOnly) {
+  // Legacy renames + version-change backup (side-effect module, env-aware)
+  await import("./rename-migration.js");
+  run(`npx prisma db push --skip-generate ${reset ? "--force-reset" : ""} --schema "${schema}"`);
+  await import("./seed.js");
+}
