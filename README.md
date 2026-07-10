@@ -1,4 +1,4 @@
-# mark Ikid — Local-First Personal Finance
+# Ikid — Local-First Personal Finance
 
 Ikid (Amharic for *"plan"*) is a personal finance dashboard that runs **entirely on your computer**. Import bank statements (CSV or PDF), auto-categorize transactions, track budgets and savings goals, and see exactly where your money goes. No cloud, no accounts, no telemetry — your data lives in a single SQLite file.
 
