@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+**/dist
+database
+uploads/*
+!uploads/.gitkeep
+reports
+.git
+.github
+*.log
+Dockerfile
+docker-compose.yml

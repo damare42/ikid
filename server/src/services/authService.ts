@@ -56,8 +56,12 @@ function writeCreds(creds: Record<string, Credential>): void {
   fs.writeFileSync(AUTH_FILE, JSON.stringify(creds, null, 2), { mode: 0o600 });
 }
 
-/** Auth is on as soon as any profile has a password. */
+/** Auth is on as soon as any profile has a password — or always, when the
+ *  deployment demands it (IKID_REQUIRE_AUTH=1, set by the Docker image so a
+ *  networked instance never runs in open mode). */
 export function authEnabled(): boolean {
+  const forced = process.env.IKID_REQUIRE_AUTH;
+  if (forced === "1" || forced === "true") return true;
   return Object.keys(readCreds()).length > 0;
 }
 
@@ -197,10 +201,15 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return out;
 }
 
+/** Set IKID_SECURE_COOKIES=1 when serving over HTTPS (reverse proxy). */
+function secureFlag(): string {
+  return process.env.IKID_SECURE_COOKIES ? "; Secure" : "";
+}
+
 export function sessionCookie(token: string): string {
-  return `${SESSION_COOKIE}=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${SESSION_TTL_MS / 1000}`;
+  return `${SESSION_COOKIE}=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${SESSION_TTL_MS / 1000}${secureFlag()}`;
 }
 
 export function clearSessionCookie(): string {
-  return `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0`;
+  return `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0${secureFlag()}`;
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  hashPassword, verifyPassword, createSession, getSessionProfile, destroySession,
-  parseCookies, sessionCookie,
+  authEnabled, hashPassword, verifyPassword, createSession, getSessionProfile,
+  destroySession, parseCookies, sessionCookie,
 } from "../services/authService.js";
 
 describe("password hashing", () => {
@@ -39,6 +39,25 @@ describe("sessions", () => {
   it("returns null for unknown or missing tokens", () => {
     expect(getSessionProfile("nope")).toBeNull();
     expect(getSessionProfile(undefined)).toBeNull();
+  });
+});
+
+describe("deployment env flags", () => {
+  it("IKID_REQUIRE_AUTH forces auth on even with no passwords", () => {
+    const prev = process.env.IKID_REQUIRE_AUTH;
+    process.env.IKID_REQUIRE_AUTH = "1";
+    expect(authEnabled()).toBe(true);
+    if (prev === undefined) delete process.env.IKID_REQUIRE_AUTH;
+    else process.env.IKID_REQUIRE_AUTH = prev;
+  });
+
+  it("IKID_SECURE_COOKIES adds the Secure flag", () => {
+    const prev = process.env.IKID_SECURE_COOKIES;
+    process.env.IKID_SECURE_COOKIES = "1";
+    expect(sessionCookie("t")).toContain("; Secure");
+    delete process.env.IKID_SECURE_COOKIES;
+    expect(sessionCookie("t")).not.toContain("; Secure");
+    if (prev !== undefined) process.env.IKID_SECURE_COOKIES = prev;
   });
 });
 

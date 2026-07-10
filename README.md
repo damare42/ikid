@@ -17,6 +17,17 @@ npm start       # → http://localhost:3001
 only transactions), then serves everything from a single local process.
 Open **http://localhost:3001**, sign up, and drop in a bank statement.
 
+### Docker (self-hosting / home server)
+
+```bash
+docker compose up -d                  # → http://localhost:3001
+docker compose --profile ai up -d     # + local Ollama for the Planner
+```
+
+Sign-in is required by default in Docker, data persists in the `ikid-data`
+volume, and upgrades auto-backup every database first. See
+[docs/DEPLOY.md](docs/DEPLOY.md) for HTTPS, backups, and environment variables.
+
 ### Development mode
 
 ```bash

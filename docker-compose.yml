@@ -1,0 +1,31 @@
+# ikid self-hosted.
+#   docker compose up -d                 → just ikid  (http://localhost:3001)
+#   docker compose --profile ai up -d    → ikid + local Ollama for the Planner
+# First run: open the app, Sign up, done. Data persists in the ikid-data volume.
+
+services:
+  ikid:
+    build: .
+    ports:
+      - "3001:3001"
+    volumes:
+      - ikid-data:/app/database
+    environment:
+      # Planner AI (only used when the ollama service is running)
+      - OLLAMA_URL=http://ollama:11434
+      # Uncomment when behind an HTTPS reverse proxy:
+      # - IKID_SECURE_COOKIES=1
+    restart: unless-stopped
+
+  # Optional local AI for the Planner. After first start, pull a model once:
+  #   docker compose exec ollama ollama pull llama3.1
+  ollama:
+    image: ollama/ollama
+    profiles: ["ai"]
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ikid-data:
+  ollama-data:

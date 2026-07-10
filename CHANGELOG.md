@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 — self-hosting
+
+- Docker support: multi-stage image with healthcheck, persistent `/app/database` volume, and `docker-compose.yml` with an optional Ollama service (`--profile ai`)
+- `IKID_REQUIRE_AUTH=1` forces sign-in even before any password exists (default in the Docker image, so networked instances never run in open mode)
+- `IKID_SECURE_COOKIES=1` adds the `Secure` flag to session cookies for HTTPS deployments
+- Profile renaming with permanent per-profile account IDs that survive renames
+- Deployment guide (`docs/DEPLOY.md`): HTTPS via reverse proxy, volume backups, upgrade flow
+
 ## 0.1.0 — first public release
 
 - Statement import (CSV + PDF, any bank) with column auto-detection, duplicate hashing, and a review/correct step
