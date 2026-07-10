@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../../database/ikid.db"
+}
+
+model Account {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  type         String // checking | savings | credit | loan
+  currency     String        @default("USD")
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  imports      Import[]
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  type         String        @default("expense") // expense | income | transfer
+  color        String        @default("#64748b")
+  transactions Transaction[]
+  rules        Rule[]
+  budget       Budget?
+}
+
+model Merchant {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  transactions Transaction[]
+}
+
+model Tag {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  date        DateTime
+  description String
+  amount      Float // signed: negative = money out
+  balance     Float?
+  type        String    @default("debit") // debit | credit
+  refNumber   String?
+  notes       String?
+  hash        String    @unique
+  isTransfer  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  merchantId  Int?
+  merchant    Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  accountId   Int?
+  account     Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  importId    Int?
+  import      Import?   @relation(fields: [importId], references: [id], onDelete: SetNull)
+  tags        Tag[]
+
+  @@index([date])
+  @@index([categoryId])
+  @@index([merchantId])
+  @@index([accountId])
+  @@index([amount])
+  @@index([isTransfer])
+}
+
+model Rule {
+  id         Int      @id @default(autoincrement())
+  keyword    String
+  priority   Int      @default(0)
+  source     String   @default("user") // default | user | learned
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([keyword, categoryId])
+  @@index([keyword])
+}
+
+model Budget {
+  id           Int      @id @default(autoincrement())
+  categoryId   Int      @unique
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  monthlyLimit Float
+}
+
+model Goal {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  icon                String    @default("🎯")
+  targetAmount        Float
+  currentSaved        Float     @default(0)
+  monthlyContribution Float     @default(0)
+  deadline            DateTime?
+  createdAt           DateTime  @default(now())
+}
+
+model Import {
+  id               Int           @id @default(autoincrement())
+  filename         String
+  fileType         String
+  status           String        @default("completed")
+  transactionCount Int           @default(0)
+  duplicateCount   Int           @default(0)
+  importedAt       DateTime      @default(now())
+  accountId        Int?
+  account          Account?      @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  transactions     Transaction[]
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  title     String
+  messages  String // JSON-serialized chat messages (role, content, title, chart, source)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,12 @@
+<svg viewBox="-4 -14 148 96" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ikid-brand-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0e744c"/>
+      <stop offset="1" stop-color="#1cb474"/>
+    </linearGradient>
+  </defs>
+  <text x="0" y="64" font-family="'Fraunces', Georgia, serif" font-weight="800" font-style="italic" font-size="58" fill="url(#ikid-brand-grad)" textLength="128" lengthAdjust="spacingAndGlyphs">&#305;k&#305;d</text>
+  <circle cx="16" cy="13" r="5.5" fill="#0e744c"/>
+  <circle cx="71" cy="13" r="5.5" fill="#1cb474"/>
+  <path d="M16,13 C34,-8 53,-8 71,13" fill="none" stroke="#1cb474" stroke-width="2.5" stroke-dasharray="6 6"/>
+</svg>
