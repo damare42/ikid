@@ -120,10 +120,45 @@ model Setting {
   value String
 }
 
+model Asset {
+  id             Int             @id @default(autoincrement())
+  name           String
+  kind           String // cash | investment | property | vehicle | other | mortgage | loan | credit
+  isLiability    Boolean         @default(false)
+  icon           String          @default("💰")
+  // investment holdings (optional): value = units × unitPrice
+  units          Float?
+  unitPrice      Float?
+  // liability terms (optional): enables payoff projections
+  ratePct        Float?
+  monthlyPayment Float?
+  notes          String?
+  createdAt      DateTime        @default(now())
+  snapshots      AssetSnapshot[]
+}
+
+model AssetSnapshot {
+  id      Int      @id @default(autoincrement())
+  assetId Int
+  asset   Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  date    DateTime @default(now())
+  value   Float // always positive; liability sign is applied by isLiability
+
+  @@index([assetId, date])
+}
+
 model Conversation {
   id        Int      @id @default(autoincrement())
   title     String
   messages  String // JSON-serialized chat messages (role, content, title, chart, source)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model SavedCalculation {
+  id        Int      @id @default(autoincrement())
+  kind      String // amortization | compound | fire | coast
+  name      String
+  inputs    String // JSON of the calculator inputs
+  createdAt DateTime @default(now())
 }

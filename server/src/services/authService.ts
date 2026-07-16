@@ -162,6 +162,18 @@ export function destroySession(token: string | undefined): void {
   if (token && sessions.delete(token)) saveSessions();
 }
 
+/** Invalidate every live session for a profile (on disable / password reset). */
+export function destroySessionsFor(profile: string): void {
+  let changed = false;
+  for (const [token, s] of sessions) {
+    if (s.profile === profile) {
+      sessions.delete(token);
+      changed = true;
+    }
+  }
+  if (changed) saveSessions();
+}
+
 /** Keep credentials and live sessions pointing at a renamed profile. */
 export function renameProfileAuth(oldName: string, newName: string): void {
   if (oldName === newName) return;

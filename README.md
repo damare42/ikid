@@ -59,9 +59,13 @@ to wipe everything and start fresh.
 - **Auto-categorization** — keyword rules (longest/most specific match wins) seeded with real merchant patterns. Every time you categorize something — editing a transaction or correcting a category in the import review — Ikid saves a *learned* rule and retroactively fixes other uncategorized transactions from that merchant, so it gets smarter with use. Rules are fully editable in Settings.
 - **Transactions** — search, filter by category/merchant/account/date range/amount range, sort, paginate; edit category, merchant, notes, and tags; mark transfers. Add income or expenses manually (cash, freelance payments, anything not on a statement) with the **+ Add transaction** button.
 - **Profiles & accounts** — fully separate datasets (e.g. you / partner / business), each in its own SQLite file; budgets, goals, rules, and settings are all per-profile. Set a password in Settings → Security to turn profiles into sign-in accounts: scrypt-hashed passwords with per-profile salts, HttpOnly session cookies, login rate-limiting, and per-request database routing so concurrent users only ever see their own data. With no passwords set, Ikid stays in single-user open mode.
+- **Admin & usage analytics** — the first account is an admin. The Admin page (🛡️) shows how many people use the app, active-user counts, the most-used features, an activity trend, and an accounts table (promote/demote, disable/enable, reset password, toggle open sign-ups). Analytics record *feature events only* — never amounts, merchants, or any financial data — and stay entirely local. Admins can manage accounts but never open another user's data. See `docs/GO-PUBLIC.md` for how this maps to a possible hosted version and the local-first trade-offs.
 - **Budgets** — monthly limits per category with spent/remaining/% used and an end-of-month spending forecast.
 - **Goals** — target, saved-so-far, monthly contribution, optional deadline. Ikid computes estimated completion, months remaining, required monthly contribution for a deadline, and a projected balance curve — with live "what if?" previews as you tweak numbers.
-- **Planner** — a chat-style what-if modeler that uses your real income/expense/savings numbers. Ask "buy a house for $450k with 10% down", "wedding costing $20k in 18 months", or "what if I stop working for 8 months" and a deterministic engine computes upfront cash, loan payments, new savings rate, and a 24-month projection chart. If [Ollama](https://ollama.com) is installed (`ollama pull llama3.1`), freeform questions get natural-language answers from a local LLM — the math always stays in the engine.
+- **Net Worth** — track assets (cash, investments, property, vehicles) and liabilities (mortgage, loans, credit cards) as dated value snapshots. Update values whenever you like — back-dating fills in history — and Ikid charts net worth over time with carry-forward between updates. Investments can store units × unit price; loans with a rate and monthly payment show a projected payoff date and remaining interest.
+- **Planner** — a chat-style what-if modeler that uses your real income/expense/savings numbers. Ask "buy a house for $450k with 10% down", "wedding costing $20k in 18 months", "invest $500 a month at 7% for 20 years", or "what if I stop working for 8 months" and a deterministic engine computes upfront cash, loan payments, compound growth, new savings rate, and a projection chart. If [Ollama](https://ollama.com) is installed (`ollama pull llama3.1`), freeform questions get natural-language answers from a local LLM — the math always stays in the engine.
+- **Calculators** — loan amortization (monthly payment, payoff date, total interest, extra-payment savings, principal-vs-interest by year), compound interest (contributions vs growth), FIRE (your financial-independence number, projected FIRE age, and the path to it), and Coast FIRE (how much you need *today* to coast to retirement with no further contributions) — all computed by the same unit-tested engine the Planner uses. Any setup can be saved to a per-profile history panel and reloaded later.
+- **Retirement Planner** — methodical early-retirement planning across account types: Traditional 401k/IRA, Roth (contribution basis tracked separately), brokerage (cost-basis-aware capital gains), and HSA. Simulates every year from now to your plan horizon with the age-59½ rule, Roth conversion ladders (5-year seasoning, sized to fill the standard deduction and low brackets), RMDs from the Uniform Lifetime Table, and a tax-aware withdrawal waterfall — then tells you whether the plan works, what the bridge to 59½ requires, and how to order contributions. Uses verified federal tax tables (documented constants, federal-only, today's dollars); planning support, not tax advice.
 - **Analytics** — monthly/weekly/yearly trends, category and merchant breakdowns, largest purchases, recurring payment detection, savings analysis, and a daily spending heatmap.
 - **Smart Insights** — month-over-month category and merchant movements, possibly-unused subscriptions, recurring-spend totals, savings opportunities, yearly estimates.
 - **Reports** — CSV export of transactions, plus a print-optimized report page (charts, tables, budget + goal status) — use *Save as PDF* in the print dialog.
@@ -73,7 +77,8 @@ to wipe everything and start fresh.
 ikid/
 ├─ client/           React 18 + TypeScript + Vite + Tailwind + Recharts
 │  └─ src/
-│     ├─ pages/      Dashboard, Transactions, Budgets, Goals, Analytics, Reports, Settings
+│     ├─ pages/      Dashboard, Transactions, Budgets, Goals, Net Worth, Planner,
+│     │              Calculators, Analytics, Reports, Settings
 │     ├─ components/ ui primitives, ImportDialog (drag & drop)
 │     ├─ hooks/      useFetch
 │     └─ lib/        api client, formatters
@@ -95,7 +100,7 @@ Patterns: repository layer isolates the DB, services hold business logic (catego
 
 ## Data model
 
-`Transactions` (signed amounts, unique dedupe hash, transfer flag) ↔ `Categories`, `Merchants`, `Accounts`, `Imports`, `Tags` (many-to-many). `Rules` drive categorization, `Budgets` are per-category monthly limits, `Goals` hold planning inputs, `Settings` is a key-value store.
+`Transactions` (signed amounts, unique dedupe hash, transfer flag) ↔ `Categories`, `Merchants`, `Accounts`, `Imports`, `Tags` (many-to-many). `Rules` drive categorization, `Budgets` are per-category monthly limits, `Goals` hold planning inputs, `Settings` is a key-value store. `Assets` + `AssetSnapshots` hold net-worth items and their dated value history (snapshot values are always positive; liability kinds subtract in totals).
 
 Conventions: **negative amount = money out**; transactions marked `isTransfer` (savings moves, card autopay) are excluded from income/spending so paying your credit card never counts as spending twice.
 
@@ -118,6 +123,13 @@ Conventions: **negative amount = money out**; transactions marked `isTransfer` (
 ## Privacy
 
 Everything is local: SQLite file on disk, localhost-only API, zero external calls. Back up by copying `database/ikid.db` (or use Settings → Backup).
+
+## Principles
+
+What ikid will and won't become is written down in
+[docs/PRINCIPLES.md](docs/PRINCIPLES.md) — including the list of things we
+will **never** build (bank credential sync, cloud accounts, telemetry, ads,
+hosted AI). Feature requests are triaged against it.
 
 ## License
 

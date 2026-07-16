@@ -28,8 +28,8 @@ const reset = process.argv.includes("--reset");
 // so a fresh clone can typecheck before ever touching a database).
 const generateOnly = process.argv.includes("--generate-only");
 
-function run(cmd: string): void {
-  execSync(cmd, { stdio: "inherit", env: process.env, cwd: path.resolve(__dirname, "..") });
+function run(cmd: string, env: NodeJS.ProcessEnv = process.env): void {
+  execSync(cmd, { stdio: "inherit", env, cwd: path.resolve(__dirname, "..") });
 }
 
 run(`npx prisma generate --schema "${schema}"`);
@@ -39,4 +39,20 @@ if (!generateOnly) {
   await import("./rename-migration.js");
   run(`npx prisma db push --skip-generate ${reset ? "--force-reset" : ""} --schema "${schema}"`);
   await import("./seed.js");
+
+  // Every profile is its own SQLite file — apply the same schema to all of
+  // them, not just the default, so switching profiles after an upgrade works.
+  // (--force-reset is deliberately NOT propagated: resetting wipes data and
+  // should only ever hit the database it was explicitly aimed at.)
+  const primary = process.env.IKID_DATABASE_URL;
+  for (const f of fs.readdirSync(DATA_DIR)) {
+    if (!f.endsWith(".db")) continue;
+    const url = "file:" + path.join(DATA_DIR, f);
+    if (url === primary) continue;
+    console.log(`→ updating schema for profile database ${f}`);
+    run(`npx prisma db push --skip-generate --schema "${schema}"`, {
+      ...process.env,
+      IKID_DATABASE_URL: url,
+    });
+  }
 }

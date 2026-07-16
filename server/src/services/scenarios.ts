@@ -3,6 +3,8 @@
  * unit-tested); the optional local LLM only handles language, never numbers.
  */
 
+import { compoundGrowth } from "./finmath.js";
+
 export interface Profile {
   avgMonthlyIncome: number;
   avgMonthlyExpenses: number;
@@ -209,6 +211,37 @@ export function emergencyFund(p: Profile, params: { months?: number }): Scenario
   return { title: `🛟 ${months}-month emergency fund`, lines };
 }
 
+export interface InvestParams {
+  monthly?: number; // default: current monthly savings
+  ratePct?: number; // default 7
+  years?: number; // default 10
+  principal?: number; // default 0
+}
+
+export function investGrowth(p: Profile, params: InvestParams): ScenarioResult {
+  const monthly = params.monthly ?? Math.max(0, p.avgMonthlySavings);
+  const ratePct = params.ratePct ?? 7;
+  const years = Math.min(80, Math.max(1, params.years ?? 10));
+  const principal = params.principal ?? 0;
+  const g = compoundGrowth(principal, monthly, ratePct, years);
+  const affordable = monthly <= p.avgMonthlySavings;
+  const lines = [
+    `Investing ${fmt(monthly)}/mo${principal > 0 ? ` (starting with ${fmt(principal)})` : ""} at ${ratePct}%/yr grows to ${fmt(g.finalBalance)} in ${years} years.`,
+    `You put in ${fmt(g.totalContributed)}; compounding adds ${fmt(g.totalInterest)} on top.`,
+    affordable
+      ? `That fits your current ~${fmt(p.avgMonthlySavings)}/mo savings pace${monthly < p.avgMonthlySavings ? `, leaving ${fmt(p.avgMonthlySavings - monthly)}/mo unallocated` : ""}.`
+      : `Heads up: you currently save ~${fmt(p.avgMonthlySavings)}/mo, so ${fmt(monthly)}/mo would need ${fmt(monthly - p.avgMonthlySavings)}/mo of cuts or extra income.`,
+    `See the Calculators page (📐) to tweak rate, years, and contributions interactively.`,
+  ];
+  // Chart: baseline = what you put in, scenario = what it becomes.
+  const chart = g.series.map((s) => ({
+    month: monthLabel(s.year * 12),
+    baseline: s.contributed,
+    scenario: s.balance,
+  }));
+  return { title: `📈 Investing ${fmt(monthly)}/mo at ${ratePct}% for ${years} years`, lines, chart };
+}
+
 export function incomeChange(p: Profile, newMonthlyIncome: number): ScenarioResult {
   const newSavings = round2(newMonthlyIncome - p.avgMonthlyExpenses);
   const rate = newMonthlyIncome > 0 ? Math.round((newSavings / newMonthlyIncome) * 100) : 0;
@@ -240,7 +273,7 @@ export function expenseChange(p: Profile, deltaMonthly: number): ScenarioResult 
 // ---------- intent parsing (built-in, no LLM required) ----------
 
 export interface ParsedIntent {
-  kind: "house" | "car" | "event" | "stopwork" | "income" | "expense" | "emergency";
+  kind: "house" | "car" | "event" | "stopwork" | "income" | "expense" | "emergency" | "invest";
   params: Record<string, number | string>;
 }
 
@@ -299,7 +332,7 @@ export function parseStatsIntent(text: string): { months: number } | null {
   if (!/\b(what|how much|show|tell me|summar|list)\b/.test(t)) return null;
   if (!/\b(spend|spent|expense|expenses|income|earn|earned|save|saving|savings)\b/.test(t)) return null;
   // Don't steal purchase/emergency phrasings
-  if (/\b(house|home|car|wedding|cover|emergency|stop work|quit)\b/.test(t)) return null;
+  if (/\b(house|home|car|wedding|cover|emergency|stop work|quit|invest|compound)\b/.test(t)) return null;
   const m = t.match(/last\s+(\d+)\s*month/);
   if (m) return { months: Math.min(24, Math.max(1, parseInt(m[1]))) };
   if (/(year to date|ytd|this year)/.test(t)) return { months: new Date().getMonth() + 1 };
@@ -340,6 +373,21 @@ export function parseIntent(text: string): ParsedIntent | null {
   }
   if (/\b(stop work|quit|sabbatical|unemployed|laid off|career break|time off|not work)/.test(t)) {
     return { kind: "stopwork", params: { ...(months !== undefined && { months }) } };
+  }
+  // "invest $500 a month at 7% for 20 years", "compound growth", "put $200/mo in index funds"
+  if (/\b(invest|compound|index fund|401k|roth|ira|brokerage|stock market)\b/.test(t)) {
+    const rateMatch = t.match(/(?:at\s*)?(\d+(?:\.\d+)?)\s*%(?!\s*down)/);
+    const yearsMatch = t.match(/(\d+)\s*(?:years?|yrs?)\b/);
+    const perMonth = /\b(a|per|each|\/)\s*(month|mo)\b|\/mo\b/.test(t);
+    return {
+      kind: "invest",
+      params: {
+        ...(money != null && (perMonth || money <= 10_000) && { monthly: money }),
+        ...(money != null && !perMonth && money > 10_000 && { principal: money }),
+        ...(rateMatch && { ratePct: parseFloat(rateMatch[1]) }),
+        ...(yearsMatch && { years: parseInt(yearsMatch[1]) }),
+      },
+    };
   }
   // Income/expense changes need a real dollar amount AND change wording —
   // otherwise the question falls through to the LLM instead of guessing.

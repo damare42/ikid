@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { HashRouter, NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "./lib/api";
 import { setCurrency } from "./lib/format";
+import { pageEvent, track } from "./lib/track";
 import type { SettingsDTO } from "@shared/types";
 import { ImportDialog } from "./components/ImportDialog";
 import { LoginScreen, type AuthStatus } from "./components/LoginScreen";
@@ -13,6 +14,10 @@ import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Planner from "./pages/Planner";
+import NetWorth from "./pages/NetWorth";
+import Calculators from "./pages/Calculators";
+import Retirement from "./pages/Retirement";
+import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -94,7 +99,10 @@ const NAV = [
   { to: "/transactions", label: "Transactions", icon: "🧾" },
   { to: "/budgets", label: "Budgets", icon: "🎯" },
   { to: "/goals", label: "Goals", icon: "🏁" },
+  { to: "/networth", label: "Net Worth", icon: "💎" },
   { to: "/planner", label: "Planner", icon: "🧮" },
+  { to: "/calculators", label: "Calculators", icon: "📐" },
+  { to: "/retirement", label: "Retirement", icon: "🧭" },
   { to: "/analytics", label: "Analytics", icon: "📈" },
   { to: "/reports", label: "Reports", icon: "📄" },
   { to: "/settings", label: "Settings", icon: "⚙️" },
@@ -113,6 +121,13 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const nav = auth?.isAdmin ? [...NAV, { to: "/admin", label: "Admin", icon: "🛡️" }] : NAV;
+
+  // Page-view telemetry (feature key only, no data).
+  useEffect(() => {
+    track(pageEvent(location.pathname));
+  }, [location.pathname]);
 
   useEffect(() => {
     applyTheme(theme);
@@ -142,7 +157,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
         </div>
         <ProfileSwitcher auth={auth} />
         <nav className="flex flex-col gap-1">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
@@ -188,7 +203,11 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
             <Route path="/transactions" element={<Transactions key={refreshKey} />} />
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/goals" element={<Goals />} />
+            <Route path="/networth" element={<NetWorth />} />
             <Route path="/planner" element={<Planner />} />
+            <Route path="/calculators" element={<Calculators />} />
+            <Route path="/retirement" element={<Retirement />} />
+            {auth?.isAdmin && <Route path="/admin" element={<Admin />} />}
             <Route path="/analytics" element={<Analytics key={refreshKey} />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings onThemeChange={setTheme} />} />

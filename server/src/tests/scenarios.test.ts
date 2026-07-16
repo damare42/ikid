@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  bigEvent, buyHouse, expenseChange, loanMonthly, parseIntent, parseMoney, parseStatsIntent,
-  parseWindowMonths, stopWork, type Profile,
+  bigEvent, buyHouse, expenseChange, investGrowth, loanMonthly, parseIntent, parseMoney,
+  parseStatsIntent, parseWindowMonths, stopWork, type Profile,
 } from "../services/scenarios.js";
 
 const profile: Profile = {
@@ -92,6 +92,36 @@ describe("parseStatsIntent", () => {
     expect(parseStatsIntent("what if my expenses go up $800")).toBeNull();
     expect(parseStatsIntent("how much do I need to cover 6 months of expenses")).toBeNull();
     expect(parseStatsIntent("buy a house for $450k")).toBeNull();
+  });
+});
+
+describe("invest intent + compound growth", () => {
+  it("parses monthly contribution, rate, and years", () => {
+    expect(parseIntent("Invest $500 a month at 7% for 20 years")).toMatchObject({
+      kind: "invest",
+      params: { monthly: 500, ratePct: 7, years: 20 },
+    });
+    // Large one-off amount without "per month" is a starting principal
+    expect(parseIntent("invest $50,000 at 6% for 10 years")).toMatchObject({
+      kind: "invest",
+      params: { principal: 50000, ratePct: 6, years: 10 },
+    });
+    // "% down" must not be read as a return rate
+    expect(parseIntent("buy a house for $450k with 10% down")).toMatchObject({ kind: "house" });
+  });
+
+  it("is not stolen by the stats parser", () => {
+    expect(parseStatsIntent("how much will my savings grow if I invest $500 a month")).toBeNull();
+  });
+
+  it("computes compound growth with the tested engine", () => {
+    const r = investGrowth(profile, { monthly: 500, ratePct: 7, years: 20 });
+    // 500/mo at 7%/yr for 20y ≈ $260.5k (end-of-month contributions)
+    expect(r.lines[0]).toMatch(/\$2[456]\d,\d{3}/);
+    expect(r.lines[1]).toContain("$120,000"); // contributions
+    expect(r.chart).toBeDefined();
+    expect(r.chart!.length).toBe(21); // year 0..20
+    expect(r.chart![20].scenario).toBeGreaterThan(r.chart![20].baseline);
   });
 });
 

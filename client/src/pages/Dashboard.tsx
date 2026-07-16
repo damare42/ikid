@@ -4,7 +4,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend,
   Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import type { DashboardSummary, MonthlyPoint } from "@shared/types";
+import type { DashboardSummary, MonthlyPoint, NetWorthSummary } from "@shared/types";
 import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtMoney, fmtMonth, fmtSigned, monthInputValue, pct } from "../lib/format";
 import { Badge, Card, ErrorNote, Modal, ProgressBar, Spinner, StatCard } from "../components/ui";
@@ -163,6 +163,8 @@ export default function Dashboard() {
   const { data: csp } = useFetch<CspBreakdown>(
     mode === "ytd" ? "/api/analytics/csp?range=ytd" : `/api/analytics/csp?month=${month}`,
   );
+  const { data: nw } = useFetch<NetWorthSummary>("/api/networth/summary");
+  const hasNetWorth = !!nw && nw.assets.length > 0;
   const navigate = useNavigate();
   const [breakdownMonth, setBreakdownMonth] = useState<string | null>(null);
   const [cspOpen, setCspOpen] = useState(false);
@@ -207,7 +209,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className={`grid grid-cols-2 gap-3 md:grid-cols-3 ${hasNetWorth ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
         <StatCard label="Net Savings" value={fmtSigned(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
@@ -218,6 +220,16 @@ export default function Dashboard() {
           sub={s.budgets.length ? "budgets on track" : "no budgets set"}
         />
         <StatCard label="Health Score" value={`${s.healthScore}`} sub="out of 100" tone={scoreTone} />
+        {hasNetWorth && (
+          <div className="cursor-pointer" onClick={() => navigate("/networth")} title="Open Net Worth">
+            <StatCard
+              label="💎 Net Worth"
+              value={fmtMoney(nw!.netWorth)}
+              tone={nw!.netWorth >= 0 ? "good" : "bad"}
+              sub="view details →"
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

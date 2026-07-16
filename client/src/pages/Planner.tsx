@@ -35,6 +35,7 @@ const QUICK = [
   { label: "🚗 Buy a car", text: "Buy a $30k car" },
   { label: "💍 Wedding", text: "Wedding costing $25k in 18 months" },
   { label: "📦 Moving", text: "Moving, about $6k in 3 months" },
+  { label: "📊 Invest monthly", text: "Invest $500 a month at 7% for 20 years" },
   { label: "🛑 Stop working", text: "What if I stop working for 6 months?" },
   { label: "📈 Expenses up", text: "What if my expenses go up $500 a month?" },
 ];

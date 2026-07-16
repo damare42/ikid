@@ -9,6 +9,9 @@ export interface AuthStatus {
   current: string | null;
   signedIn: boolean;
   profiles: { name: string; id?: string; protected: boolean }[];
+  role?: "admin" | "user" | null;
+  isAdmin?: boolean;
+  allowSignups?: boolean;
 }
 
 export function LoginScreen({ status, onSignedIn }: { status: AuthStatus; onSignedIn: () => void }) {

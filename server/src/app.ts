@@ -16,6 +16,11 @@ import { settingsRouter } from "./routes/settings.js";
 import { profilesRouter } from "./routes/profiles.js";
 import { plannerRouter } from "./routes/planner.js";
 import { authRouter, authMiddleware } from "./routes/auth.js";
+import { netWorthRouter } from "./routes/networth.js";
+import { calcRouter } from "./routes/calc.js";
+import { retirementRouter } from "./routes/retirement.js";
+import { adminRouter } from "./routes/admin.js";
+import { trackRouter } from "./routes/track.js";
 
 export function createApp() {
   const app = express();
@@ -57,6 +62,11 @@ export function createApp() {
   app.use("/api/settings", settingsRouter);
   app.use("/api/profiles", profilesRouter);
   app.use("/api/planner", plannerRouter);
+  app.use("/api/networth", netWorthRouter);
+  app.use("/api/calc", calcRouter);
+  app.use("/api/retirement", retirementRouter);
+  app.use("/api/track", trackRouter);
+  app.use("/api/admin", adminRouter);
 
   // SPA fallback for non-API paths (hash router, so mostly "/")
   if (serveClient) {

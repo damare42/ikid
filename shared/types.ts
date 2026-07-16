@@ -176,8 +176,92 @@ export interface InsightDTO {
   amount?: number;
 }
 
+export type AssetKind =
+  | "cash" | "investment" | "property" | "vehicle" | "other"
+  | "mortgage" | "loan" | "credit";
+
+export interface AssetPayoff {
+  months: number;
+  payoffDate: string;
+  totalInterest: number;
+}
+
+export interface AssetDTO {
+  id: number;
+  name: string;
+  kind: AssetKind;
+  isLiability: boolean;
+  icon: string;
+  units: number | null;
+  unitPrice: number | null;
+  ratePct: number | null;
+  monthlyPayment: number | null;
+  notes: string | null;
+  value: number; // latest snapshot (always positive)
+  updatedAt: string; // date of latest snapshot
+  previousValue: number | null;
+  payoff: AssetPayoff | null; // liabilities with rate+payment only
+}
+
+export interface NetWorthSummary {
+  netWorth: number;
+  totalAssets: number;
+  totalLiabilities: number;
+  assets: AssetDTO[];
+  byKind: { kind: string; total: number; isLiability: boolean }[];
+}
+
+export interface NetWorthPoint {
+  month: string;
+  assets: number;
+  liabilities: number;
+  netWorth: number;
+}
+
+export type CalcKind = "amortization" | "compound" | "fire" | "coast" | "retirement";
+
+export interface SavedCalcDTO {
+  id: number;
+  kind: CalcKind;
+  name: string;
+  inputs: Record<string, number>;
+  createdAt: string;
+}
+
 export interface SettingsDTO {
   currency: string;
   dateFormat: string;
   theme: "light" | "dark" | "system";
+}
+
+// ---------- admin / accounts ----------
+
+export type Role = "admin" | "user";
+
+export interface AdminUserDTO {
+  name: string;
+  id: string;
+  role: Role;
+  disabled: boolean;
+  hasPassword: boolean;
+  createdAt: string;
+  lastLogin: string | null;
+  eventCount: number;
+  lastActive: string | null;
+  isSelf: boolean;
+}
+
+export interface AdminOverviewDTO {
+  totalUsers: number;
+  admins: number;
+  disabled: number;
+  newUsers7d: number;
+  activeUsers7d: number;
+  activeUsers30d: number;
+  totalEvents: number;
+  events7d: number;
+  byFeature: { feature: string; count: number }[];
+  byDay: { day: string; events: number; users: number }[];
+  topUsers: { user: string; events: number; lastActive: string | null }[];
+  config: { allowSignups: boolean };
 }

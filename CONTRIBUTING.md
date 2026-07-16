@@ -1,11 +1,14 @@
 # Contributing to Ikid
 
-Thanks for your interest! Ikid is a local-first personal finance app — the two
-non-negotiable design rules are:
+Thanks for your interest! Ikid is a local-first personal finance app. Start by
+reading **[docs/PRINCIPLES.md](docs/PRINCIPLES.md)** — every change is measured
+against it. The three non-negotiable rules:
 
 1. **No network calls to third parties.** Everything runs on the user's machine.
 2. **Numbers come from deterministic, tested code.** The optional local AI only
    narrates; it never calculates.
+3. **Every number is auditable.** Totals and insights trace back to the
+   transactions behind them.
 
 ## Getting started
 

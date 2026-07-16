@@ -3,6 +3,7 @@ import { z } from "zod";
 import { asyncHandler, parse, ApiError } from "../lib/errors.js";
 import { createProfile, currentProfile, listProfiles, renameProfile, switchProfile } from "../lib/prisma.js";
 import { authEnabled, renameProfileAuth } from "../services/authService.js";
+import { renameAccount } from "../services/accountService.js";
 import { logger } from "../lib/logger.js";
 
 export const profilesRouter = Router();
@@ -38,6 +39,7 @@ profilesRouter.post(
     try {
       const to = await renameProfile(from, body.name);
       renameProfileAuth(from, to);
+      renameAccount(from, to);
       logger.info("Profile renamed", { from, to });
       res.json({ from, to });
     } catch (e) {

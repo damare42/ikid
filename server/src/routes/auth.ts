@@ -7,6 +7,10 @@ import {
   isProtected, loginOptions, parseCookies, removePassword, sessionCookie,
   clearSessionCookie, setPassword, SESSION_COOKIE,
 } from "../services/authService.js";
+import {
+  ensureAccount, getAccount, getConfig, isAdmin, isDisabled, recordLogin,
+} from "../services/accountService.js";
+import { recordEvent } from "../services/usageService.js";
 import fs from "node:fs";
 
 export const authRouter = Router();
@@ -18,12 +22,15 @@ function sessionToken(req: Request): string | undefined {
 authRouter.get(
   "/status",
   asyncHandler(async (req, res) => {
-    const current = getSessionProfile(sessionToken(req));
+    const current = authEnabled() ? getSessionProfile(sessionToken(req)) : getActiveProfile();
     res.json({
       enabled: authEnabled(),
-      current: authEnabled() ? current : getActiveProfile(),
-      signedIn: !authEnabled() || current != null,
+      current,
+      signedIn: !authEnabled() || getSessionProfile(sessionToken(req)) != null,
       profiles: loginOptions(),
+      role: current ? (getAccount(current)?.role ?? "user") : null,
+      isAdmin: isAdmin(current),
+      allowSignups: getConfig().allowSignups,
     });
   }),
 );
@@ -36,8 +43,12 @@ authRouter.post(
       req.body,
     );
     if (!fs.existsSync(getDbPath(body.profile))) throw new ApiError(404, "Profile not found");
+    if (isDisabled(body.profile)) throw new ApiError(403, "This account has been disabled. Contact an administrator.");
     const result = checkLogin(body.profile, body.password);
     if (!result.ok) throw new ApiError(401, result.error ?? "Login failed");
+    ensureAccount(body.profile);
+    recordLogin(body.profile);
+    recordEvent(body.profile, "action:login");
     const token = createSession(body.profile);
     res.setHeader("Set-Cookie", sessionCookie(token));
     res.json({ profile: body.profile });
@@ -55,6 +66,11 @@ authRouter.post(
       }),
       req.body,
     );
+    // Admins can turn off open registration for a public deployment. The very
+    // first account is always allowed (someone has to become the admin).
+    if (!getConfig().allowSignups && authEnabled()) {
+      throw new ApiError(403, "New sign-ups are currently disabled.");
+    }
     let name: string;
     try {
       name = await createProfile(body.name);
@@ -62,6 +78,9 @@ authRouter.post(
       throw new ApiError(400, (e as Error).message);
     }
     setPassword(name, body.password);
+    ensureAccount(name); // first account ever → admin, otherwise a user
+    recordLogin(name);
+    recordEvent(name, "action:signup");
     const token = createSession(name);
     res.setHeader("Set-Cookie", sessionCookie(token));
     res.json({ profile: name });
@@ -130,6 +149,11 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   const profile = getSessionProfile(sessionToken(req));
   if (!profile) {
     res.status(401).json({ error: "Not signed in" });
+    return;
+  }
+  if (isDisabled(profile)) {
+    destroySession(sessionToken(req));
+    res.status(403).json({ error: "This account has been disabled." });
     return;
   }
   profileContext.run({ profile }, next);

@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.5.0 — accounts, admin & usage analytics
+
+- Central account layer over the existing per-profile databases: each profile is an account with a role (admin/user), an enabled flag, and timestamps. The first account created becomes admin; an existing install adopts its active profile (override with `IKID_ADMIN`)
+- Admin page (🛡️, admin-only): user counts, new/active users (7d/30d), a most-used-features chart, a 30-day activity trend, and an accounts table — promote/demote, disable/enable, reset password, and toggle open sign-ups. Guards prevent demoting or disabling the last admin
+- Local, privacy-preserving usage analytics: records feature events (page views, key actions) only — never amounts, merchants, categories, or any financial data. Stored in an append-only local file; no third-party calls
+- Account isolation preserved: admins manage accounts and see aggregate usage but cannot open another user's financial data. Disabling an account or resetting its password ends its sessions immediately
+- `docs/GO-PUBLIC.md`: an honest plan for whether/how to offer a hosted version — the local-first tension, opt-in telemetry and feedback, and what a multi-tenant launch would require (this feature deliberately amends the "never build analytics" line in PRINCIPLES.md)
+
+## 0.4.0 — net worth & investing
+
+- Net Worth page (💎): track assets (cash, investments, property, vehicles) and liabilities (mortgage, loans, credit cards) as dated value snapshots — back-datable, one value per day, full history kept
+- Net worth history chart (assets vs liabilities bars + net worth line, 24 months, carry-forward between updates) and summary cards with month-over-month change
+- Investment holdings can store units × unit price; updating either recomputes the value
+- Loans with a rate + monthly payment show a projected payoff date and remaining interest, and warn when the payment doesn't cover interest
+- Calculators page (📐): loan amortization (payment, payoff date, total interest, extra-payment savings, principal-vs-interest yearly chart) and compound interest (contributions vs growth over time)
+- FIRE calculator (🔥): FIRE number from retirement spending ÷ safe withdrawal rate, projected FIRE age/date from your balance and contributions, portfolio-vs-target chart (real, after-inflation returns keep everything in today's dollars)
+- Coast FIRE calculator (🏖️): the amount that compounds to your FIRE number by retirement with zero further contributions — coast number today, gap or surplus, projected coast age against the rising threshold
+- Saved calculations: 💾 Save any calculator setup with a name; a history panel beside the calculators reloads or deletes saved scenarios (stored per profile)
+- Retirement Planner (🧭): year-by-year early-retirement simulation across Traditional 401k/IRA, Roth (with contribution basis), brokerage (cost-basis-aware LTCG), and HSA — models the age-59½ rule, Roth conversion ladders with 5-year seasoning, RMDs (Uniform Lifetime Table), and a tax-aware withdrawal waterfall
+- Federal tax engine with verified 2026 brackets/standard deduction/LTCG thresholds (Rev. Proc. 2025-32), conversion-headroom math for filling low brackets, all unit-tested (federal only, real dollars; constants documented for yearly updates)
+- Bridge analysis for retiring before 59½: how much must live in brokerage/Roth basis/HSA, gap detection, penalty flagging, and deterministic funding-order guidance
+- Retirement plans can be saved and reloaded (💾 Save plan + saved-plans chips), sharing the per-profile saved-calculations store
+- Planner understands investing: "Invest $500 a month at 7% for 20 years" runs the deterministic compound engine with a contributions-vs-balance chart
+- Dashboard shows a Net Worth card (once you've added assets) that links to the new page
+- New pure `finmath` engine (amortization, payoff, compound growth) — unit-tested, per PRINCIPLES.md every number is reproducible; 61 tests total
+
 ## 0.3.0 — desktop app
 
 - Electron desktop app (`desktop/`): double-clickable ikid for macOS (.dmg, arm64 + Intel), Windows (.exe), and Linux (.AppImage) — no terminal or npm required

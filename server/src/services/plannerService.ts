@@ -8,7 +8,7 @@ import { prisma } from "../lib/prisma.js";
 import { logger } from "../lib/logger.js";
 import { monthlySeries, categoryBreakdown } from "./analyticsService.js";
 import {
-  buyHouse, buyCar, bigEvent, stopWork, incomeChange, expenseChange, emergencyFund,
+  buyHouse, buyCar, bigEvent, stopWork, incomeChange, expenseChange, emergencyFund, investGrowth,
   parseIntent, parseStatsIntent, parseWindowMonths, type Profile, type ScenarioResult,
 } from "./scenarios.js";
 
@@ -94,6 +94,8 @@ export function runScenario(profile: Profile, text: string): ScenarioResult | nu
     }
     case "expense":
       return expenseChange(profile, Number(intent.params.delta));
+    case "invest":
+      return investGrowth(profile, intent.params as any);
   }
 }
 
@@ -133,7 +135,7 @@ export async function ollamaChat(
   const system = [
     "You are Ikid's financial planning assistant, running fully locally on the user's machine.",
     "Be concise (under 150 words), practical, and honest. You are not a licensed financial advisor; for big decisions suggest verifying with a professional.",
-    "NEVER invent numbers. Only use the figures provided below. If asked for math beyond them, explain what the scenario engine supports (house, car, wedding/moving/trip, stopping work, income or expense changes) and suggest phrasing.",
+    "NEVER invent numbers. Only use the figures provided below. If asked for math beyond them, explain what the scenario engine supports (house, car, wedding/moving/trip, stopping work, income or expense changes, investing with compound growth) and suggest phrasing.",
     "",
     "User's actual finances (monthly averages from their imported data):",
     `- Take-home income: ${fmt(profile.avgMonthlyIncome)}/mo`,
@@ -179,6 +181,7 @@ export function fallbackReply(profile: Profile, ollamaReason?: string): string {
     '• "Wedding costing $20k in 18 months"',
     '• "Moving, about $6k"',
     '• "How much do I need to cover 6 months of expenses?"',
+    '• "Invest $500 a month at 7% for 20 years"',
     '• "Stop working for 8 months"',
     '• "What if my expenses go up $800"  ·  "What if I earn $95k"',
     "",
