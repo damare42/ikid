@@ -124,37 +124,52 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
         <RulesEditor rules={rules ?? []} categories={categories ?? []} onChanged={refreshRules} />
       </Card>
 
-      <Card title="Import History">
+      <Card
+        title="Import History"
+        action={
+          imports?.length && accounts?.length ? (
+            <button
+              className="btn-ghost !py-1 text-xs"
+              title="Match each import's filename to an account (e.g. 'chase-oct.csv' → Chase) and assign its transactions"
+              onClick={async () => {
+                const matches = (imports ?? [])
+                  .map((im) => ({ im, acc: matchAccountByFilename(im.filename, accounts ?? []) }))
+                  .filter((m) => m.acc && m.im.accountId !== m.acc.id);
+                if (matches.length === 0) { setMsg("No new filename→account matches found."); return; }
+                if (!confirm(`Assign ${matches.length} import(s) to accounts matched from their filenames?`)) return;
+                let total = 0;
+                for (const m of matches) {
+                  const r = await api.post<{ updated: number }>(`/api/imports/${m.im.id}/assign-account`, { accountId: m.acc!.id });
+                  total += r.updated;
+                }
+                refreshImports(); refreshAccounts();
+                setMsg(`Assigned ${total} transaction(s) across ${matches.length} import(s) by filename.`);
+              }}
+            >
+              ✨ Auto-assign by filename
+            </button>
+          ) : undefined
+        }
+      >
         {!imports?.length ? (
           <div className="text-sm text-slate-500">No imports yet.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800">
-                <th className="th">File</th><th className="th">When</th><th className="th text-right">Rows</th>
-                <th className="th text-right">Dupes skipped</th><th className="th" />
+                <th className="th">File</th><th className="th">Account</th><th className="th">When</th>
+                <th className="th text-right">Rows</th><th className="th text-right">Dupes</th><th className="th" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {imports.map((im) => (
-                <tr key={im.id}>
-                  <td className="td">{im.filename}</td>
-                  <td className="td text-slate-500">{new Date(im.importedAt).toLocaleString()}</td>
-                  <td className="td text-right">{im.transactionCount}</td>
-                  <td className="td text-right">{im.duplicateCount}</td>
-                  <td className="td text-right">
-                    <button
-                      className="btn-ghost !px-2 !py-0.5 text-xs text-rose-500"
-                      onClick={async () => {
-                        if (!confirm(`Undo import "${im.filename}"? Its ${im.transactionCount} transactions will be deleted.`)) return;
-                        await api.delete(`/api/imports/${im.id}`);
-                        refreshImports();
-                      }}
-                    >
-                      Undo
-                    </button>
-                  </td>
-                </tr>
+                <ImportRow
+                  key={im.id}
+                  im={im}
+                  accounts={accounts ?? []}
+                  onChanged={() => { refreshImports(); refreshAccounts(); }}
+                  onMessage={setMsg}
+                />
               ))}
             </tbody>
           </table>
@@ -195,6 +210,117 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
         </p>
       </Card>
     </div>
+  );
+}
+
+const compactName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Match an import's filename to an account by name (e.g. "chase-oct.csv" → Chase). */
+export function matchAccountByFilename(filename: string, accounts: AccountDTO[]): AccountDTO | null {
+  const f = compactName(filename);
+  // Longest account name first, so "Capital One" beats a stray "One".
+  const byLength = [...accounts].sort((a, b) => compactName(b.name).length - compactName(a.name).length);
+  return byLength.find((a) => compactName(a.name).length >= 3 && f.includes(compactName(a.name))) ?? null;
+}
+
+function ImportRow({ im, accounts, onChanged, onMessage }: {
+  im: ImportDTO; accounts: AccountDTO[]; onChanged: () => void; onMessage: (m: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(im.filename);
+  const [busy, setBusy] = useState(false);
+
+  const matched = matchAccountByFilename(im.filename, accounts);
+  // Show the assigned account if set, else the filename suggestion.
+  const [accountId, setAccountId] = useState<number | "">(im.accountId ?? matched?.id ?? "");
+  const suggested = im.accountId == null && matched != null && accountId === matched.id;
+
+  async function saveName() {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === im.filename) { setEditing(false); setName(im.filename); return; }
+    setBusy(true);
+    try {
+      await api.patch(`/api/imports/${im.id}`, { filename: trimmed });
+      setEditing(false);
+      onChanged();
+    } catch {
+      setName(im.filename);
+      setEditing(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function assign() {
+    setBusy(true);
+    try {
+      const r = await api.post<{ updated: number }>(`/api/imports/${im.id}/assign-account`, {
+        accountId: accountId === "" ? null : accountId,
+      });
+      onChanged();
+      const target = accounts.find((a) => a.id === accountId)?.name ?? "no account";
+      onMessage(`Assigned ${r.updated} transaction(s) from "${im.filename}" to ${target}.`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const dirty = (accountId === "" ? null : accountId) !== (im.accountId ?? null);
+
+  return (
+    <tr className={suggested ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}>
+      <td className="td">
+        {editing ? (
+          <input
+            className="input !py-0.5 w-52"
+            autoFocus
+            value={name}
+            disabled={busy}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") saveName(); if (e.key === "Escape") { setEditing(false); setName(im.filename); } }}
+            onBlur={saveName}
+          />
+        ) : (
+          <button className="text-left hover:text-brand-600" title="Click to rename" onClick={() => setEditing(true)}>
+            {im.filename} <span className="ml-1 text-xs text-slate-400">✎</span>
+          </button>
+        )}
+      </td>
+      <td className="td">
+        <div className="flex items-center gap-1">
+          <select
+            className="input !py-0.5 max-w-[9rem]"
+            value={accountId}
+            disabled={busy || accounts.length === 0}
+            onChange={(e) => setAccountId(e.target.value ? Number(e.target.value) : "")}
+          >
+            <option value="">— none —</option>
+            {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+          {dirty && (
+            <button className="btn-primary !px-2 !py-0.5 text-xs" disabled={busy} onClick={assign}>
+              {suggested ? "Assign ✓" : "Assign"}
+            </button>
+          )}
+        </div>
+        {suggested && <div className="mt-0.5 text-[10px] text-amber-600">matched from filename</div>}
+      </td>
+      <td className="td text-slate-500 whitespace-nowrap">{new Date(im.importedAt).toLocaleString()}</td>
+      <td className="td text-right">{im.transactionCount}</td>
+      <td className="td text-right">{im.duplicateCount}</td>
+      <td className="td text-right">
+        <button
+          className="btn-ghost !px-2 !py-0.5 text-xs text-rose-500"
+          onClick={async () => {
+            if (!confirm(`Undo import "${im.filename}"? Its ${im.transactionCount} transactions will be deleted.`)) return;
+            await api.delete(`/api/imports/${im.id}`);
+            onChanged();
+          }}
+        >
+          Undo
+        </button>
+      </td>
+    </tr>
   );
 }
 

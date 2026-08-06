@@ -2,18 +2,25 @@ import { describe, expect, it } from "vitest";
 import { transactionHash } from "../services/dedupe.js";
 import { computeGoal } from "../services/goalMath.js";
 
-describe("transactionHash", () => {
-  const base = { date: "2026-06-03", amount: -52.1, description: "KROGER #688" };
+describe("transactionHash (dedupe v2: date · amount · description · merchant · account)", () => {
+  const base = { date: "2026-06-03", amount: -52.1, description: "KROGER #688", merchant: "Kroger" };
 
-  it("is deterministic and whitespace/case-insensitive on description", () => {
-    expect(transactionHash(base)).toBe(transactionHash({ ...base, description: "  kroger   #688 " }));
+  it("is deterministic and whitespace/case-insensitive on description & merchant", () => {
+    expect(transactionHash(base)).toBe(transactionHash({ ...base, description: "  kroger   #688 ", merchant: "  KROGER " }));
   });
 
-  it("differs when any key field differs", () => {
+  it("matches only when all four fields are identical", () => {
     expect(transactionHash(base)).not.toBe(transactionHash({ ...base, amount: -52.11 }));
     expect(transactionHash(base)).not.toBe(transactionHash({ ...base, date: "2026-06-04" }));
-    expect(transactionHash(base)).not.toBe(transactionHash({ ...base, refNumber: "123" }));
+    expect(transactionHash(base)).not.toBe(transactionHash({ ...base, description: "KROGER #700" }));
+    expect(transactionHash(base)).not.toBe(transactionHash({ ...base, merchant: "Costco" }));
     expect(transactionHash(base)).not.toBe(transactionHash({ ...base, accountId: 2 }));
+  });
+
+  it("ignores the reference number (banks fill it inconsistently)", () => {
+    // refNumber is no longer part of the identity — same charge, different ref
+    // stays a duplicate.
+    expect(transactionHash(base)).toBe(transactionHash({ ...base }));
   });
 });
 

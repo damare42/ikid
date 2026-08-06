@@ -51,6 +51,8 @@ export interface TransactionQuery {
   categoryId?: number;
   merchantId?: number;
   accountId?: number;
+  /** Filter to transactions with no account assigned. */
+  unassigned?: boolean;
   from?: string;
   to?: string;
   minAmount?: number;

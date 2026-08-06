@@ -15,9 +15,13 @@ import type { ImportPreview, ParsedRow } from "../../../shared/types.js";
 
 async function toPreviewRows(raw: RawRow[], accountId: number | null): Promise<ParsedRow[]> {
   const rules = await ruleRepo.all();
-  const hashes = raw
-    .filter((r) => r.problems.length === 0)
-    .map((r) => transactionHash({ date: r.date, amount: r.amount, description: r.description, refNumber: r.refNumber, accountId }));
+  // Duplicate identity = date · amount · description · merchant · account.
+  const hashOf = (r: RawRow) =>
+    transactionHash({
+      date: r.date, amount: r.amount, description: r.description,
+      merchant: extractMerchant(r.description), accountId,
+    });
+  const hashes = raw.filter((r) => r.problems.length === 0).map(hashOf);
   const existing = new Set((await transactionRepo.findByHashes(hashes)).map((t) => t.hash));
 
   // also flag duplicates within the same file
@@ -27,7 +31,7 @@ async function toPreviewRows(raw: RawRow[], accountId: number | null): Promise<P
     const valid = r.problems.length === 0;
     let duplicate = false;
     if (valid) {
-      const h = transactionHash({ date: r.date, amount: r.amount, description: r.description, refNumber: r.refNumber, accountId });
+      const h = hashOf(r);
       duplicate = existing.has(h) || seenInFile.has(h);
       seenInFile.add(h);
     }
@@ -126,6 +130,8 @@ export interface CommitRow {
   skip?: boolean;
   /** True when the user manually chose this category — saves a learned rule. */
   learn?: boolean;
+  /** Import even though it was flagged a duplicate (override false positives). */
+  force?: boolean;
 }
 
 export async function commitImport(
@@ -141,14 +147,15 @@ export async function commitImport(
 
   let created = 0;
   let duplicates = 0;
+  let forcedCounter = 0;
   for (const r of rows) {
     if (r.skip) continue;
-    const hash = transactionHash({
-      date: r.date, amount: r.amount, description: r.description,
-      refNumber: r.refNumber, accountId,
-    });
     const merchantName = r.merchant?.trim() || extractMerchant(r.description);
     const merchant = await merchantRepo.upsertByName(merchantName);
+    const hash = transactionHash({
+      date: r.date, amount: r.amount, description: r.description,
+      merchant: merchantName, accountId,
+    });
 
     // Learn from manual corrections made in the review screen.
     if (r.learn && r.categoryId) {
@@ -159,29 +166,37 @@ export async function commitImport(
         source: "learned",
       });
     }
+    const data = {
+      date: new Date(r.date),
+      description: r.description,
+      amount: r.amount,
+      balance: r.balance ?? null,
+      type: r.amount >= 0 ? "credit" : "debit",
+      refNumber: r.refNumber ?? null,
+      hash,
+      isTransfer:
+        isTransferDescription(r.description, TRANSFER_KEYWORDS) ||
+        (r.categoryId != null && transferCatIds.has(r.categoryId)),
+      categoryId: r.categoryId ?? unknown?.id ?? null,
+      merchantId: merchant.id,
+      accountId,
+      importId: imp.id,
+    };
     try {
-      await prisma.transaction.create({
-        data: {
-          date: new Date(r.date),
-          description: r.description,
-          amount: r.amount,
-          balance: r.balance ?? null,
-          type: r.amount >= 0 ? "credit" : "debit",
-          refNumber: r.refNumber ?? null,
-          hash,
-          isTransfer:
-            isTransferDescription(r.description, TRANSFER_KEYWORDS) ||
-            (r.categoryId != null && transferCatIds.has(r.categoryId)),
-          categoryId: r.categoryId ?? unknown?.id ?? null,
-          merchantId: merchant.id,
-          accountId,
-          importId: imp.id,
-        },
-      });
+      await prisma.transaction.create({ data });
       created++;
     } catch (e: any) {
-      if (e?.code === "P2002") duplicates++; // unique hash violation
-      else throw e;
+      if (e?.code !== "P2002") throw e; // not a unique-hash collision
+      if (r.force) {
+        // User overrode a duplicate flag — store it alongside the look-alike
+        // with a uniqueness suffix so the hash constraint doesn't reject it.
+        await prisma.transaction.create({
+          data: { ...data, hash: `${hash}:dup-${Date.now()}-${forcedCounter++}` },
+        });
+        created++;
+      } else {
+        duplicates++; // genuine duplicate — skipped
+      }
     }
   }
   await importRepo.finish(imp.id, created, duplicates);

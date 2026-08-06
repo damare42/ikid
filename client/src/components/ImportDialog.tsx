@@ -6,7 +6,7 @@ import { freshness } from "../pages/Accounts";
 import { ErrorNote, Modal, Spinner } from "./ui";
 
 type Stage = "pick" | "parsing" | "review" | "committing" | "done";
-type ReviewRow = ParsedRow & { learn?: boolean };
+type ReviewRow = ParsedRow & { learn?: boolean; force?: boolean };
 
 export function ImportDialog({ onClose, onImported, initialAccountId }: {
   onClose: () => void; onImported: () => void; initialAccountId?: number | null;
@@ -64,8 +64,9 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
           refNumber: r.refNumber,
           merchant: r.merchant,
           categoryId: r.suggestedCategoryId,
-          skip: !r.valid || r.duplicate,
+          skip: !r.valid || (r.duplicate && !r.force),
           learn: r.learn ?? false,
+          force: r.force ?? false,
         })),
       });
       setResult(res);
@@ -81,7 +82,14 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   }
 
-  const importable = rows.filter((r) => r.valid && !r.duplicate).length;
+  const importable = rows.filter((r) => r.valid && (!r.duplicate || r.force)).length;
+  const dupCount = rows.filter((r) => r.duplicate).length;
+  const forcedCount = rows.filter((r) => r.duplicate && r.force).length;
+  const allDupForced = dupCount > 0 && forcedCount === dupCount;
+  function toggleAllDuplicates() {
+    const next = !allDupForced;
+    setRows((rs) => rs.map((r) => (r.duplicate ? { ...r, force: next } : r)));
+  }
 
   return (
     <Modal title="Import statement" onClose={onClose} wide={stage === "review"}>
@@ -147,9 +155,14 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="font-medium">{preview.filename}</span>
             <span className="text-slate-500">{preview.totalRows} rows parsed</span>
-            {preview.duplicates > 0 && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                {preview.duplicates} duplicates will be skipped
+            {dupCount > 0 && (
+              <span className="flex items-center gap-2">
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                  {dupCount} duplicate{dupCount === 1 ? "" : "s"}{forcedCount > 0 ? ` · ${forcedCount} kept` : " skipped"}
+                </span>
+                <button className="text-xs text-brand-600 hover:underline" onClick={toggleAllDuplicates}>
+                  {allDupForced ? "Skip all duplicates" : "Import all anyway"}
+                </button>
               </span>
             )}
             <span className="ml-auto text-slate-500">Review & correct, then import</span>
@@ -164,7 +177,7 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.map((r, i) => (
-                  <tr key={i} className={r.duplicate || !r.valid ? "opacity-50" : ""}>
+                  <tr key={i} className={(r.duplicate && !r.force) || !r.valid ? "opacity-50" : ""}>
                     <td className="td">
                       <input className="input !py-0.5 w-32" value={r.date} onChange={(e) => updateRow(i, { date: e.target.value })} />
                     </td>
@@ -192,9 +205,22 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
                       </select>
                     </td>
                     <td className="td text-xs">
-                      {!r.valid ? <span className="text-rose-500" title={r.problems.join("; ")}>invalid</span>
-                        : r.duplicate ? <span className="text-amber-500">duplicate</span>
-                        : <span className="text-emerald-500">ok</span>}
+                      {!r.valid ? (
+                        <span className="text-rose-500" title={r.problems.join("; ")}>invalid</span>
+                      ) : r.duplicate ? (
+                        <label className="flex cursor-pointer items-center gap-1" title="Flagged as a duplicate. Tick to import it anyway (e.g. two identical charges on the same day).">
+                          <input
+                            type="checkbox"
+                            checked={!!r.force}
+                            onChange={(e) => updateRow(i, { force: e.target.checked })}
+                          />
+                          <span className={r.force ? "text-emerald-500" : "text-amber-500"}>
+                            {r.force ? "import" : "duplicate"}
+                          </span>
+                        </label>
+                      ) : (
+                        <span className="text-emerald-500">ok</span>
+                      )}
                     </td>
                   </tr>
                 ))}

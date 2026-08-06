@@ -3,8 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createApp } from "./app.js";
 import { logger } from "./lib/logger.js";
-import { DB_DIR, listProfiles } from "./lib/prisma.js";
+import { DB_DIR, listProfiles, profileContext } from "./lib/prisma.js";
 import { authEnabled } from "./services/authService.js";
+import { migrateTransactionHashes } from "./services/hashMigration.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -24,6 +25,19 @@ function logStartupContext() {
     logger.warn("Could not read profiles at startup", { message: (e as Error).message });
   }
 }
+
+// One-time data migrations, per profile database (idempotent, guarded).
+async function runStartupMigrations() {
+  for (const p of listProfiles()) {
+    try {
+      await profileContext.run({ profile: p.name }, () => migrateTransactionHashes());
+    } catch (e) {
+      logger.warn("Startup migration skipped", { profile: p.name, message: (e as Error).message });
+    }
+  }
+}
+
+await runStartupMigrations();
 
 const server = createApp().listen(PORT, HOST, () => {
   logStartupContext();

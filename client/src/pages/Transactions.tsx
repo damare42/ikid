@@ -20,9 +20,15 @@ export default function Transactions() {
   const [maxAmount, setMaxAmount] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [accountFilter, setAccountFilter] = useState(params.get("account") ?? "");
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<TransactionDTO | null>(null);
   const [adding, setAdding] = useState(false);
+  // Bulk account assignment
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selectAllMatching, setSelectAllMatching] = useState(false);
+  const [bulkAccount, setBulkAccount] = useState("");
+  const [assigning, setAssigning] = useState(false);
 
   // Keep filters in sync when navigating here from a chart click or top-bar search.
   useEffect(() => {
@@ -32,22 +38,85 @@ export default function Transactions() {
     if (params.get("from") !== null) setFrom(params.get("from") ?? "");
     if (params.get("to") !== null) setTo(params.get("to") ?? "");
   }, [params]);
-  useEffect(() => setPage(1), [search, categoryId, merchantId, from, to, minAmount, maxAmount]);
+  useEffect(() => setPage(1), [search, categoryId, merchantId, accountFilter, from, to, minAmount, maxAmount]);
+  // Clear any selection whenever the visible set changes.
+  useEffect(() => { setSelected(new Set()); setSelectAllMatching(false); },
+    [search, categoryId, merchantId, accountFilter, from, to, minAmount, maxAmount, page, sortBy, sortDir]);
+
+  const accountParams =
+    accountFilter === "none" ? { unassigned: "true" }
+    : accountFilter ? { accountId: accountFilter }
+    : {};
 
   const query = useMemo(
     () =>
       qs({
-        search, categoryId, merchantId, from, to,
+        search, categoryId, merchantId, ...accountParams, from, to,
         minAmount, maxAmount, sortBy, sortDir, page, pageSize: 50,
       }),
-    [search, categoryId, merchantId, from, to, minAmount, maxAmount, sortBy, sortDir, page],
+    [search, categoryId, merchantId, accountFilter, from, to, minAmount, maxAmount, sortBy, sortDir, page],
   );
 
   const { data, loading, error, refresh } = useFetch<Paginated<TransactionDTO>>(`/api/transactions${query}`);
   const { data: categories } = useFetch<CategoryDTO[]>("/api/categories");
   const { data: merchants } = useFetch<(MerchantDTO & { _count: { transactions: number } })[]>("/api/merchants");
+  const { data: accounts } = useFetch<AccountDTO[]>("/api/accounts");
 
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+
+  /** The filter the server should use for "assign all matching". */
+  function filterObject() {
+    return {
+      ...(search ? { search } : {}),
+      ...(categoryId ? { categoryId: Number(categoryId) } : {}),
+      ...(merchantId ? { merchantId: Number(merchantId) } : {}),
+      ...(accountFilter === "none" ? { unassigned: true } : accountFilter ? { accountId: Number(accountFilter) } : {}),
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
+      ...(minAmount ? { minAmount: Number(minAmount) } : {}),
+      ...(maxAmount ? { maxAmount: Number(maxAmount) } : {}),
+    };
+  }
+
+  const pageIds = data?.items.map((t) => t.id) ?? [];
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  function togglePage() {
+    setSelectAllMatching(false);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+  function toggleRow(id: number) {
+    setSelectAllMatching(false);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  const selectionCount = selectAllMatching ? (data?.total ?? 0) : selected.size;
+
+  async function applyAssign() {
+    if (!bulkAccount) return;
+    setAssigning(true);
+    const accountId = bulkAccount === "none" ? null : Number(bulkAccount);
+    try {
+      await api.post<{ updated: number }>("/api/transactions/assign-account",
+        selectAllMatching
+          ? { accountId, filter: filterObject() }
+          : { accountId, ids: [...selected] });
+      setSelected(new Set());
+      setSelectAllMatching(false);
+      setBulkAccount("");
+      refresh();
+    } finally {
+      setAssigning(false);
+    }
+  }
 
   function toggleSort(col: "date" | "amount") {
     if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -73,7 +142,7 @@ export default function Transactions() {
       </div>
 
       <Card>
-        <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-7">
+        <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-8">
           <input className="input" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">All categories</option>
@@ -84,6 +153,11 @@ export default function Transactions() {
             {merchants?.filter((m) => m._count.transactions > 0).map((m) => (
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
+          </select>
+          <select className="input" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} title="Filter by account">
+            <option value="">All accounts</option>
+            <option value="none">⚠ Unassigned</option>
+            {accounts?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <input type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} title="From date" />
           <input type="date" className="input" value={to} onChange={(e) => setTo(e.target.value)} title="To date" />
@@ -97,18 +171,52 @@ export default function Transactions() {
         <Spinner />
       ) : (
         <Card>
-          <div className="mb-2 text-sm text-slate-500">{data?.total ?? 0} transactions</div>
+          {/* Bulk account-assignment bar */}
+          {selectionCount > 0 ? (
+            <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm dark:bg-brand-900/20">
+              <span className="font-medium">{selectionCount} selected</span>
+              {!selectAllMatching && data && data.total > selected.size && (
+                <button className="text-xs text-brand-600 hover:underline" onClick={() => setSelectAllMatching(true)}>
+                  Select all {data.total} matching
+                </button>
+              )}
+              <span className="ml-auto flex items-center gap-2">
+                <span className="text-slate-500">Assign to</span>
+                <select className="input !py-1" value={bulkAccount} onChange={(e) => setBulkAccount(e.target.value)}>
+                  <option value="">Choose account…</option>
+                  {accounts?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  <option value="none">— Unassign —</option>
+                </select>
+                <button className="btn-primary !py-1 text-xs" disabled={!bulkAccount || assigning} onClick={applyAssign}>
+                  {assigning ? "Assigning…" : "Apply"}
+                </button>
+                <button className="btn-ghost !py-1 text-xs" onClick={() => { setSelected(new Set()); setSelectAllMatching(false); }}>
+                  Clear
+                </button>
+              </span>
+            </div>
+          ) : (
+            <div className="mb-2 text-sm text-slate-500">
+              {data?.total ?? 0} transactions
+              {accountFilter === "none" && (data?.total ?? 0) > 0 && (
+                <span className="ml-2 text-xs text-amber-600">— tick rows to assign them to an account</span>
+              )}
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800">
+                  <th className="th w-8">
+                    <input type="checkbox" checked={allPageSelected} onChange={togglePage} title="Select all on this page" />
+                  </th>
                   <th className="th cursor-pointer select-none" onClick={() => toggleSort("date")}>
                     Date {sortBy === "date" && (sortDir === "asc" ? "↑" : "↓")}
                   </th>
                   <th className="th">Description</th>
                   <th className="th">Merchant</th>
+                  <th className="th">Account</th>
                   <th className="th">Category</th>
-                  <th className="th">Tags</th>
                   <th className="th cursor-pointer select-none text-right" onClick={() => toggleSort("amount")}>
                     Amount {sortBy === "amount" && (sortDir === "asc" ? "↑" : "↓")}
                   </th>
@@ -117,15 +225,22 @@ export default function Transactions() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {data?.items.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <tr key={t.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 ${selected.has(t.id) ? "bg-brand-50/60 dark:bg-brand-900/10" : ""}`}>
+                    <td className="td">
+                      <input type="checkbox" checked={selectAllMatching || selected.has(t.id)} onChange={() => toggleRow(t.id)} />
+                    </td>
                     <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
                     <td className="td max-w-64 truncate" title={t.description}>
                       {t.description}
                       {t.isTransfer && <span className="ml-1.5 rounded bg-slate-200 px-1 text-[10px] dark:bg-slate-700">transfer</span>}
                     </td>
                     <td className="td whitespace-nowrap">{t.merchant?.name ?? "—"}</td>
+                    <td className="td whitespace-nowrap text-xs">
+                      {t.account
+                        ? <span className="text-slate-600 dark:text-slate-300">{t.account.name}</span>
+                        : <span className="text-amber-500">unassigned</span>}
+                    </td>
                     <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
-                    <td className="td text-xs text-slate-500">{t.tags.map((x) => `#${x.name}`).join(" ")}</td>
                     <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600" : ""}`}>{fmtSigned(t.amount)}</td>
                     <td className="td">
                       <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => setEditing(t)}>Edit</button>
@@ -332,6 +447,8 @@ function EditDialog({ txn, categories, onClose, onSaved }: {
   onSaved: () => void;
 }) {
   const [categoryId, setCategoryId] = useState<number | "">(txn.category?.id ?? "");
+  const [accountId, setAccountId] = useState<number | "">(txn.account?.id ?? "");
+  const [accounts, setAccounts] = useState<AccountDTO[]>([]);
   const [merchant, setMerchant] = useState(txn.merchant?.name ?? "");
   const [notes, setNotes] = useState(txn.notes ?? "");
   const [tags, setTags] = useState(txn.tags.map((t) => t.name).join(", "));
@@ -340,12 +457,17 @@ function EditDialog({ txn, categories, onClose, onSaved }: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    api.get<AccountDTO[]>("/api/accounts").then(setAccounts).catch(() => {});
+  }, []);
+
   async function save() {
     setSaving(true);
     setError(null);
     try {
       await api.patch(`/api/transactions/${txn.id}`, {
         categoryId: categoryId === "" ? null : categoryId,
+        accountId: accountId === "" ? null : accountId,
         merchant: merchant.trim() || undefined,
         notes: notes.trim() || null,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
@@ -372,6 +494,13 @@ function EditDialog({ txn, categories, onClose, onSaved }: {
           <select className="input w-full" value={categoryId} onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}>
             <option value="">— None —</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Account</label>
+          <select className="input w-full" value={accountId} onChange={(e) => setAccountId(e.target.value ? Number(e.target.value) : "")}>
+            <option value="">— Unassigned —</option>
+            {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </div>
         <div>

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Import History → assign accounts from the filename: each row now has an Account column that auto-suggests the account matching the filename (e.g. "chase-oct.csv" → Chase, "capital-one…" → Capital One), with an Assign button that links all that import's transactions in one click. A header "✨ Auto-assign by filename" button does every unmatched import at once (`POST /api/imports/:id/assign-account`). Account balances update immediately
+
+- Settings → Import History: the file label is now editable — click the filename (✎) to rename an import (e.g. "chase-oct.csv" → "Chase — October"); Enter saves, Escape cancels. Cosmetic only; transactions are untouched (`PATCH /api/imports/:id`)
+
+- Assign accounts to existing transactions: the Transactions page now has an Account filter (including "Unassigned"), an Account column, checkboxes to select rows, and a bulk bar to assign the selection — or all matching the current filter — to any account in one click (or unassign). Individual transactions also gained an Account picker in the edit dialog (`PATCH /api/transactions/:id` now accepts `accountId`; new `POST /api/transactions/assign-account` for bulk)
+
+- Import duplicate detection tightened: a row is a duplicate only when its **date, amount, description, and merchant all match exactly** (per account). Reference numbers are no longer part of the key — banks fill them inconsistently, which caused both missed and false duplicates. Existing transactions are re-hashed to the new format once, automatically, on the next start (collisions preserved, nothing lost)
+- Import review: duplicate-flagged rows can now be kept — tick a row's status to import it anyway, or use "Import all anyway" — so a wrong duplicate label is no longer a dead end (identical look-alikes are stored side by side)
+
 - Hosting (Phase 1 self-host beta): run ikid online behind HTTPS with sign-in required and no principle compromises. Server now honors `IKID_TRUST_PROXY` (X-Forwarded-* behind a reverse proxy) and `IKID_ORIGIN` (CORS lock-down), logs its data dir / profiles / auth mode on startup, and prints a clear message instead of crashing when the port is already in use. New `deploy/` artifacts (Caddy auto-HTTPS reverse proxy, production compose, backup script) and `docs/DEPLOY-ONLINE.md` walk through a VPS+Caddy or Fly.io deploy, invite-only setup, and backups. See `docs/ONLINE-PLAN.md` for the full A→B→(C) roadmap
 
 - Retirement: **penalty-free bridge plan** — back-solves how much penalty-free money you need at retirement (5 years of spending + conversion taxes with a ladder, or the full gap without one), compares it to what you're on track to have, and computes the extra monthly investment (compound growth at your real return) or lump-sum-today needed to close any shortfall, with guidance on which accounts to fill

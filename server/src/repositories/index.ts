@@ -26,7 +26,8 @@ export const transactionRepo = {
     }
     if (q.categoryId) where.categoryId = q.categoryId;
     if (q.merchantId) where.merchantId = q.merchantId;
-    if (q.accountId) where.accountId = q.accountId;
+    if (q.unassigned) where.accountId = null;
+    else if (q.accountId) where.accountId = q.accountId;
     if (q.from || q.to) {
       where.date = {};
       if (q.from) where.date.gte = new Date(q.from);
@@ -166,6 +167,14 @@ export const importRepo = {
     prisma.import.create({ data }),
   finish: (id: number, transactionCount: number, duplicateCount: number) =>
     prisma.import.update({ where: { id }, data: { transactionCount, duplicateCount, status: "completed" } }),
+  rename: (id: number, filename: string) =>
+    prisma.import.update({ where: { id }, data: { filename } }),
+  /** Assign every transaction from an import to an account (null = unassign). */
+  assignAccount: async (id: number, accountId: number | null) => {
+    const c = await prisma.transaction.updateMany({ where: { importId: id }, data: { accountId } });
+    await prisma.import.update({ where: { id }, data: { accountId } });
+    return c.count;
+  },
   /** Undo an import: delete its transactions then the import record. */
   undo: async (id: number) => {
     await prisma.transaction.deleteMany({ where: { importId: id } });

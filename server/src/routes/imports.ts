@@ -3,6 +3,7 @@ import multer from "multer";
 import { z } from "zod";
 import { asyncHandler, parse, ApiError } from "../lib/errors.js";
 import { importRepo } from "../repositories/index.js";
+import { prisma } from "../lib/prisma.js";
 import { previewCsv, previewPdf, commitImport } from "../services/importService.js";
 
 export const importsRouter = Router();
@@ -53,6 +54,7 @@ const commitSchema = z.object({
       categoryId: z.number().nullable().optional(),
       skip: z.boolean().optional(),
       learn: z.boolean().optional(),
+      force: z.boolean().optional(),
     }),
   ),
 });
@@ -64,6 +66,29 @@ importsRouter.post(
     const body = parse(commitSchema, req.body);
     const result = await commitImport(body.filename, body.fileType, body.rows, body.accountId ?? null);
     res.json(result);
+  }),
+);
+
+/** Rename an import's file label (cosmetic — doesn't touch transactions). */
+importsRouter.patch(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const body = parse(z.object({ filename: z.string().trim().min(1).max(200) }), req.body);
+    res.json(await importRepo.rename(Number(req.params.id), body.filename));
+  }),
+);
+
+/** Assign all of an import's transactions to an account (null = unassign). */
+importsRouter.post(
+  "/:id/assign-account",
+  asyncHandler(async (req, res) => {
+    const body = parse(z.object({ accountId: z.number().nullable() }), req.body);
+    if (body.accountId != null) {
+      const account = await prisma.account.findUnique({ where: { id: body.accountId } });
+      if (!account) throw new ApiError(404, "Account not found");
+    }
+    const updated = await importRepo.assignAccount(Number(req.params.id), body.accountId);
+    res.json({ updated });
   }),
 );
 

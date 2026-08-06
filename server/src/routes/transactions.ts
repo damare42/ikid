@@ -13,6 +13,7 @@ const querySchema = z.object({
   categoryId: z.coerce.number().optional(),
   merchantId: z.coerce.number().optional(),
   accountId: z.coerce.number().optional(),
+  unassigned: z.coerce.boolean().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   minAmount: z.coerce.number().optional(),
@@ -68,14 +69,11 @@ transactionsRouter.post(
 
     let hash = transactionHash({
       date: body.date, amount: body.amount, description: body.description,
-      accountId: body.accountId ?? null,
+      merchant: merchantName, accountId: body.accountId ?? null,
     });
     // Manual entries shouldn't be blocked by dedupe — salt on collision.
     if ((await transactionRepo.findByHashes([hash])).length > 0) {
-      hash = transactionHash({
-        date: body.date, amount: body.amount, description: body.description,
-        refNumber: `manual-${Date.now()}`, accountId: body.accountId ?? null,
-      });
+      hash = `${hash}:manual-${Date.now()}`;
     }
 
     const created = await prisma.transaction.create({
@@ -97,8 +95,53 @@ transactionsRouter.post(
   }),
 );
 
+/**
+ * Bulk-assign (or clear) the account for many transactions at once — either an
+ * explicit list of ids, or everything matching a filter (e.g. all Unassigned).
+ * accountId null unassigns.
+ */
+const assignSchema = z.object({
+  accountId: z.number().nullable(),
+  ids: z.array(z.number()).optional(),
+  filter: z
+    .object({
+      search: z.string().optional(),
+      categoryId: z.number().optional(),
+      merchantId: z.number().optional(),
+      accountId: z.number().optional(),
+      unassigned: z.boolean().optional(),
+      from: z.string().optional(),
+      to: z.string().optional(),
+      minAmount: z.number().optional(),
+      maxAmount: z.number().optional(),
+    })
+    .optional(),
+});
+
+transactionsRouter.post(
+  "/assign-account",
+  asyncHandler(async (req, res) => {
+    const body = parse(assignSchema, req.body);
+    if (body.accountId != null) {
+      const account = await prisma.account.findUnique({ where: { id: body.accountId } });
+      if (!account) throw new ApiError(404, "Account not found");
+    }
+    let where;
+    if (body.ids && body.ids.length > 0) {
+      where = { id: { in: body.ids } };
+    } else if (body.filter) {
+      where = transactionRepo.buildWhere(body.filter);
+    } else {
+      throw new ApiError(400, "Provide transaction ids or a filter to assign.");
+    }
+    const result = await prisma.transaction.updateMany({ where, data: { accountId: body.accountId } });
+    res.json({ updated: result.count });
+  }),
+);
+
 const updateSchema = z.object({
   categoryId: z.number().nullable().optional(),
+  accountId: z.number().nullable().optional(),
   merchant: z.string().optional(),
   notes: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
@@ -122,6 +165,8 @@ transactionsRouter.patch(
     const data: any = {};
     if (body.categoryId !== undefined)
       data.category = body.categoryId ? { connect: { id: body.categoryId } } : { disconnect: true };
+    if (body.accountId !== undefined)
+      data.account = body.accountId ? { connect: { id: body.accountId } } : { disconnect: true };
     if (body.notes !== undefined) data.notes = body.notes;
     if (body.isTransfer !== undefined) data.isTransfer = body.isTransfer;
     // Assigning a transfer-type category (Transfers, Savings) implies transfer,
