@@ -60,6 +60,17 @@ export const LTCG_BRACKETS: Record<FilingStatus, Bracket[]> = {
   ],
 };
 
+/**
+ * Medicare IRMAA — the first income-related surcharge tier for 2026 (Part B/D
+ * premiums rise above these MAGI levels). Two-year lookback: 2026 premiums use
+ * 2024 MAGI, so income from ~age 63 onward starts to matter at 65. Thresholds
+ * are indexed yearly — update alongside the tax tables.
+ */
+export const IRMAA_TIER1: Record<FilingStatus, number> = {
+  single: 109_000,
+  married: 218_000,
+};
+
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Progressive tax on ordinary TAXABLE income (deduction already applied). */

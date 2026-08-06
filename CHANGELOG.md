@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Retirement: **penalty-free bridge plan** — back-solves how much penalty-free money you need at retirement (5 years of spending + conversion taxes with a ladder, or the full gap without one), compares it to what you're on track to have, and computes the extra monthly investment (compound growth at your real return) or lump-sum-today needed to close any shortfall, with guidance on which accounts to fill
+- Retirement: **Medicare IRMAA awareness** — flags years from age 63 whose income would push MAGI over the first surcharge tier (2026: $109k single / $218k joint), raising Part B/D premiums two years later, and reassures when conversions stay under it; plus an explicit tax-optimal withdrawal-order tip. Strategy explanations moved to hover tooltips so they no longer stretch the page
+
+- Accounts page (🏦): per card/account, shows the latest transaction on file, a freshness badge (today / N days ago / never), transaction count, net on file, and the last import — so you know exactly where each account left off and what to upload next. Accounts needing attention (stale or never imported) sort to the top
+- Import dialog now shows the selected account's latest-transaction date and last import inline, with an explicit "upload transactions after \<date\>" resume hint; pages can open the importer preselected to a specific account (`GET /api/accounts/status`, unit-tested assembler)
+
 ## 0.5.0 — accounts, admin & usage analytics
 
 - Central account layer over the existing per-profile databases: each profile is an account with a role (admin/user), an enabled flag, and timestamps. The first account created becomes admin; an existing install adopts its active profile (override with `IKID_ADMIN`)

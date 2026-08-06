@@ -59,6 +59,12 @@ metaRouter.get("/accounts", asyncHandler(async (_req, res) => {
   res.json(accounts.map((a) => ({ ...a, balance: Math.round((byId.get(a.id) ?? 0) * 100) / 100 })));
 }));
 
+/** Per-account upload status: latest transaction date + last import. */
+metaRouter.get("/accounts/status", asyncHandler(async (_req, res) => {
+  const { accountStatuses } = await import("../services/accountStatusService.js");
+  res.json(await accountStatuses());
+}));
+
 const accountSchema = z.object({
   name: z.string().min(1),
   type: z.enum(["checking", "savings", "credit", "loan"]),

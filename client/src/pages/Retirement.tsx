@@ -50,6 +50,18 @@ interface SimResult {
   bridgeYears: number;
   bridgeNeeded: number;
   bridgeAvailableAtRetirement: number;
+  bridgePlan: {
+    needed: boolean;
+    bridgeYears: number;
+    yearsToFund: number;
+    ladder: boolean;
+    targetPot: number;
+    haveAtRetirement: number;
+    gap: number;
+    monthsToRetire: number;
+    monthlyToClose: number | null;
+    lumpTodayToClose: number | null;
+  };
   warnings: string[];
   guidance: string[];
   years: YearRow[];
@@ -64,6 +76,27 @@ function Num({ label, value, onChange, hint }: {
       <input type="number" step="any" className="input w-full" value={value} onChange={(e) => onChange(e.target.value)} />
       {hint && <div className="mt-0.5 text-[10px] text-slate-400">{hint}</div>}
     </div>
+  );
+}
+
+/** Small "ⓘ" that reveals rich help in a hover/focus popover (no page growth). */
+function InfoTip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="group relative inline-flex align-middle">
+      <button
+        type="button"
+        aria-label="More info"
+        className="grid h-4 w-4 cursor-help place-items-center rounded-full bg-slate-200 text-[10px] font-bold leading-none text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        i
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none invisible absolute left-1/2 top-6 z-50 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 text-left text-[11px] font-normal leading-5 text-slate-600 opacity-0 shadow-xl transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+      >
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -95,6 +128,13 @@ export default function Retirement() {
   const [result, setResult] = useState<SimResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showTable, setShowTable] = useState(false);
+
+  const BRACKET_HINT: Record<string, string> = {
+    "0": "Converts only up to the standard deduction each year, so the conversion is taxed at 0%. Smallest, slowest ladder — best if you have almost no other taxable income.",
+    "10": "Fills the deduction plus the 10% bracket. Still very cheap tax, a bit more converted per year.",
+    "12": "The popular choice: fill the deduction + 10% + 12% brackets (single: up to ~$66,500 of conversions/yr in 2026). Moves a lot of money at low rates before RMDs hit.",
+    "22": "Aggressive: also fills the 22% bracket. Empties Traditional faster (great if it's large and RMDs would otherwise be taxed higher), but you pay 22% on the top slice now.",
+  };
 
   // Saved plans (shared store with the calculators, kind "retirement")
   const { data: allSaved, refresh: refreshSaved } = useFetch<SavedCalcDTO[]>("/api/calc/saved");
@@ -278,27 +318,49 @@ export default function Retirement() {
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={ladder} onChange={(e) => setLadder(e.target.checked)} />
-              <span><b>Roth conversion ladder</b> — convert Traditional → Roth yearly in retirement; each rung spendable after 5 years</span>
+              <span><b>Roth conversion ladder</b></span>
+              <InfoTip>
+                <p className="mb-1.5"><b>What it is.</b> Each year in early retirement, move a slice of pre-tax Traditional money into your Roth. You pay income tax on that slice now (while your income is low); 5 years later that exact slice is withdrawable with no tax and no 10% early-withdrawal penalty — even before 59½.</p>
+                <p className="mb-1.5"><b>The problem it solves.</b> Traditional 401k/IRA money is locked until 59½ — take it out early and you owe tax plus a 10% penalty. Retire at 45 and that's a ~14-year gap.</p>
+                <p className="mb-1.5"><b>The trick.</b> A conversion isn't a withdrawal, so there's no penalty at any age. After 5 years of seasoning each converted "rung" comes out tax- and penalty-free. Convert yearly and you build a ladder of rungs.</p>
+                <p><b>The catch.</b> The first 5 years can't be funded by the ladder yet — you cover them from bridge assets (brokerage, existing Roth contributions, HSA). The plan checks whether your bridge is big enough.</p>
+              </InfoTip>
             </label>
+
             <div>
-              <label className="label">Convert to fill…</label>
+              <label className="label inline-flex items-center gap-1">
+                Convert how much each year?
+                <InfoTip>
+                  <p className="mb-1.5">Tax brackets are marginal — each layer of income is taxed at its own rate. In early retirement your wages are gone, so the low layers sit empty. This picks how many of them to deliberately fill with conversions each year — cheaper now than the 22–24%+ you'd pay when RMDs force withdrawals later.</p>
+                  <p><b>Selected:</b> {BRACKET_HINT[fillBracket]}</p>
+                </InfoTip>
+              </label>
               <select className="input w-full" value={fillBracket} onChange={(e) => setFillBracket(e.target.value as any)} disabled={!ladder}>
-                <option value="0">Standard deduction only (tax-free)</option>
+                <option value="0">Standard deduction only — 0% tax on conversions</option>
                 <option value="10">Through the 10% bracket</option>
                 <option value="12">Through the 12% bracket (classic)</option>
-                <option value="22">Through the 22% bracket</option>
+                <option value="22">Through the 22% bracket (aggressive)</option>
               </select>
             </div>
+
             <div>
-              <label className="label">RMDs begin at</label>
+              <label className="label inline-flex items-center gap-1">
+                RMDs begin at
+                <InfoTip>
+                  Required Minimum Distributions — the age the IRS forces you to start withdrawing from Traditional accounts (taxed as income). A ladder shrinks the balance beforehand, so these forced withdrawals, and their tax, stay small. Age 73 if born 1951–1959; 75 if born 1960 or later.
+                </InfoTip>
+              </label>
               <select className="input w-full" value={rmdAge} onChange={(e) => setRmdAge(e.target.value as any)}>
                 <option value="73">73 (born 1951–1959)</option>
                 <option value="75">75 (born 1960 or later)</option>
               </select>
             </div>
-            <div className="text-[11px] leading-4 text-slate-400">
-              Withdrawal order: HSA (medical) → brokerage → Roth basis → Traditional after 59½ → Roth earnings.
-              Early Traditional raids (10% penalty) only as a last resort — the plan flags them.
+
+            <div className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+              Withdrawal order each year
+              <InfoTip>
+                Each year the plan draws in this tax-smart order: HSA (against medical expenses) → brokerage → Roth contributions and matured ladder rungs → Traditional after 59½ → Roth earnings. Dipping into Traditional before 59½ (10% penalty) is a last resort — the plan flags it if your bridge falls short.
+              </InfoTip>
             </div>
           </div>
         </Card>
@@ -349,6 +411,52 @@ export default function Retirement() {
               tone={result.endingBalance > 0 ? "good" : "bad"}
             />
           </div>
+
+          {/* Bridge plan — how to avoid the 10% early-withdrawal penalty */}
+          {result.bridgePlan.needed && (
+            <Card title="🌉 Penalty-free bridge plan">
+              {(() => {
+                const bp = result.bridgePlan;
+                const funded = bp.gap <= 0;
+                return (
+                  <div className="space-y-3 text-sm">
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Retiring at {retireAge} leaves <b>{bp.bridgeYears} years</b> before penalty-free access to Traditional at 59½.
+                      {bp.ladder
+                        ? <> With the ladder you only need to self-fund the first <b>{bp.yearsToFund} years</b> (the conversion seasoning window) from penalty-free accounts; matured ladder rungs cover the rest.</>
+                        : <> Without a ladder, every one of those <b>{bp.yearsToFund} years</b> must come from penalty-free accounts.</>}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      <StatCard label={`Penalty-free pot needed at ${retireAge}`} value={fmtMoney(bp.targetPot)} sub={`${bp.yearsToFund} yrs spending + conversion tax`} />
+                      <StatCard label="On track to have" value={fmtMoney(bp.haveAtRetirement)} sub="brokerage + Roth basis + HSA" tone={funded ? "good" : "default"} />
+                      <StatCard label={funded ? "Surplus" : "Shortfall"} value={fmtMoney(funded ? bp.haveAtRetirement - bp.targetPot : bp.gap)} tone={funded ? "good" : "bad"} />
+                    </div>
+
+                    {funded ? (
+                      <div className="rounded-lg bg-emerald-50 p-3 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                        ✅ Your bridge is funded — you can retire at {retireAge} without ever paying the 10% early-withdrawal penalty.
+                      </div>
+                    ) : bp.monthlyToClose != null ? (
+                      <div className="rounded-lg bg-amber-50 p-3 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                        To close the {fmtMoney(bp.gap)} gap by age {retireAge}, invest about{" "}
+                        <b>{fmtMoney(bp.monthlyToClose)}/mo</b> more for the next {Math.round(bp.monthsToRetire / 12 * 10) / 10} years
+                        (at {ratePct}% real){bp.lumpTodayToClose != null && <> — or <b>{fmtMoney(bp.lumpTodayToClose)}</b> invested once today</>}.
+                      </div>
+                    ) : (
+                      <div className="rounded-lg bg-amber-50 p-3 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                        You're {fmtMoney(bp.gap)} short and already at/near retirement — cover it with a lump sum, trim early-retirement spending, or push the date out.
+                      </div>
+                    )}
+
+                    <p className="text-xs text-slate-400">
+                      Put bridge money in a <b>taxable brokerage</b> first (accessible any age, often 0% long-term gains early on), then <b>Roth contributions</b> (your basis is always penalty-free) and your <b>HSA</b> for medical. Traditional 401k/IRA dollars don't help the bridge — that's exactly what the ladder converts out of.
+                    </p>
+                  </div>
+                );
+              })()}
+            </Card>
+          )}
 
           {/* Balances chart */}
           <Card title="Account balances by age">

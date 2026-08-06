@@ -234,6 +234,20 @@ export interface SettingsDTO {
   theme: "light" | "dark" | "system";
 }
 
+/** Per-account import status — where to resume the next statement upload. */
+export interface AccountStatusDTO {
+  id: number | null; // null = "Unassigned" bucket
+  name: string;
+  type: string;
+  currency: string;
+  txnCount: number;
+  balance: number;
+  latestTxnDate: string | null; // YYYY-MM-DD, the resume point
+  earliestTxnDate: string | null;
+  lastImportAt: string | null; // ISO of most recent import
+  lastImportFile: string | null;
+}
+
 // ---------- admin / accounts ----------
 
 export type Role = "admin" | "user";

@@ -11,6 +11,7 @@ import { IkidLogo } from "./components/Logo";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Accounts from "./pages/Accounts";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Planner from "./pages/Planner";
@@ -34,20 +35,17 @@ function ProfileSwitcher({ auth }: { auth: AuthStatus | null }) {
     api.get<ProfilesInfo>("/api/profiles").then(setInfo).catch(() => {});
   }, []);
 
-  // Accounts mode: no free switching — show who's signed in + sign out.
+  // Accounts mode: no free switching — just show who's signed in.
+  // (The Sign out button lives in the sidebar footer, below the nav.)
   if (auth?.enabled) {
     return (
-      <div className="mb-4 flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
+      <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
         <span className="text-sm font-medium">👤 {auth.current}</span>
-        <button
-          className="text-xs text-slate-500 hover:text-rose-500"
-          onClick={async () => {
-            await api.post("/api/auth/logout").catch(() => {});
-            location.reload();
-          }}
-        >
-          Sign out
-        </button>
+        {auth.isAdmin && (
+          <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+            admin
+          </span>
+        )}
       </div>
     );
   }
@@ -97,6 +95,7 @@ function ProfileSwitcher({ auth }: { auth: AuthStatus | null }) {
 const NAV = [
   { to: "/", label: "Dashboard", icon: "📊" },
   { to: "/transactions", label: "Transactions", icon: "🧾" },
+  { to: "/accounts", label: "Accounts", icon: "🏦" },
   { to: "/budgets", label: "Budgets", icon: "🎯" },
   { to: "/goals", label: "Goals", icon: "🏁" },
   { to: "/networth", label: "Net Worth", icon: "💎" },
@@ -117,6 +116,7 @@ function applyTheme(theme: string) {
 
 function Shell({ auth }: { auth: AuthStatus | null }) {
   const [importOpen, setImportOpen] = useState(false);
+  const [importAccount, setImportAccount] = useState<number | null>(null);
   const [theme, setTheme] = useState<string>(localStorage.getItem("ikid-theme") ?? "system");
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
@@ -128,6 +128,17 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
   useEffect(() => {
     track(pageEvent(location.pathname));
   }, [location.pathname]);
+
+  // Let any page open the import dialog (optionally preselecting an account).
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { accountId?: number | null } | undefined;
+      setImportAccount(detail?.accountId ?? null);
+      setImportOpen(true);
+    };
+    window.addEventListener("ikid:open-import", onOpen);
+    return () => window.removeEventListener("ikid:open-import", onOpen);
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
@@ -174,6 +185,17 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
             </NavLink>
           ))}
         </nav>
+        {auth?.enabled && (
+          <button
+            className="mt-3 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:text-slate-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+            onClick={async () => {
+              await api.post("/api/auth/logout").catch(() => {});
+              window.location.reload();
+            }}
+          >
+            <span>🚪</span> Sign out
+          </button>
+        )}
         <div className="mt-auto px-2 pb-2 text-[10px] text-slate-400">
           <a href="#/welcome" className="hover:text-brand-600">About Ikid →</a>
           <div className="mt-1">100% local · SQLite · no cloud</div>
@@ -201,6 +223,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
           <Routes>
             <Route path="/" element={<Dashboard key={refreshKey} />} />
             <Route path="/transactions" element={<Transactions key={refreshKey} />} />
+            <Route path="/accounts" element={<Accounts key={refreshKey} />} />
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/goals" element={<Goals />} />
             <Route path="/networth" element={<NetWorth />} />
@@ -217,7 +240,8 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
 
       {importOpen && (
         <ImportDialog
-          onClose={() => setImportOpen(false)}
+          initialAccountId={importAccount}
+          onClose={() => { setImportOpen(false); setImportAccount(null); }}
           onImported={() => setRefreshKey((k) => k + 1)}
         />
       )}

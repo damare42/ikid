@@ -1,27 +1,35 @@
 import { useEffect, useState } from "react";
-import type { AccountDTO, CategoryDTO, ImportPreview, ParsedRow } from "@shared/types";
+import type { AccountDTO, AccountStatusDTO, CategoryDTO, ImportPreview, ParsedRow } from "@shared/types";
 import { api } from "../lib/api";
-import { fmtMoney } from "../lib/format";
+import { fmtDate, fmtMoney } from "../lib/format";
+import { freshness } from "../pages/Accounts";
 import { ErrorNote, Modal, Spinner } from "./ui";
 
 type Stage = "pick" | "parsing" | "review" | "committing" | "done";
 type ReviewRow = ParsedRow & { learn?: boolean };
 
-export function ImportDialog({ onClose, onImported }: { onClose: () => void; onImported: () => void }) {
+export function ImportDialog({ onClose, onImported, initialAccountId }: {
+  onClose: () => void; onImported: () => void; initialAccountId?: number | null;
+}) {
   const [stage, setStage] = useState<Stage>("pick");
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [accounts, setAccounts] = useState<AccountDTO[]>([]);
+  const [status, setStatus] = useState<AccountStatusDTO[]>([]);
   const [categories, setCategories] = useState<CategoryDTO[]>([]);
-  const [accountId, setAccountId] = useState<number | "">("");
+  const [accountId, setAccountId] = useState<number | "">(initialAccountId ?? "");
   const [dragOver, setDragOver] = useState(false);
   const [result, setResult] = useState<{ created: number; duplicates: number } | null>(null);
 
   useEffect(() => {
     api.get<AccountDTO[]>("/api/accounts").then(setAccounts).catch(() => {});
+    api.get<AccountStatusDTO[]>("/api/accounts/status").then(setStatus).catch(() => {});
     api.get<CategoryDTO[]>("/api/categories").then(setCategories).catch(() => {});
   }, []);
+
+  // Status for the currently-selected account (or the Unassigned bucket).
+  const selectedStatus = status.find((s) => s.id === (accountId === "" ? null : accountId));
 
   async function handleFile(file: File) {
     setError(null);
@@ -87,6 +95,22 @@ export function ImportDialog({ onClose, onImported }: { onClose: () => void; onI
               <option value="">— No account —</option>
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
+            {selectedStatus && selectedStatus.txnCount > 0 ? (
+              <div className="mt-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-slate-800/60">
+                Latest on file: <b>{selectedStatus.latestTxnDate ? fmtDate(selectedStatus.latestTxnDate) : "—"}</b>
+                {" "}<span className="text-slate-400">({freshness(selectedStatus.latestTxnDate).label})</span>.
+                {selectedStatus.latestTxnDate && (
+                  <> Upload transactions <b>after {fmtDate(selectedStatus.latestTxnDate)}</b> — duplicates are skipped automatically.</>
+                )}
+                {selectedStatus.lastImportFile && (
+                  <div className="mt-0.5 text-slate-400">Last import: {selectedStatus.lastImportFile}</div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-1.5 text-xs text-slate-400">
+                {accountId === "" ? "Tip: pick the account to see where its last upload left off." : "No transactions imported for this account yet."}
+              </div>
+            )}
           </div>
           <div
             className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-10 text-center transition-colors ${

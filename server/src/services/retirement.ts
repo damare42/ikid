@@ -21,7 +21,7 @@
  * year you turn 60 (conservative), annual granularity.
  */
 import {
-  conversionHeadroom, federalTax, rmdAmount, type FilingStatus,
+  conversionHeadroom, federalTax, rmdAmount, IRMAA_TIER1, type FilingStatus,
 } from "./tax.js";
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -67,6 +67,24 @@ export interface RetirementYear {
   shortfall: number;
 }
 
+/**
+ * The "ideal" penalty-free plan: how much must sit in penalty-free accounts at
+ * retirement so you never touch Traditional early, and what it takes to get
+ * there (extra monthly investing, or a lump sum today, at the real return).
+ */
+export interface BridgePlan {
+  needed: boolean; // false when retiring at/after 59½
+  bridgeYears: number; // years from retirement to penalty-free Traditional access
+  yearsToFund: number; // years you must self-fund from penalty-free money
+  ladder: boolean;
+  targetPot: number; // penalty-free $ needed AT retirement (spending + conversion tax)
+  haveAtRetirement: number; // projected penalty-free bridge assets at retirement
+  gap: number; // shortfall to close (0 = funded)
+  monthsToRetire: number;
+  monthlyToClose: number | null; // extra $/mo to invest until retirement
+  lumpTodayToClose: number | null; // or invest this once, today
+}
+
 export interface RetirementResult {
   success: boolean;
   depletionAge: number | null;
@@ -77,6 +95,7 @@ export interface RetirementResult {
   bridgeYears: number; // retirement years before trad access
   bridgeNeeded: number; // spending those years must come from bridge assets
   bridgeAvailableAtRetirement: number; // accessible without penalty at retireAge
+  bridgePlan: BridgePlan;
   warnings: string[];
   guidance: string[];
   years: RetirementYear[];
@@ -287,9 +306,36 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
   const bridgeYears = Math.max(0, ACCESS_AGE - p.retireAge);
   const bridgeNeeded = r2(bridgeYears * p.annualSpending);
 
+  // Ideal penalty-free plan. With a ladder you only self-fund the 5-year
+  // seasoning window (plus the conversion taxes during it); without one you
+  // self-fund every bridge year. Taxes come from the actual simulated years.
+  const yearsToFund = p.ladder ? Math.min(5, bridgeYears) : bridgeYears;
+  const retiredYears = years.filter((y) => y.phase === "retired");
+  const bridgeTaxes = retiredYears.slice(0, yearsToFund).reduce((s, y) => s + y.tax, 0);
+  const bridgePlan = computeBridgePlan({
+    currentAge: p.currentAge,
+    retireAge: p.retireAge,
+    annualSpending: p.annualSpending,
+    ladder: p.ladder,
+    realRatePct: p.ratePct,
+    haveAtRetirement: r2(bridgeAvailableAtRetirement),
+    bridgeTaxes: r2(bridgeTaxes),
+  });
+
+  // Medicare IRMAA: from age 63 (two-year lookback to 65), a year whose MAGI
+  // (ordinary income + gains) tops the first surcharge tier raises Part B/D
+  // premiums two years later. Large conversions are the usual trigger.
+  const irmaaThreshold = IRMAA_TIER1[p.filingStatus];
+  const irmaaHits = years.filter(
+    (y) => y.age >= 63 && y.ordinaryIncome + y.capitalGains > irmaaThreshold,
+  );
+  const irmaa = irmaaHits.length > 0
+    ? { years: irmaaHits.length, threshold: irmaaThreshold, firstAge: irmaaHits[0].age }
+    : null;
+
   const guidance = buildGuidance(p, {
     bridgeYears, bridgeNeeded, bridgeAvailableAtRetirement,
-    depletionAge, totalPenalties, totalConversions,
+    depletionAge, totalPenalties, totalConversions, irmaa,
   });
 
   return {
@@ -302,9 +348,57 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
     bridgeYears,
     bridgeNeeded,
     bridgeAvailableAtRetirement: r2(bridgeAvailableAtRetirement),
+    bridgePlan,
     warnings: warnings.slice(0, 8),
     guidance,
     years,
+  };
+}
+
+/**
+ * Back-solve the penalty-free bridge: the target pot at retirement, the gap
+ * versus what you're on track to have, and the extra monthly investing (or a
+ * lump sum today) needed to close it — using the same compound-growth math as
+ * the Calculators, at the plan's real return.
+ */
+export function computeBridgePlan(opts: {
+  currentAge: number;
+  retireAge: number;
+  annualSpending: number;
+  ladder: boolean;
+  realRatePct: number;
+  haveAtRetirement: number;
+  bridgeTaxes: number;
+}): BridgePlan {
+  const bridgeYears = Math.max(0, ACCESS_AGE - opts.retireAge);
+  const yearsToFund = opts.ladder ? Math.min(5, bridgeYears) : bridgeYears;
+  const targetPot = r2(opts.annualSpending * yearsToFund + opts.bridgeTaxes);
+  const gap = r2(Math.max(0, targetPot - opts.haveAtRetirement));
+  const monthsToRetire = Math.max(0, Math.round((opts.retireAge - opts.currentAge) * 12));
+  const rM = opts.realRatePct / 100 / 12;
+
+  let monthlyToClose: number | null = null;
+  let lumpTodayToClose: number | null = null;
+  if (gap > 0 && monthsToRetire > 0) {
+    // Future value of an ordinary annuity: FV = PMT × ((1+r)^n − 1) / r
+    monthlyToClose = r2(rM === 0 ? gap / monthsToRetire : (gap * rM) / (Math.pow(1 + rM, monthsToRetire) - 1));
+    lumpTodayToClose = r2(gap / Math.pow(1 + rM, monthsToRetire));
+  } else if (gap > 0) {
+    // Already at/after retirement — no time to invest; it's a lump today.
+    lumpTodayToClose = gap;
+  }
+
+  return {
+    needed: bridgeYears > 0,
+    bridgeYears,
+    yearsToFund,
+    ladder: opts.ladder,
+    targetPot,
+    haveAtRetirement: r2(opts.haveAtRetirement),
+    gap,
+    monthsToRetire,
+    monthlyToClose,
+    lumpTodayToClose,
   };
 }
 
@@ -313,6 +407,7 @@ function buildGuidance(
   s: {
     bridgeYears: number; bridgeNeeded: number; bridgeAvailableAtRetirement: number;
     depletionAge: number | null; totalPenalties: number; totalConversions: number;
+    irmaa: { years: number; threshold: number; firstAge: number } | null;
   },
 ): string[] {
   const g: string[] = [];
@@ -348,9 +443,27 @@ function buildGuidance(
   }
 
   g.push(
+    "Ideal withdrawal order in retirement: spend taxable interest/dividends and RMDs (once forced) first, then " +
+    "sell brokerage for low-rate long-term gains, then tap Roth — while converting Traditional → Roth each year up to your " +
+    "target bracket. It keeps each year's taxable income low and smooth instead of spiking it later.",
+  );
+
+  g.push(
     "Classic funding order while working: 401k up to the employer match → HSA (triple tax advantage — keep medical receipts) → " +
     "Roth IRA → rest of 401k → brokerage for the bridge. Early retirees often flip the last two to fatten the bridge.",
   );
+
+  if (s.irmaa) {
+    g.push(
+      `🏥 Medicare (IRMAA): ${s.irmaa.years} year${s.irmaa.years === 1 ? "" : "s"} from age ${s.irmaa.firstAge} push MAGI over ` +
+      `~${fmt(s.irmaa.threshold)} (${p.filingStatus === "married" ? "joint" : "single"}), which raises your Part B & D premiums two years later. ` +
+      "Front-load bigger Roth conversions before 63, then ease off — or accept the surcharge as the price of a smaller taxable RMD later.",
+    );
+  } else if (p.ladder && s.totalConversions > 0) {
+    g.push(
+      "🏥 Medicare (IRMAA): your conversions stay under the first Medicare surcharge threshold, so Part B/D premiums aren't affected — a nice side effect of filling only the lower brackets.",
+    );
+  }
 
   if (s.depletionAge != null) {
     g.push(`⚠️ Money runs out at age ${s.depletionAge}. Lower spending, retire later, or save more per year.`);

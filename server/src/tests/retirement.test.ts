@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { simulateRetirement, type RetirementParams } from "../services/retirement.js";
+import { computeBridgePlan, simulateRetirement, type RetirementParams } from "../services/retirement.js";
 import { STANDARD_DEDUCTION } from "../services/tax.js";
 
 /** A well-funded early retiree at 45 with a fat bridge. */
@@ -117,6 +117,90 @@ describe("simulateRetirement", () => {
     expect(r.guidance.length).toBeGreaterThan(2);
   });
 
+  it("produces a bridge plan sized to the ladder seasoning window", () => {
+    const withLadder = simulateRetirement(baseParams());
+    expect(withLadder.bridgePlan.needed).toBe(true);
+    expect(withLadder.bridgePlan.bridgeYears).toBe(15); // 60 − 45
+    expect(withLadder.bridgePlan.yearsToFund).toBe(5); // ladder → only 5 yrs self-funded
+
+    const p = baseParams();
+    p.ladder = false;
+    const noLadder = simulateRetirement(p);
+    expect(noLadder.bridgePlan.yearsToFund).toBe(15); // must self-fund the whole gap
+    // No-ladder target pot is larger (more years of spending to cover)
+    expect(noLadder.bridgePlan.targetPot).toBeGreaterThan(withLadder.bridgePlan.targetPot);
+  });
+});
+
+describe("computeBridgePlan (pure)", () => {
+  const base = {
+    currentAge: 35, retireAge: 45, annualSpending: 40_000,
+    ladder: true, realRatePct: 5, haveAtRetirement: 0, bridgeTaxes: 0,
+  };
+
+  it("targets 5 years of spending with a ladder", () => {
+    const plan = computeBridgePlan({ ...base, haveAtRetirement: 0 });
+    expect(plan.yearsToFund).toBe(5);
+    expect(plan.targetPot).toBe(200_000); // 5 × 40k
+    expect(plan.gap).toBe(200_000);
+    expect(plan.monthsToRetire).toBe(120);
+  });
+
+  it("solves the monthly investment to close the gap (annuity FV)", () => {
+    const plan = computeBridgePlan({ ...base, haveAtRetirement: 0 });
+    // Reinvest the PMT for 120 months at 5%/yr → should reach ~targetPot
+    const r = 5 / 100 / 12;
+    const fv = plan.monthlyToClose! * (Math.pow(1 + r, 120) - 1) / r;
+    expect(fv).toBeCloseTo(plan.targetPot, -1); // within ~$10
+    expect(plan.lumpTodayToClose).toBeCloseTo(plan.gap / Math.pow(1 + r, 120), -1);
+  });
+
+  it("reports no gap when the bridge is already funded", () => {
+    const plan = computeBridgePlan({ ...base, haveAtRetirement: 250_000 });
+    expect(plan.gap).toBe(0);
+    expect(plan.monthlyToClose).toBeNull();
+  });
+
+  it("needs no bridge when retiring at/after 59½", () => {
+    const plan = computeBridgePlan({ ...base, retireAge: 62 });
+    expect(plan.needed).toBe(false);
+    expect(plan.bridgeYears).toBe(0);
+    expect(plan.targetPot).toBe(0);
+    expect(plan.gap).toBe(0);
+  });
+
+  it("with zero real return, monthly is a simple split", () => {
+    const plan = computeBridgePlan({ ...base, realRatePct: 0, haveAtRetirement: 0 });
+    expect(plan.monthlyToClose).toBeCloseTo(200_000 / 120, 2);
+  });
+});
+
+describe("Medicare IRMAA + withdrawal-strategy guidance", () => {
+  it("always includes a tax-optimal withdrawal-order tip", () => {
+    const r = simulateRetirement(baseParams());
+    expect(r.guidance.some((g) => /withdrawal order/i.test(g))).toBe(true);
+  });
+
+  it("flags IRMAA when big conversions push MAGI over the tier after 63", () => {
+    const p = baseParams();
+    p.filingStatus = "single";
+    p.fillBracket = 22; // large conversions → MAGI can top ~$109k
+    p.accounts.trad.balance = 3_000_000; // plenty to convert late
+    const r = simulateRetirement(p);
+    expect(r.guidance.some((g) => /IRMAA/.test(g) && /premiums/.test(g))).toBe(true);
+  });
+
+  it("reassures when conversions stay under the IRMAA threshold", () => {
+    const p = baseParams();
+    p.fillBracket = 12; // single 12% bracket top ~$66.5k << $109k
+    const r = simulateRetirement(p);
+    const irmaaLine = r.guidance.find((g) => /IRMAA/.test(g));
+    expect(irmaaLine).toBeDefined();
+    expect(irmaaLine).toMatch(/under the first Medicare surcharge/);
+  });
+});
+
+describe("depletion", () => {
   it("flags depletion when spending is unsustainable", () => {
     const p = baseParams();
     p.annualSpending = 200_000;
