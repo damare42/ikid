@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Hosting (Phase 1 self-host beta): run ikid online behind HTTPS with sign-in required and no principle compromises. Server now honors `IKID_TRUST_PROXY` (X-Forwarded-* behind a reverse proxy) and `IKID_ORIGIN` (CORS lock-down), logs its data dir / profiles / auth mode on startup, and prints a clear message instead of crashing when the port is already in use. New `deploy/` artifacts (Caddy auto-HTTPS reverse proxy, production compose, backup script) and `docs/DEPLOY-ONLINE.md` walk through a VPS+Caddy or Fly.io deploy, invite-only setup, and backups. See `docs/ONLINE-PLAN.md` for the full A→B→(C) roadmap
+
 - Retirement: **penalty-free bridge plan** — back-solves how much penalty-free money you need at retirement (5 years of spending + conversion taxes with a ladder, or the full gap without one), compares it to what you're on track to have, and computes the extra monthly investment (compound growth at your real return) or lump-sum-today needed to close any shortfall, with guidance on which accounts to fill
 - Retirement: **Medicare IRMAA awareness** — flags years from age 63 whose income would push MAGI over the first surcharge tier (2026: $109k single / $218k joint), raising Part B/D premiums two years later, and reassures when conversions stay under it; plus an explicit tax-optimal withdrawal-order tip. Strategy explanations moved to hover tooltips so they no longer stretch the page
 

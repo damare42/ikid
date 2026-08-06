@@ -24,7 +24,20 @@ import { trackRouter } from "./routes/track.js";
 
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: /localhost/ }));
+
+  // Behind a reverse proxy (Caddy/nginx/Fly), trust X-Forwarded-* so Secure
+  // cookies and client-IP rate limiting work. IKID_TRUST_PROXY=1 (or a hop
+  // count) enables it; off by default for direct local use.
+  const trust = process.env.IKID_TRUST_PROXY;
+  if (trust) app.set("trust proxy", /^\d+$/.test(trust) ? Number(trust) : 1);
+
+  // Same-origin in production (the server serves the built client), so CORS
+  // normally isn't exercised. When it is, restrict to configured origins:
+  // IKID_ORIGIN="https://money.example.com" (comma-separated for several).
+  const origins = (process.env.IKID_ORIGIN ?? "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
+  app.use(cors({ origin: origins.length ? origins : /localhost/, credentials: true }));
+
   app.use(express.json({ limit: "50mb" }));
 
   app.use((req, _res, next) => {

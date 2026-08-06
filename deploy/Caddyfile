@@ -1,0 +1,19 @@
+# Caddy reverse proxy for ikid — automatic HTTPS (Let's Encrypt).
+# Replace money.example.com with your real domain (its DNS A/AAAA record must
+# point at this server). Caddy fetches and renews the TLS cert for you.
+
+money.example.com {
+	encode zstd gzip
+	reverse_proxy ikid:3001
+
+	# Security headers (finance app — keep it locked down)
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# ikid ships no third-party scripts; fonts are the only external asset.
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'"
+		-Server
+	}
+}

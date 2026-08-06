@@ -1,0 +1,58 @@
+# ikid — hosted (Phase 1 self-host beta), behind Caddy with automatic HTTPS.
+#
+#   1. Point your domain's DNS at this server.
+#   2. Edit deploy/Caddyfile — replace money.example.com with your domain.
+#   3. Set IKID_ORIGIN below to https://<your-domain>.
+#   4. From the repo root:  docker compose -f deploy/docker-compose.prod.yml up -d --build
+#   5. Open https://<your-domain>, sign up (first account = admin), then turn
+#      OFF "Allow new sign-ups" in the Admin page for invite-only.
+#
+# Data lives in the ikid-data volume — back it up (see deploy/backup.sh).
+
+services:
+  ikid:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    expose:
+      - "3001" # internal only; Caddy is the sole public entrypoint
+    volumes:
+      - ikid-data:/app/database
+    environment:
+      - NODE_ENV=production
+      - IKID_REQUIRE_AUTH=1 # never run a networked instance in open mode
+      - IKID_SECURE_COOKIES=1 # cookies only sent over HTTPS
+      - IKID_TRUST_PROXY=1 # trust Caddy's X-Forwarded-* headers
+      # Must match your real URL (used for CORS if ever cross-origin):
+      - IKID_ORIGIN=https://money.example.com
+      # Planner AI (optional) — enable the `ollama` profile to use it:
+      - OLLAMA_URL=http://ollama:11434
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # persists issued certificates
+      - caddy-config:/config
+    depends_on:
+      - ikid
+    restart: unless-stopped
+
+  # Optional local Planner AI. Enable with `--profile ai`, then once:
+  #   docker compose -f deploy/docker-compose.prod.yml exec ollama ollama pull llama3.1
+  ollama:
+    image: ollama/ollama
+    profiles: ["ai"]
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ikid-data:
+  caddy-data:
+  caddy-config:
+  ollama-data:
