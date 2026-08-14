@@ -53,6 +53,23 @@ The whole app now reads in the new design system — warm neutrals, brick-red
 accent, Archivo, square cards/inputs/tables, token chart colours — on **every**
 screen, via the theme + shell + primitives, without a per-screen rewrite.
 
+## Done — app-wide coherence pass
+
+- **Transactions** rebuilt to the new look with every function intact (search,
+  all filters incl. Unassigned, sort, pagination, row-select + bulk assign,
+  edit dialog, add dialog, drill-down back) plus a header kicker, a pulsing
+  table **loading skeleton** (`aria-busy`), and a filter-aware **empty state**.
+- **Page titles** across all 12 screens → heavy Archivo (`text-2xl`
+  extra-bold, tight tracking) with the kicker treatment.
+- **Badges/pills** recoloured from indigo → accent; role/admin chips match.
+- **Square structure** applied to structural `rounded-xl` panels app-wide;
+  chat bubbles kept at the 14px bubble radius; inputs/cards already square.
+- **Fix**: removed the fragile `@apply font-heading` (raw font-family) that
+  broke the dev server on config reload.
+
+Verified each step: client typecheck + eslint + production build, and the full
+server test suite (116 passing). Server code was untouched by the redesign.
+
 ## Remaining — per-screen detail (larger, bespoke work)
 
 Do these screen by screen, build/lint/verify per step:
