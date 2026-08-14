@@ -301,8 +301,8 @@ function Amortization({ initial, onSave }: CalcProps) {
                 <YAxis yAxisId="bal" orientation="right" fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
                 <Legend />
-                <Bar yAxisId="pay" dataKey="principalPaid" name="Principal" stackId="a" fill="#1cb474" />
-                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill="#f43f5e" />
+                <Bar yAxisId="pay" dataKey="principalPaid" name="Principal" stackId="a" fill="#1a7f5a" />
+                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill="#c62f14" />
                 <Line yAxisId="bal" type="monotone" dataKey="balance" name="Balance" stroke="#6366f1" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -402,9 +402,9 @@ function Fire({ initial, onSave }: CalcProps) {
                 <Legend />
                 <ReferenceLine
                   y={result.fireNumber}
-                  stroke="#f43f5e"
+                  stroke="#c62f14"
                   strokeDasharray="6 4"
-                  label={{ value: "FIRE number", fill: "#f43f5e", fontSize: 11, position: "insideTopRight" }}
+                  label={{ value: "FIRE number", fill: "#c62f14", fontSize: 11, position: "insideTopRight" }}
                 />
                 <Area type="monotone" dataKey="balance" name="Portfolio" stroke="#f97316" fill="url(#fireBal)" strokeWidth={2} />
                 <Area type="monotone" dataKey="contributed" name="Contributed" stroke="#94a3b8" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
@@ -522,9 +522,9 @@ function Coast({ initial, onSave }: CalcProps) {
                 {result.coastAge != null && !result.alreadyCoasting && (
                   <ReferenceLine
                     x={result.series.reduce((best, pt) => (Math.abs(pt.age - result.coastAge!) < Math.abs(best - result.coastAge!) ? pt.age : best), result.series[0].age)}
-                    stroke="#1cb474"
+                    stroke="#1a7f5a"
                     strokeDasharray="6 4"
-                    label={{ value: "coast!", fill: "#1cb474", fontSize: 11, position: "insideTopLeft" }}
+                    label={{ value: "coast!", fill: "#1a7f5a", fontSize: 11, position: "insideTopLeft" }}
                   />
                 )}
                 <Line type="monotone" dataKey="balance" name="Portfolio" stroke="#0ea5e9" strokeWidth={2.5} dot={false} />
@@ -603,8 +603,8 @@ function Compound({ initial, onSave }: CalcProps) {
               <AreaChart data={result.series}>
                 <defs>
                   <linearGradient id="cgBal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1cb474" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#1cb474" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="cgCon" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#94a3b8" stopOpacity={0.5} />
@@ -616,7 +616,7 @@ function Compound({ initial, onSave }: CalcProps) {
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
                 <Legend />
-                <Area type="monotone" dataKey="balance" name="Balance" stroke="#1cb474" fill="url(#cgBal)" strokeWidth={2} />
+                <Area type="monotone" dataKey="balance" name="Balance" stroke="#1a7f5a" fill="url(#cgBal)" strokeWidth={2} />
                 <Area type="monotone" dataKey="contributed" name="Contributed" stroke="#94a3b8" fill="url(#cgCon)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>

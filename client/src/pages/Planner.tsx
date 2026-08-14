@@ -253,7 +253,7 @@ export default function Planner() {
                           <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(l) => fmtMonth(String(l))} />
                           <Legend />
                           <Line type="monotone" dataKey="baseline" name="Keep as-is" stroke="#94a3b8" strokeDasharray="4 4" dot={false} />
-                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1cb474" strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1a7f5a" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                       <div className="px-1 text-[10px] text-slate-400">Projected savings balance, next 24 months</div>

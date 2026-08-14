@@ -90,7 +90,7 @@ export default function Admin() {
               <XAxis dataKey="day" fontSize={10} tickFormatter={(d) => d.slice(5)} interval={4} />
               <YAxis fontSize={11} allowDecimals={false} width={30} />
               <Tooltip />
-              <Line type="monotone" dataKey="events" name="Events" stroke="#1cb474" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="events" name="Events" stroke="#1a7f5a" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="users" name="Active users" stroke="#f59e0b" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>

@@ -34,7 +34,7 @@ export function StatCard({ label, value, sub, tone = "default" }: {
 
 export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
   const clamped = Math.min(100, Math.max(0, pct));
-  const barColor = color ?? (pct > 100 ? "#e11d48" : pct > 85 ? "#f59e0b" : "#1cb474");
+  const barColor = color ?? (pct > 100 ? "#e11d48" : pct > 85 ? "#f59e0b" : "#1a7f5a");
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
       <div className="h-full rounded-full transition-all" style={{ width: `${clamped}%`, backgroundColor: barColor }} />

@@ -471,7 +471,7 @@ export default function Retirement() {
                 <ReferenceLine x={60} stroke="#64748b" strokeDasharray="5 4" label={{ value: "59½", fontSize: 10, fill: "#64748b" }} />
                 <ReferenceLine x={Number(rmdAge)} stroke="#a855f7" strokeDasharray="5 4" label={{ value: "RMD", fontSize: 10, fill: "#a855f7" }} />
                 <Area type="monotone" stackId="1" dataKey="trad" name="Traditional" stroke="#6366f1" fill="#6366f1" fillOpacity={0.5} />
-                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke="#1cb474" fill="#1cb474" fillOpacity={0.5} />
+                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke="#1a7f5a" fill="#1a7f5a" fillOpacity={0.5} />
                 <Area type="monotone" stackId="1" dataKey="brokerage" name="Brokerage" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
                 <Area type="monotone" stackId="1" dataKey="hsa" name="HSA" stroke="#f97316" fill="#f97316" fillOpacity={0.5} />
               </AreaChart>
@@ -488,9 +488,9 @@ export default function Retirement() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
                   <Legend />
-                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#f43f5e" />
+                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#c62f14" />
                   <Bar dataKey="penalty" name="10% penalty" stackId="t" fill="#7f1d1d" />
-                  <Bar dataKey="conversion" name="Roth conversion" fill="#1cb474" fillOpacity={0.35} />
+                  <Bar dataKey="conversion" name="Roth conversion" fill="#1a7f5a" fillOpacity={0.35} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

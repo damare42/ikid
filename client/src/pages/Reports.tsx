@@ -57,8 +57,8 @@ export default function Reports() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1cb474" />
-            <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" />
+            <Bar dataKey="income" name="Income" fill="#1a7f5a" />
+            <Bar dataKey="expenses" name="Expenses" fill="#c62f14" />
           </BarChart>
         </ResponsiveContainer>
 

@@ -88,7 +88,7 @@ function DashboardMock() {
   return (
     <MockWindow title="ikid — dashboard">
       <div className="grid grid-cols-3 gap-2 font-grotesk">
-        {[["Income", "$3,950", "#1cb474"], ["Spending", "$3,260", "#f43f5e"], ["Saved", "$690", "#6366f1"]].map(
+        {[["Income", "$3,950", "#1a7f5a"], ["Spending", "$3,260", "#c62f14"], ["Saved", "$690", "#6366f1"]].map(
           ([l, v, c], i) => (
             <div key={l} className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800" style={{ animation: `popIn .4s ease both ${i * 0.15}s` }}>
               <div className="text-[10px] uppercase tracking-wide text-slate-400">{l}</div>
@@ -108,7 +108,7 @@ function DashboardMock() {
         </div>
         <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90">
           <circle cx="50" cy="50" r="41" fill="none" stroke="#e2e8f0" strokeWidth="14" />
-          <circle cx="50" cy="50" r="41" fill="none" stroke="#1cb474" strokeWidth="14" strokeDasharray="260" strokeDashoffset="80" style={{ animation: "drawArc 1.4s ease both .5s" }} />
+          <circle cx="50" cy="50" r="41" fill="none" stroke="#1a7f5a" strokeWidth="14" strokeDasharray="260" strokeDashoffset="80" style={{ animation: "drawArc 1.4s ease both .5s" }} />
           <circle cx="50" cy="50" r="41" fill="none" stroke="#f59e0b" strokeWidth="14" strokeDasharray="70 190" strokeDashoffset="-180" style={{ animation: "drawArc 1.4s ease both .8s" }} />
         </svg>
       </div>

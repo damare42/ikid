@@ -601,7 +601,7 @@ function AccountsEditor({ accounts, onChanged }: { accounts: AccountDTO[]; onCha
 
 function CategoriesEditor({ categories, onChanged }: { categories: CategoryDTO[]; onChanged: () => void }) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#1cb474");
+  const [color, setColor] = useState("#1a7f5a");
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-1.5">

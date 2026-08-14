@@ -242,8 +242,8 @@ export default function Dashboard() {
               <AreaChart data={s.cashFlow}>
                 <defs>
                   <linearGradient id="cf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1cb474" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#1cb474" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -254,7 +254,7 @@ export default function Dashboard() {
                 />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
                 <Tooltip formatter={(v: number) => fmtSigned(v)} labelFormatter={(d) => fmtDate(String(d))} />
-                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke="#1cb474" fill="url(#cf)" />
+                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke="#1a7f5a" fill="url(#cf)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -351,8 +351,8 @@ export default function Dashboard() {
               <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
               <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
               <Legend />
-              <Bar dataKey="income" name="Income" fill="#1cb474" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="expenses" name="Expenses" fill="#c62f14" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
