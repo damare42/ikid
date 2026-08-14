@@ -39,20 +39,38 @@ Files: `client/tailwind.config.js`, `client/src/index.css`, `client/index.html`.
 - Rail hides below `md` (tablet/mobile) — a proper top-nav bar for that
   breakpoint is still to come (see mobile pass).
 
-## Next — screen by screen (per START_HERE build order)
+## Done — app-wide colour + primitives
 
-1. **Transactions** — table, selection bar, sort/filters, and the 3 states (loading/empty/error).
-3. Dashboard (incl. partial-failure section pattern).
-4. Budgets, Goals, Accounts, Net Worth.
-5. Analytics, Reports.
-6. Import flow (+ column-mapping stage).
-7. Planner, Calculators, Retirement, Settings, Admin.
-8. Mobile.
+- **Chart / semantic recolour** across every page: old brand-green `#1cb474`
+  → token `pos` `#1a7f5a` (income/positive), expense rose `#f43f5e` → `neg`
+  `#c62f14`. Charts read in the token palette everywhere now.
+- **Logo** recoloured to the accent (brick red) — wordmark + mark.
+- **UI primitives** (`components/ui.tsx`): kicker stat labels, heavy Archivo
+  stat figures, `bad` tone → accent, square category badges, and the error
+  device is now a 2px accent left-rule block.
 
-## Notes / not yet touched
+The whole app now reads in the new design system — warm neutrals, brick-red
+accent, Archivo, square cards/inputs/tables, token chart colours — on **every**
+screen, via the theme + shell + primitives, without a per-screen rewrite.
 
-- Landing page and `Logo` component still use the old green + Fraunces/Space
-  Grotesk; they carry inline hex and need a dedicated pass (see `Ikid Landing.dc.html`).
-- Recharts series colors are still inline greens/roses in each page; migrate to
-  the `category` tokens per chart during each screen's pass.
-- Per-screen state copy (empty/error strings) to be taken verbatim from `README.md`.
+## Remaining — per-screen detail (larger, bespoke work)
+
+Do these screen by screen, build/lint/verify per step:
+
+1. **Loading skeletons** — per-screen shapes (cards / table / bars / chart)
+   replacing the single spinner, `aria-busy` + 150ms delay.
+2. **Empty / error / partial copy** — verbatim from `README.md`, incl. the
+   Dashboard partial-failure section pattern.
+3. **Transactions table** — exact `96px 1fr …` grid, sticky header + selection
+   bar, row-hover rule, virtualisation for large lists.
+4. **Import column-mapping stage** — the 3-column mapping grid + "remember this
+   layout" (not built yet).
+5. **Structural radius** on secondary inline panels/chips (square structure;
+   keep 9px chrome and 14px chat bubbles).
+6. **Mobile / tablet** — the ≤1100px top-nav bar replacing the rail, and the
+   4-tab phone layout (`Ikid Mobile.dc.html`).
+7. **Landing** — full marketing redesign to `Ikid Landing.dc.html` (its mock
+   colours were swept to token green as a stopgap; hero/brand should move to
+   the accent + Archivo).
+8. **Lucide icons** — replace emoji nav/labels with the Lucide set (18–20px,
+   stroke 2).
