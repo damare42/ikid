@@ -128,7 +128,7 @@ export default function Calculators() {
       {saveError && <ErrorNote message={saveError} />}
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex w-fit flex-wrap gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+          <div className="flex w-fit flex-wrap gap-1 rounded-none bg-slate-100 p-1 dark:bg-slate-800">
             {TABS.map((t) => (
               <button
                 key={t.id}

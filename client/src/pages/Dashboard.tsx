@@ -95,7 +95,7 @@ function CspDetailModal({ csp, onClose, onOpenCategory }: {
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {csp.buckets.map((b) => (
-          <section key={b.key} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+          <section key={b.key} className="rounded-none border border-slate-200 p-3 dark:border-slate-800">
             <div className="mb-1 flex items-center justify-between">
               <Badge color={b.color}>{b.label}</Badge>
               <span className="font-bold tabular-nums">{fmtMoney(b.total)}</span>

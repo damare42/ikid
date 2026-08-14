@@ -235,7 +235,7 @@ export default function Planner() {
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+                  className={`max-w-[85%] rounded-[14px] px-4 py-2.5 text-sm ${
                     m.role === "user"
                       ? "bg-brand-600 text-white"
                       : "bg-slate-100 dark:bg-slate-800"
@@ -244,7 +244,7 @@ export default function Planner() {
                   {m.title && <div className="mb-1 font-semibold">{m.title}</div>}
                   <div className="whitespace-pre-wrap">{m.content}</div>
                   {m.chart && m.chart.length > 0 && (
-                    <div className="mt-3 rounded-xl bg-white p-2 dark:bg-slate-900">
+                    <div className="mt-3 rounded-none bg-white p-2 dark:bg-slate-900">
                       <ResponsiveContainer width="100%" height={180}>
                         <LineChart data={m.chart}>
                           <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -272,7 +272,7 @@ export default function Planner() {
             ))}
             {busy && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400 dark:bg-slate-800">
+                <div className="rounded-[14px] bg-slate-100 px-4 py-2.5 text-sm text-slate-400 dark:bg-slate-800">
                   Crunching your numbers…
                 </div>
               </div>
