@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/styles.css">
+<script src="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/_ds_bundle.js"></script>
+<style>
+  body { background:#d9d7d7; }
+  :root { --panel:#ffffff; --color-accent:#c62f14; --color-accent-600:#a82710; --poster:#a3260f; }
+  .dark {
+    --color-bg:#161514; --panel:#201e1d; --color-surface:#252322;
+    --color-text:#f3f2f2; --color-neutral-200:#302d2c; --color-neutral-300:#413d3c; --color-neutral-400:#5c5857;
+    --color-neutral-100:#252322; --color-neutral-500:#8a8685; --color-neutral-600:#a7a3a2; --color-neutral-700:#c4c0bf; --color-accent-100: color-mix(in srgb, var(--color-accent) 20%, #201e1d);
+  }
+  .kick { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--color-neutral-600); font-family:var(--font-heading); font-weight:600; }
+  .display { font-family:var(--font-heading); font-weight:800; letter-spacing:-0.03em; line-height:1; color:var(--color-text); }
+  .big { font-family:var(--font-heading); font-weight:800; letter-spacing:-0.02em; line-height:1; color:var(--color-text); }
+  .num { font-variant-numeric:tabular-nums; }
+  .phone { height:100%; display:flex; flex-direction:column; background:var(--color-bg); position:relative; }
+  .pscroll { flex:1; overflow:auto; }
+  .phead { display:flex; align-items:center; padding:56px 20px 12px; border-bottom:1.5px solid var(--color-text); background:var(--panel); position:sticky; top:0; z-index:5; }
+  .avatar { width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--color-text); font-family:var(--font-heading); font-weight:800; font-size:13px; color:var(--color-text); }
+  .sec { padding:18px 20px; }
+  .rule { border-top:1px solid var(--color-neutral-300); }
+  .track { height:7px; background:var(--color-neutral-200); }
+  .track > div { height:100%; }
+  .statline { display:flex; justify-content:space-between; align-items:baseline; padding:13px 0; }
+  .statline + .statline { border-top:1px solid var(--color-neutral-300); }
+  .cat + .cat { margin-top:13px; }
+  .qarow { display:flex; padding:14px 8px; }
+  .qa { flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; }
+  .qa svg { width:23px; height:23px; }
+  .qa span { font-size:10px; font-family:var(--font-heading); font-weight:600; letter-spacing:0.02em; }
+  .tabbar { display:flex; border-top:1.5px solid var(--color-text); background:var(--panel); padding-bottom:22px; }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:11px 0 6px; color:var(--color-neutral-500); font-family:var(--font-heading); font-weight:600; font-size:10px; cursor:pointer; }
+  .tab svg { width:22px; height:22px; }
+  .tab.on { color:var(--color-accent); }
+  @keyframes ik-rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes ik-draw { to { stroke-dashoffset:0; } }
+  @keyframes ik-arrive { 0% { transform:scale(0); opacity:0; } 70% { transform:scale(1.3); opacity:1; } 100% { transform:scale(1); opacity:1; } }
+  @keyframes ik-fade-out { to { opacity:0; } }
+  @keyframes ik-fade-in { to { opacity:1; } }
+  .msplash { position:absolute; inset:0; z-index:30; background:var(--color-bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; transition:opacity .45s ease; }
+  .msplash.out { opacity:0; pointer-events:none; }
+  .msplash .ik-mark { animation: ik-rise .5s ease both; }
+  .msplash .ik-route { stroke-dasharray:100; stroke-dashoffset:100; animation: ik-draw 1s ease .2s forwards, ik-fade-out .35s ease 1.2s forwards; }
+  .msplash .ik-routed { opacity:0; animation: ik-fade-in .4s ease 1.2s forwards; }
+  .msplash .ik-dest { transform-box:fill-box; transform-origin:center; opacity:0; animation: ik-arrive .55s ease 1.05s forwards; }
+  .msplash .ik-word { animation: ik-rise .6s ease .2s both; }
+  .caplabel { font-family:var(--font-heading); font-weight:800; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--color-neutral-700); margin-bottom:14px; }
+
+  /* interactive states — matched to the desktop app */
+  :root { --pos:#1a7f5a; --neg:#c62f14; }
+  .dark { --pos:#5fd3a3; --neg:#ff7a5e; }
+  .tab, .qa { min-height:44px; justify-content:center; }
+  .tab:focus-visible, .qa:focus-visible, .btn:focus-visible, .input:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+
+  /* prototype-only state switch */
+  .protobar { display:flex; align-items:center; flex-wrap:wrap; gap:6px 20px; padding:8px 14px; background:#eceaea; border:1px dashed var(--color-neutral-400); }
+  .protobar .set { display:flex; }
+  .protobar button { font-family:var(--font-heading); font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--color-neutral-600); background:transparent; border:0; padding:5px 9px; cursor:pointer; }
+  .protobar button:hover { color:var(--color-text); background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+  .stsw[data-active="normal"] [data-s="normal"],
+  .stsw[data-active="loading"] [data-s="loading"],
+  .stsw[data-active="empty"] [data-s="empty"],
+  .stsw[data-active="error"] [data-s="error"] { color:var(--color-accent); box-shadow: inset 0 -2px 0 var(--color-accent); }
+
+  @keyframes ik-pulse { 0%,100% { opacity:1; } 50% { opacity:0.38; } }
+  .sk { background:var(--color-neutral-200); animation: ik-pulse 1.5s ease-in-out infinite; }
+  .sk.d1 { animation-delay:.12s; } .sk.d2 { animation-delay:.24s; } .sk.d3 { animation-delay:.36s; } .sk.d4 { animation-delay:.48s; }
+  .skline { display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-top:1px solid var(--color-neutral-300); }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; line-height:1.6; color:var(--color-neutral-600); background:var(--color-neutral-100); padding:11px 12px; overflow-wrap:anywhere; }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:24px; padding:64px 56px; align-items:flex-start;">
+  <div style="max-width:720px;">
+    <div class="kick" style="color:var(--color-accent); letter-spacing:0.14em;">Mobile · 1c direction</div>
+    <h1 class="display" style="font-size:34px; margin:8px 0 8px;">Balance first, actions in reach.</h1>
+    <p style="font-size:15px; color:var(--color-neutral-700); margin:0;">Compact header, an open quick-action row (no box, no vertical dividers), and single hairline dividers so nothing doubles up on scroll. First phone is live — tap the tabs and the quick actions.</p>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:56px; align-items:flex-start;">
+
+    <!-- PHONE 1 — interactive -->
+    <div>
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:14px;">
+        <div class="caplabel" style="margin:0;">Interactive</div>
+        <div class="protobar">
+          <span class="kick" style="color:var(--color-neutral-500);">State</span>
+          <div class="set stsw" data-active="{{ dataState }}">
+            <button data-s="normal" onClick="{{ setNormal }}">Data</button>
+            <button data-s="loading" onClick="{{ setLoadingState }}">Loading</button>
+            <button data-s="empty" onClick="{{ setEmptyState }}">Empty</button>
+            <button data-s="error" onClick="{{ setErrorState }}">Error</button>
+          </div>
+        </div>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+        <div class="phone">
+          <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+          <div class="{{ splashClass }}">
+            <svg class="ik-mark" viewBox="0 0 180 74" width="184" height="76">
+              <path class="ik-route" d="M18,58 Q96,8 162,38" pathLength="100" fill="none" stroke="var(--color-accent)" stroke-width="4.5" stroke-linecap="round"></path>
+              <path class="ik-routed" d="M18,58 Q96,8 162,38" fill="none" stroke="var(--color-accent)" stroke-width="4.5" stroke-dasharray="2 8" stroke-linecap="round"></path>
+              <circle cx="18" cy="58" r="7" fill="var(--color-text)"></circle>
+              <circle class="ik-dest" cx="162" cy="38" r="8" fill="var(--color-accent)"></circle>
+            </svg>
+            <div class="ik-word display" style="font-size:34px;">ıkıd</div>
+            <div class="kick" style="color:var(--color-neutral-500);">Local finance</div>
+          </div>
+          </sc-if>
+
+          <div class="phead">
+            <svg viewBox="24 24 198 104" width="98" style="display:block;">
+              <path d="M40,66 Q94,4 148,48" fill="none" stroke="var(--color-accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 9"/>
+              <circle cx="40" cy="66" r="8" fill="var(--color-text)"/>
+              <circle cx="148" cy="48" r="9.5" fill="var(--color-accent)"/>
+              <text x="30" y="120" font-family="Archivo, sans-serif" font-weight="800" font-size="76" letter-spacing="-3" fill="var(--color-text)">ıkıd</text>
+            </svg>
+            <div class="avatar" style="margin-left:auto;">D</div>
+          </div>
+
+          <div class="pscroll">
+            <!-- DASHBOARD -->
+            <sc-if value="{{ mDash }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div class="sec" style="padding-top:22px; padding-bottom:20px;">
+                <div class="kick" style="color:var(--color-accent);">August · net position</div>
+                <div class="display" style="font-size:58px; color:var(--pos); margin-top:8px;">+$3,060</div>
+                <div style="font-family:var(--font-heading); font-weight:600; font-size:13px; color:var(--color-neutral-700); margin-top:5px;">saved this month · 37% of take-home</div>
+              </div>
+              <div class="qarow rule" style="border-bottom:1px solid var(--color-neutral-300);">
+                <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>Import</span></div>
+                <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></div>
+                <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M7 10l-4 4 4 4M3 14h13M17 4l4 4-4 4M21 8H8"/></svg><span>Transfer</span></div>
+                <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span>Search</span></div>
+              </div>
+              <div class="sec">
+                <div class="statline"><span class="kick">Income</span><span class="big num" style="font-size:19px;">$8,240</span></div>
+                <div class="statline"><span class="kick">Spending</span><span class="big num" style="font-size:19px;">$5,180</span></div>
+                <div class="statline"><span class="kick">Net worth</span><span class="big num" style="font-size:19px;">$142,300</span></div>
+                <div class="statline"><span class="kick">Health score</span><span class="big num" style="font-size:19px;">78 / 100</span></div>
+              </div>
+              <div class="sec rule">
+                <div class="kick" style="margin-bottom:14px;">Largest categories</div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span class="num">$1,800</span></div><div class="track"><div style="width:100%; background:var(--color-accent);"></div></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span class="num">$620</span></div><div class="track"><div style="width:34%; background:var(--color-text);"></div></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span class="num">$410</span></div><div class="track"><div style="width:23%; background:var(--color-text);"></div></div></div>
+              </div>
+              <div class="sec rule">
+                <div class="kick" style="margin-bottom:8px;">Recent</div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0; border-top:1px solid var(--color-neutral-300);"><span>Whole Foods</span><span class="num">−$84.20</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0; border-top:1px solid var(--color-neutral-300);"><span>Payroll — Acme</span><span class="num" style="color:var(--pos); font-weight:700;">+$4,120</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0; border-top:1px solid var(--color-neutral-300);"><span>Netflix</span><span class="num">−$15.49</span></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- ACTIVITY -->
+            <sc-if value="{{ mTx }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div class="sec"><input class="input" placeholder="Search transactions…" style="background:var(--color-surface);"></div>
+              <div style="padding:0 20px 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Whole Foods Market</div><div class="kick" style="margin-top:3px;">Aug 12 · Groceries</div></div><span class="num" style="font-size:14px;">−$84.20</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Uber</div><div class="kick" style="margin-top:3px;">Aug 12 · Transport</div></div><span class="num" style="font-size:14px;">−$23.40</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Payroll — Acme Co</div><div class="kick" style="margin-top:3px;">Aug 10 · Income</div></div><span class="num" style="font-size:14px; color:var(--pos); font-weight:700;">+$4,120.00</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Rent — Oakline Apts</div><div class="kick" style="margin-top:3px;">Aug 10 · Housing</div></div><span class="num" style="font-size:14px;">−$1,800.00</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Netflix</div><div class="kick" style="margin-top:3px;">Aug 09 · Subscriptions</div></div><span class="num" style="font-size:14px;">−$15.49</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-top:1px solid var(--color-neutral-300);"><div><div style="font-family:var(--font-heading); font-weight:600; font-size:14px;">Trader Joe's</div><div class="kick" style="margin-top:3px;">Aug 09 · Groceries</div></div><span class="num" style="font-size:14px;">−$63.80</span></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- BUDGETS -->
+            <sc-if value="{{ mBud }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div class="sec" style="display:flex; gap:28px;">
+                <div><div class="kick">Spent</div><div class="big" style="font-size:22px; margin-top:5px;">$1,522</div></div>
+                <div><div class="kick">Remaining</div><div class="big" style="font-size:22px; margin-top:5px;">$378</div></div>
+                <div><div class="kick">Forecast</div><div class="big" style="font-size:22px; margin-top:5px; color:var(--color-accent);">$1,980</div></div>
+              </div>
+              <div class="sec rule">
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span class="num" style="color:var(--color-neutral-600);">$420 / $500</span></div><div class="track" style="height:9px;"><div style="width:84%; background:var(--color-text);"></div></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span class="num" style="color:var(--neg); font-weight:700;">$340 / $300</span></div><div class="track" style="height:9px;"><div style="width:100%; background:var(--neg);"></div></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span style="font-family:var(--font-heading); font-weight:600;">Transport</span><span class="num" style="color:var(--color-neutral-600);">$180 / $250</span></div><div class="track" style="height:9px;"><div style="width:72%; background:var(--color-text);"></div></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span style="font-family:var(--font-heading); font-weight:600;">Shopping</span><span class="num" style="color:var(--neg); font-weight:700;">$240 / $200</span></div><div class="track" style="height:9px;"><div style="width:100%; background:var(--neg);"></div></div></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- GOALS -->
+            <sc-if value="{{ mGoal }}" hint-placeholder-val="{{ false }}">
+            <div class="sec">
+              <div style="padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="big" style="font-size:17px;">Emergency Fund</span><span class="tag tag-neutral">61%</span></div><div class="num" style="color:var(--color-neutral-600); font-size:12px; margin:6px 0 8px;">$9,200 of $15,000 · Mar 2027</div><div class="track" style="height:9px;"><div style="width:61%; background:var(--color-accent);"></div></div></div>
+              <div style="padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="big" style="font-size:17px;">House Down Payment</span><span class="tag tag-neutral">37%</span></div><div class="num" style="color:var(--color-neutral-600); font-size:12px; margin:6px 0 8px;">$22,400 of $60,000 · Dec 2029</div><div class="track" style="height:9px;"><div style="width:37%; background:var(--color-text);"></div></div></div>
+              <div style="padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="big" style="font-size:17px;">Japan Trip</span><span class="tag tag-accent">on track</span></div><div class="num" style="color:var(--color-neutral-600); font-size:12px; margin:6px 0 8px;">$4,300 of $6,000 · May 2027</div><div class="track" style="height:9px;"><div style="width:72%; background:var(--color-accent);"></div></div></div>
+              <div style="padding:14px 0;"><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="big" style="font-size:17px;">New Laptop</span><span class="tag tag-outline">done</span></div><div class="num" style="color:var(--color-neutral-600); font-size:12px; margin:6px 0 8px;">$2,400 of $2,400 · reached</div><div class="track" style="height:9px;"><div style="width:100%; background:var(--color-accent);"></div></div></div>
+            </div>
+            </sc-if>
+
+            <!-- LOADING -->
+            <sc-if value="{{ isLoadingState }}" hint-placeholder-val="{{ false }}">
+            <div aria-busy="true">
+              <div class="sec" style="padding-top:22px; padding-bottom:18px;">
+                <div class="sk" style="height:9px; width:120px;"></div>
+                <div class="sk d1" style="height:46px; width:210px; margin-top:12px;"></div>
+                <div class="sk d2" style="height:11px; width:170px; margin-top:12px;"></div>
+              </div>
+              <sc-if value="{{ mskStat }}" hint-placeholder-val="{{ false }}">
+              <div class="sec rule">
+                <div class="skline" style="border-top:0;"><div class="sk" style="height:9px; width:64px;"></div><div class="sk" style="height:16px; width:78px;"></div></div>
+                <div class="skline"><div class="sk d1" style="height:9px; width:76px;"></div><div class="sk d1" style="height:16px; width:70px;"></div></div>
+                <div class="skline"><div class="sk d2" style="height:9px; width:70px;"></div><div class="sk d2" style="height:16px; width:88px;"></div></div>
+                <div class="skline"><div class="sk d3" style="height:9px; width:84px;"></div><div class="sk d3" style="height:16px; width:62px;"></div></div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ mskList }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:0 20px;">
+                <div class="skline"><div><div class="sk" style="height:13px; width:150px;"></div><div class="sk" style="height:8px; width:96px; margin-top:7px;"></div></div><div class="sk" style="height:13px; width:64px;"></div></div>
+                <div class="skline"><div><div class="sk d1" style="height:13px; width:110px;"></div><div class="sk d1" style="height:8px; width:88px; margin-top:7px;"></div></div><div class="sk d1" style="height:13px; width:58px;"></div></div>
+                <div class="skline"><div><div class="sk d2" style="height:13px; width:168px;"></div><div class="sk d2" style="height:8px; width:80px; margin-top:7px;"></div></div><div class="sk d2" style="height:13px; width:72px;"></div></div>
+                <div class="skline"><div><div class="sk d3" style="height:13px; width:134px;"></div><div class="sk d3" style="height:8px; width:92px; margin-top:7px;"></div></div><div class="sk d3" style="height:13px; width:66px;"></div></div>
+                <div class="skline"><div><div class="sk d4" style="height:13px; width:120px;"></div><div class="sk d4" style="height:8px; width:104px; margin-top:7px;"></div></div><div class="sk d4" style="height:13px; width:54px;"></div></div>
+                <div class="skline"><div><div class="sk d1" style="height:13px; width:146px;"></div><div class="sk d1" style="height:8px; width:86px; margin-top:7px;"></div></div><div class="sk d1" style="height:13px; width:62px;"></div></div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ mskBars }}" hint-placeholder-val="{{ false }}">
+              <div class="sec rule">
+                <div class="cat"><div style="display:flex; justify-content:space-between; margin-bottom:7px;"><div class="sk" style="height:12px; width:92px;"></div><div class="sk" style="height:11px; width:74px;"></div></div><div class="sk" style="height:9px;"></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; margin-bottom:7px;"><div class="sk d1" style="height:12px; width:74px;"></div><div class="sk d1" style="height:11px; width:82px;"></div></div><div class="sk d1" style="height:9px;"></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; margin-bottom:7px;"><div class="sk d2" style="height:12px; width:108px;"></div><div class="sk d2" style="height:11px; width:70px;"></div></div><div class="sk d2" style="height:9px;"></div></div>
+                <div class="cat"><div style="display:flex; justify-content:space-between; margin-bottom:7px;"><div class="sk d3" style="height:12px; width:86px;"></div><div class="sk d3" style="height:11px; width:78px;"></div></div><div class="sk d3" style="height:9px;"></div></div>
+              </div>
+              </sc-if>
+              <div class="sec"><div class="kick" style="color:var(--color-neutral-500);">Reading {{ stateNoun }} · on device</div></div>
+            </div>
+            </sc-if>
+
+            <!-- EMPTY -->
+            <sc-if value="{{ isEmptyState }}" hint-placeholder-val="{{ false }}">
+            <div class="sec" style="padding-top:26px;">
+              <div class="kick" style="color:var(--color-accent);">{{ emptyKicker }}</div>
+              <div class="display" style="font-size:28px; margin-top:12px; text-wrap:pretty;">{{ emptyTitle }}</div>
+              <p style="font-size:14px; line-height:1.6; color:var(--color-neutral-700); margin:14px 0 0; text-wrap:pretty;">{{ emptyBody }}</p>
+              <div style="border-top:1.5px solid var(--color-text); margin:22px 0 20px;"></div>
+              <button class="btn btn-primary btn-block" style="justify-content:flex-start;" onClick="{{ setNormal }}">{{ emptyCta }}</button>
+              <div style="margin-top:16px; font-size:14px;"><a style="color:var(--color-accent);" onClick="{{ setNormal }}">{{ emptyAlt }}</a></div>
+              <div class="kick" style="margin-top:22px; color:var(--color-neutral-500); line-height:1.6;">{{ emptyHint }}</div>
+            </div>
+            </sc-if>
+
+            <!-- ERROR -->
+            <sc-if value="{{ isErrorState }}" hint-placeholder-val="{{ false }}">
+            <div class="sec" style="padding-top:26px;" role="alert">
+              <div style="border-left:2px solid var(--color-accent); padding-left:16px;">
+                <div class="kick" style="color:var(--color-accent);">{{ errorCode }}</div>
+                <div class="display" style="font-size:24px; margin-top:10px; text-wrap:pretty;">{{ errorTitle }}</div>
+                <p style="font-size:14px; line-height:1.6; color:var(--color-neutral-700); margin:12px 0 0; text-wrap:pretty;">{{ errorBody }}</p>
+              </div>
+              <button class="btn btn-primary btn-block" style="justify-content:flex-start; margin-top:22px;" onClick="{{ retryState }}">Try again</button>
+              <div style="margin-top:16px; font-size:14px;"><a style="color:var(--color-accent);">Open Settings → Database</a></div>
+              <div style="border-top:1.5px solid var(--color-text); margin:22px 0 14px;"></div>
+              <div class="kick" style="margin-bottom:8px;">Technical detail</div>
+              <div class="mono">{{ errorDetail }}</div>
+              <p style="font-size:11px; color:var(--color-neutral-500); margin:12px 0 0;">Nothing was written.</p>
+            </div>
+            </sc-if>
+          </div>
+
+          <div class="tabbar">
+            <div class="tab {{ dashCls }}" onClick="{{ goDash }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</div>
+            <div class="tab {{ txCls }}" onClick="{{ goTx }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Activity</div>
+            <div class="tab {{ budCls }}" onClick="{{ goBud }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Budgets</div>
+            <div class="tab {{ goalCls }}" onClick="{{ goGoal }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4l12 3-4 4 4 4-12 3"/></svg>Goals</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- PHONE 2 — sign in -->
+    <div>
+      <div class="caplabel">Sign in</div>
+      <x-import component-from-global-scope="IOSDevice" hint-size="402px,874px">
+        <div class="phone">
+          <div style="background:var(--poster); padding:72px 28px 32px;">
+            <svg viewBox="0 0 72 44" width="50" height="30"><path d="M8,34 Q40,4 64,16" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="1.3 5" stroke-linecap="round"/><circle cx="8" cy="34" r="5" fill="#fff"/><circle cx="64" cy="16" r="6" fill="var(--color-text)"/></svg>
+            <div class="display" style="font-size:40px; color:#fff; margin-top:22px;">Welcome<br>back.</div>
+            <p style="color:#fff; opacity:0.92; font-size:14px; margin:14px 0 0;">Your data has been on this device the whole time.</p>
+          </div>
+          <div style="flex:1; background:var(--panel); padding:32px 28px;">
+            <div class="field" style="margin-bottom:16px;"><label>Profile or email</label><input class="input" placeholder="you@local" style="background:var(--color-surface);"></div>
+            <div class="field" style="margin-bottom:22px;"><label>Password</label><input class="input" type="password" placeholder="••••••••" style="background:var(--color-surface);"></div>
+            <button class="btn btn-primary btn-block" style="justify-content:flex-start;">Sign in →</button>
+            <div style="margin-top:20px; font-size:14px; color:var(--color-neutral-700);">New here? <a style="color:var(--color-accent);">Create an account →</a></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- PHONE 3 — dark -->
+    <div>
+      <div class="caplabel">Dark mode</div>
+      <x-import component-from-global-scope="IOSDevice" dark="{{ true }}" hint-size="402px,874px">
+        <div class="phone dark">
+          <div class="phead">
+            <svg viewBox="24 24 198 104" width="98" style="display:block;">
+              <path d="M40,66 Q94,4 148,48" fill="none" stroke="var(--color-accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 9"/>
+              <circle cx="40" cy="66" r="8" fill="var(--color-text)"/>
+              <circle cx="148" cy="48" r="9.5" fill="var(--color-accent)"/>
+              <text x="30" y="120" font-family="Archivo, sans-serif" font-weight="800" font-size="76" letter-spacing="-3" fill="var(--color-text)">ıkıd</text>
+            </svg>
+            <div class="avatar" style="margin-left:auto;">D</div>
+          </div>
+          <div class="pscroll">
+            <div class="sec" style="padding-top:22px; padding-bottom:20px;">
+              <div class="kick" style="color:var(--color-accent);">August · net position</div>
+              <div class="display" style="font-size:58px; color:var(--pos); margin-top:8px;">+$3,060</div>
+              <div style="font-family:var(--font-heading); font-weight:600; font-size:13px; color:var(--color-neutral-700); margin-top:5px;">saved this month · 37% of take-home</div>
+            </div>
+            <div class="qarow rule" style="border-bottom:1px solid var(--color-neutral-300);">
+              <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>Import</span></div>
+              <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></div>
+              <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M7 10l-4 4 4 4M3 14h13M17 4l4 4-4 4M21 8H8"/></svg><span>Transfer</span></div>
+              <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span>Search</span></div>
+            </div>
+            <div class="sec">
+              <div class="statline"><span class="kick">Income</span><span class="big num" style="font-size:19px;">$8,240</span></div>
+              <div class="statline"><span class="kick">Spending</span><span class="big num" style="font-size:19px;">$5,180</span></div>
+              <div class="statline"><span class="kick">Net worth</span><span class="big num" style="font-size:19px;">$142,300</span></div>
+            </div>
+            <div class="sec rule">
+              <div class="kick" style="margin-bottom:14px;">Largest categories</div>
+              <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span class="num">$1,800</span></div><div class="track"><div style="width:100%; background:var(--color-accent);"></div></div></div>
+              <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span class="num">$620</span></div><div class="track"><div style="width:34%; background:var(--color-text);"></div></div></div>
+              <div class="cat"><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span class="num">$410</span></div><div class="track"><div style="width:23%; background:var(--color-text);"></div></div></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Activity</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Budgets</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4l12 3-4 4 4 4-12 3"/></svg>Goals</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { m: "dash", fading: false, loaded: false };
+  componentDidMount() {
+    this._t1 = setTimeout(() => this.setState({ fading: true }), 1950);
+    this._t2 = setTimeout(() => this.setState({ loaded: true }), 2400);
+  }
+  componentWillUnmount() { clearTimeout(this._t1); clearTimeout(this._t2); clearTimeout(this._r); }
+  _states(m) {
+    const ds = this.state.ds || "normal";
+    const on = ds !== "normal";
+    const noun = { dash:"this month", tx:"transactions", bud:"budgets", goal:"goals" }[m];
+    const skel = { dash:"stat", tx:"list", bud:"bars", goal:"bars" }[m];
+    const E = {
+      dash:["No data yet","Nothing to summarise yet.","Import a statement on the desktop app, or add a transaction here — this fills in as soon as there's something to count.","＋ Add a transaction","Show me a sample month","Your data stays on this device"],
+      tx:["0 transactions","No activity yet.","Imported and hand-entered transactions both land here. Categories learn from your first few corrections.","＋ Add a transaction","Import on desktop","Search and filters appear once there are rows"],
+      bud:["No budgets set","Nothing budgeted yet.","Put a monthly limit on a category and this screen tracks spend against it, with a forecast before the month ends.","＋ Set a budget","Suggest limits from history","Suggestions use your last three months"],
+      goal:["No goals","No savings goals yet.","A goal is a target amount and, optionally, a deadline. Ikid projects the balance at your current contribution.","＋ New goal","Use my savings rate","Emergency fund, a deposit, a trip — start with one"],
+    }[m] || [];
+    const R = {
+      dash:["Error · DB_READ","This month wouldn't load.","The monthly rollup query failed. Your transactions are intact and nothing was written.","sqlite: no such column: txn.cleared_at — rollup_month (schema v3, expected v4)"],
+      tx:["Error · QUERY_TIMEOUT","Activity timed out.","The query ran past 15 seconds. Clearing the search usually resolves it.","timeout after 15000ms · 1,284 rows scanned"],
+      bud:["Error · DB_READ","Budgets wouldn't load.","Budget limits couldn't be read. Transactions and goals are unaffected.","sqlite: malformed row in budget_limits at rowid 61"],
+      goal:["Error · IO_ERROR","Goals wouldn't load.","The goals table couldn't be read from storage. Retrying is safe.","sqlite: disk I/O error reading page 412 of goals.db"],
+    }[m] || [];
+    return {
+      dataState: ds, normalData: !on,
+      isLoadingState: on && ds === "loading",
+      isEmptyState: on && ds === "empty",
+      isErrorState: on && ds === "error",
+      mskStat: skel === "stat", mskList: skel === "list", mskBars: skel === "bars",
+      stateNoun: noun,
+      emptyKicker: E[0], emptyTitle: E[1], emptyBody: E[2], emptyCta: E[3], emptyAlt: E[4], emptyHint: E[5],
+      errorCode: R[0], errorTitle: R[1], errorBody: R[2], errorDetail: R[3],
+      retryState: () => {
+        this.setState({ ds: "loading" });
+        this._r = setTimeout(() => this.setState({ ds: "normal" }), 1400);
+      },
+      setNormal: () => this.setState({ ds: "normal" }),
+      setLoadingState: () => this.setState({ ds: "loading" }),
+      setEmptyState: () => this.setState({ ds: "empty" }),
+      setErrorState: () => this.setState({ ds: "error" }),
+    };
+  }
+  renderVals() {
+    const m = this.state.m;
+    const st = this._states(m);
+    const nd = st.normalData;
+    return {
+      ...st,
+      loading: !this.state.loaded,
+      splashClass: this.state.fading ? "msplash out" : "msplash",
+      mDash: m === "dash" && nd, mTx: m === "tx" && nd, mBud: m === "bud" && nd, mGoal: m === "goal" && nd,
+      dashCls: m === "dash" ? "on" : "", txCls: m === "tx" ? "on" : "",
+      budCls: m === "bud" ? "on" : "", goalCls: m === "goal" ? "on" : "",
+      goDash: () => this.setState({ m: "dash" }),
+      goTx: () => this.setState({ m: "tx" }),
+      goBud: () => this.setState({ m: "bud" }),
+      goGoal: () => this.setState({ m: "goal" }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/styles.css">
+<script src="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/_ds_bundle.js"></script>
+<style>
+  :root { --panel:#ffffff; --color-accent:#c62f14; --color-accent-600:#a82710; --color-accent-700:#8a1f0c; }
+  body { background: var(--color-bg); }
+  a { color: var(--color-accent-700); text-decoration: none; border-bottom: 1px solid var(--color-neutral-400); }
+  a:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+  .kick { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color: var(--color-neutral-600); font-family: var(--font-heading); font-weight:600; }
+  .big { font-family: var(--font-heading); font-weight:800; letter-spacing:-0.02em; line-height:1.05; color: var(--color-text); }
+  .display { font-family: var(--font-heading); font-weight:800; letter-spacing:-0.03em; line-height:1; color: var(--color-text); }
+  .body { font-size:14px; line-height:1.55; color: var(--color-neutral-700); text-wrap: pretty; }
+  .sectitle { display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding-bottom:12px; border-bottom:1px solid var(--color-neutral-300); margin-bottom:22px; }
+  .sectitle h2 { font-family:var(--font-heading); font-weight:800; font-size:19px; letter-spacing:-0.01em; margin:0; }
+  .num { font-variant-numeric: tabular-nums; }
+  .li { display:grid; grid-template-columns:22px minmax(0,1fr); gap:14px; padding:14px 0; border-bottom:1px solid var(--color-neutral-200); }
+  .li .n { font-family:var(--font-heading); font-weight:700; font-size:12px; color:var(--color-neutral-500); padding-top:2px; }
+  .li .t { display:block; font-family:var(--font-heading); font-weight:700; font-size:14px; color:var(--color-text); margin-bottom:4px; }
+  .li .d { display:block; font-size:13px; line-height:1.5; color:var(--color-neutral-700); text-wrap:pretty; }
+</style>
+</helmet>
+
+<div style="font-family:var(--font-body); color:var(--color-text); background:var(--color-bg); min-height:100%; padding-bottom:80px;">
+
+  <header class="wrap" style="padding-top:56px;">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:30px; padding-bottom:22px; border-bottom:1px solid var(--color-neutral-300);">
+      <div>
+        <div class="kick" style="color:var(--color-accent);">Design review · August 2026</div>
+        <h1 class="display" style="font-size:clamp(38px,5vw,64px); margin:14px 0 0;">Shipped build vs.<br>Modernist redesign</h1>
+      </div>
+      <div class="body" style="max-width:36ch; font-size:13px;">An honest read on both directions — what each one buys, what it costs, and what the redesign still has to earn before it replaces the build that already works.</div>
+    </div>
+  </header>
+
+  <section class="wrap" style="padding-top:44px;">
+    <div class="sectitle"><h2>The short version</h2><span class="kick">verdict</span></div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:30px 44px;">
+      <div>
+        <div class="kick">Current build wins on</div>
+        <div class="big" style="font-size:20px; margin:8px 0 8px;">Density and familiarity</div>
+        <div class="body">Card grids, coloured badges and emoji anchors let you find a number without reading. Recharts gives real tooltips for free. It is also the only version that exists in code.</div>
+      </div>
+      <div>
+        <div class="kick">Redesign wins on</div>
+        <div class="big" style="font-size:20px; margin:8px 0 8px;">Hierarchy and trust</div>
+        <div class="body">Ledger tables, one accent and typographic hierarchy read as a financial instrument rather than a dashboard template. Navigation finally scales past nine screens.</div>
+      </div>
+      <div>
+        <div class="kick">Recommendation</div>
+        <div class="big" style="font-size:20px; margin:8px 0 8px; color:var(--color-accent);">Adopt the redesign, port three habits back</div>
+        <div class="body">Keep chart interactivity, colour-coded categories and the tightest mobile density from the current build. Those are the three places it is genuinely better, not just older.</div>
+      </div>
+    </div>
+  </section>
+
+  <sc-if value="{{ showScorecard }}" hint-placeholder-val="{{ true }}">
+  <section class="wrap" style="padding-top:52px;">
+    <div class="sectitle"><h2>Where each one lands</h2><span class="kick">10 dimensions</span></div>
+    <table class="table">
+      <thead><tr><th>Dimension</th><th>Current build</th><th>Modernist redesign</th><th>Edge</th></tr></thead>
+      <tbody>
+        <tr><td>Information density</td><td>High — card grids pack 6 budgets per fold</td><td>Medium — ruled rows breathe, more scrolling</td><td><span class="tag tag-neutral">Current</span></td></tr>
+        <tr><td>Scanning a number</td><td>Colour + emoji anchor the eye fast</td><td>Colour swatches over tabular ledger rows — no emoji</td><td><span class="tag tag-accent">Merged</span></td></tr>
+        <tr><td>Hierarchy across 13 screens</td><td>Flat — every page is a stack of equal cards</td><td>Masthead, kickers, section rules, one accent</td><td><span class="tag tag-accent">Redesign</span></td></tr>
+        <tr><td>Navigation headroom</td><td>Crowded; Accounts had no real home</td><td>Grouped sidebar (Money / Plan / Insight)</td><td><span class="tag tag-accent">Redesign</span></td></tr>
+        <tr><td>Chart interactivity</td><td>Recharts tooltips, hover, responsive out of the box</td><td>Hand-built SVG — static until wired</td><td><span class="tag tag-neutral">Current</span></td></tr>
+        <tr><td>Category recognition</td><td>Per-category colour carried everywhere</td><td>Category swatch on every tag, hue-matched budget bars</td><td><span class="tag tag-accent">Merged</span></td></tr>
+        <tr><td>Mobile fit</td><td>Cards stack natively; tables absent</td><td>Wide ledgers need bespoke mobile treatments</td><td><span class="tag tag-neutral">Current</span></td></tr>
+        <tr><td>Brand distinctiveness</td><td>Generic Tailwind slate-and-green</td><td>Editorial, ownable, consistent splash → app</td><td><span class="tag tag-accent">Redesign</span></td></tr>
+        <tr><td>Print &amp; export</td><td>Screen-only; reports awkward on paper</td><td>Type and rules print as-is</td><td><span class="tag tag-accent">Redesign</span></td></tr>
+        <tr><td>Cost to ship</td><td>Zero — it is live</td><td>Full restyle of every page and shared component</td><td><span class="tag tag-neutral">Current</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  </sc-if>
+
+  <section class="wrap" style="padding-top:52px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:44px;">
+
+      <div>
+        <div class="sectitle"><h2>Current build</h2><span class="kick">Tailwind · slate + green</span></div>
+        <div class="kick" style="color:var(--color-accent-700);">Pros</div>
+        <div style="margin:10px 0 26px;">
+          <div class="li"><span class="n">01</span><span><span class="t">It exists and it is finished</span><span class="d">Thirteen working pages, real parsing, learned rules, undo. Every hour spent restyling is an hour not spent on the import review flow.</span></span></div>
+          <div class="li"><span class="n">02</span><span><span class="t">Cards are forgiving</span><span class="d">A card grid absorbs a missing field or an extra stat without breaking. Ruled rows expose every inconsistency in the data.</span></span></div>
+          <div class="li"><span class="n">03</span><span><span class="t">Colour does real work</span><span class="d">Emerald income, rose overspend, amber staleness, per-category badge colour — three of those encode meaning the mono palette has to re-earn with words.</span></span></div>
+          <div class="li"><span class="n">04</span><span><span class="t">Free interactivity</span><span class="d">Recharts tooltips, legends and responsive containers already answer "what was March?" — the redesign's SVG charts do not yet.</span></span></div>
+          <div class="li"><span class="n">05</span><span><span class="t">Mobile by default</span><span class="d">Everything is a stack of cards, so the phone case needed no separate design.</span></span></div>
+        </div>
+        <div class="kick" style="color:var(--color-accent-700);">Cons</div>
+        <div style="margin-top:10px;">
+          <div class="li"><span class="n">01</span><span><span class="t">No hierarchy</span><span class="d">Every page opens with the same 20px bold title over identical cards, so nothing tells you what matters. Retirement and Groceries carry equal weight.</span></span></div>
+          <div class="li"><span class="n">02</span><span><span class="t">Anonymous</span><span class="d">Default Tailwind slate, one green, rounded boxes — it looks like every side-project finance app, which is a trust problem when the subject is money.</span></span></div>
+          <div class="li"><span class="n">03</span><span><span class="t">Emoji as an icon system</span><span class="d">🏦🐷💳 render differently per platform, carry no state, and cannot be recoloured or aligned.</span></span></div>
+          <div class="li"><span class="n">04</span><span><span class="t">Navigation ran out of room</span><span class="d">Accounts had no home; the top bar was already full before Retirement and Reports arrived.</span></span></div>
+          <div class="li"><span class="n">05</span><span><span class="t">Colour overload</span><span class="d">Emerald, rose, amber, brand-green and per-category badges compete on one screen; when everything signals, nothing does.</span></span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sectitle"><h2>Modernist redesign</h2><span class="kick">Archivo · ink + one red</span></div>
+        <div class="kick" style="color:var(--color-accent-700);">Pros</div>
+        <div style="margin:10px 0 26px;">
+          <div class="li"><span class="n">01</span><span><span class="t">Reads like a ledger</span><span class="d">Tabular figures, right-aligned amounts, hairline rules. Money data belongs in rows, and comparison down a column is instant.</span></span></div>
+          <div class="li"><span class="n">02</span><span><span class="t">Hierarchy you can feel</span><span class="d">Kicker, display headline, section rule, quiet body. The eye lands on the number that matters first — on all thirteen screens, the same way.</span></span></div>
+          <div class="li"><span class="n">03</span><span><span class="t">Navigation that scales</span><span class="d">Grouped sidebar (Money / Plan / Insight) with identity pinned top-right — the model Mercury, YNAB and Copilot converged on. Room for the next five screens.</span></span></div>
+          <div class="li"><span class="n">04</span><span><span class="t">One accent, so it means something</span><span class="d">Red marks the primary action and the thing that is off-plan. Overspend actually stands out because nothing else is coloured.</span></span></div>
+          <div class="li"><span class="n">05</span><span><span class="t">Identity end to end</span><span class="d">The waypoint mark, splash, landing page and app now share one voice — and the type prints, exports and screenshots cleanly.</span></span></div>
+        </div>
+        <div class="kick" style="color:var(--color-accent-700);">Cons</div>
+        <div style="margin-top:10px;">
+          <div class="li"><span class="n">01</span><span><span class="t">Lower density, more scrolling</span><span class="d">Ruled rows and generous section spacing show roughly two-thirds of what the card grid showed per fold.</span></span></div>
+          <div class="li"><span class="n">02</span><span><span class="t">Mono palette drops a channel</span><span class="d">Category colour and income green were doing legitimate encoding work. Tags now read by name, which is slower at a glance.</span></span></div>
+          <div class="li"><span class="n">03</span><span><span class="t">Red is loud in finance</span><span class="d">The accent already reads as "loss" to a money user; toning it to #c62f14 helped, but every red element competes with that instinct.</span></span></div>
+          <div class="li"><span class="n">04</span><span><span class="t">Charts are drawings, not components</span><span class="d">The SVG curves look better and do less — no tooltips, no hover, no responsiveness until they are rebuilt properly.</span></span></div>
+          <div class="li"><span class="n">05</span><span><span class="t">Wide tables fight the phone</span><span class="d">Eight-column transaction ledgers need a purpose-built mobile row, not a reflow. That is design work the card version never needed.</span></span></div>
+          <div class="li"><span class="n">06</span><span><span class="t">It is a full port</span><span class="d">Every page, every shared component, both themes, plus the underline-field and hairline conventions — a rewrite of the view layer, not a theme swap.</span></span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-top:52px;">
+    <div class="sectitle"><h2>What to carry across</h2><span class="kick">before the redesign ships</span></div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:30px 44px;">
+      <div><div class="kick" style="color:var(--color-accent);">01 · Restore</div><div class="big" style="font-size:17px; margin:8px 0 6px;">Chart interactivity</div><div class="body">Hover readouts and a value tooltip on every SVG chart. Pretty is not worth losing "what was March?".</div></div>
+      <div><div class="kick" style="color:var(--color-accent);">02 · Done</div><div class="big" style="font-size:17px; margin:8px 0 6px;">The colour channel, merged in</div><div class="body">Category swatches on every tag, hue-matched budget bars, and green income / red overspend as real semantic tokens in both themes. Emoji anchors were tried and dropped — the colour channel carries the scanning work on its own.</div></div>
+      <div><div class="kick">03 · Design</div><div class="big" style="font-size:17px; margin:8px 0 6px;">Mobile ledger rows</div><div class="body">Two-line rows with the amount pinned right, not a squeezed table. Currently only the desktop ledgers are resolved.</div></div>
+      <div><div class="kick">04 · Add</div><div class="big" style="font-size:17px; margin:8px 0 6px;">A density switch</div><div class="body">The dense prop exists — make it real on the ledger screens so power users can get the card grid's information rate back.</div></div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900},&quot;showScorecard&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { showScorecard: this.props.showScorecard ?? true };
+  }
+}
+</script>
+</body>
+</html>

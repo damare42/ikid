@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/styles.css">
+<script src="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/_ds_bundle.js"></script>
+<style>
+  :root {
+    --color-accent:#c62f14;
+    --color-accent-600:#a82710;
+    --color-accent-700:#8a1f0c;
+  }
+  body { background: #d9d7d7; }
+  .stat-cell { display:flex; flex-direction:column; gap:6px; padding: 16px 18px; }
+  .kick { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color: var(--color-neutral-600); font-family: var(--font-heading); }
+  .big { font-family: var(--font-heading); font-weight:800; letter-spacing:-0.02em; line-height:1; }
+  .panel { background:#ffffff; border:2px solid var(--color-text); }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:2px solid var(--color-text); }
+  .panel-title { font-family:var(--font-heading); font-weight:800; font-size:15px; letter-spacing:-0.01em; }
+  .navitem { display:flex; align-items:center; gap:10px; padding:9px 14px; font-family:var(--font-heading); font-weight:600; font-size:13px; color:var(--color-neutral-700); border-left:3px solid transparent; cursor:pointer; text-decoration:none; }
+  .navitem:hover { color:var(--color-text); background:var(--color-neutral-100); }
+  .navitem.on { color:var(--color-accent); border-left-color:var(--color-accent); background:#fff; }
+  .barcell { display:flex; flex-direction:column-reverse; align-items:center; gap:3px; flex:1; }
+  .opt-badge { position:absolute; top:-34px; left:0; display:inline-flex; align-items:center; gap:8px; font-family:var(--font-heading); font-weight:800; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--color-bg); background:var(--color-accent); padding:5px 10px; }
+</style>
+</helmet>
+
+<section style="display:flex; flex-direction:column; gap:64px; padding:80px 64px; align-items:flex-start;">
+  <div style="max-width:760px;">
+    <div class="kick" style="color:var(--color-accent);">Turn 1 · Dashboard redesign · Modernist</div>
+    <h1 style="font-size:40px; margin:8px 0 10px;">Ikid, rebuilt on the grid.</h1>
+    <p style="font-size:15px; color:var(--color-neutral-700); margin:0;">Same dashboard — income, spending, cash flow, budgets, the Conscious Spending Plan — moved off the rounded green "journey" look and onto Modernist: flat, red-on-white, Archivo, 2px rules, zero corner radius. Two directions below. Reference them as <a href="#1a">1a</a> and <a href="#1b">1b</a>.</p>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:96px; align-items:flex-start;">
+
+    <!-- ══════════════ OPTION 1A — LEDGER (sidebar app shell) ══════════════ -->
+    <div id="1a" style="position:relative; width:1320px;">
+      <div class="opt-badge">1a · Ledger — sidebar shell</div>
+      <div style="display:flex; border:2px solid var(--color-text); background:var(--color-bg); min-height:900px;">
+
+        <!-- Sidebar -->
+        <aside style="width:206px; flex:none; border-right:2px solid var(--color-text); background:#fff; display:flex; flex-direction:column; padding:20px 0;">
+          <div style="padding:0 16px 18px;">
+            <div style="font-family:var(--font-heading); font-weight:800; font-size:26px; letter-spacing:-0.03em;">ikid</div>
+            <div class="kick" style="margin-top:2px;">Local Finance</div>
+          </div>
+          <div style="height:2px; background:var(--color-neutral-300); margin:0 0 8px;"></div>
+          <a class="navitem on">Dashboard</a>
+          <a class="navitem">Transactions</a>
+          <a class="navitem">Accounts</a>
+          <a class="navitem">Budgets</a>
+          <a class="navitem">Goals</a>
+          <a class="navitem">Net Worth</a>
+          <a class="navitem">Planner</a>
+          <a class="navitem">Calculators</a>
+          <a class="navitem">Analytics</a>
+          <a class="navitem">Reports</a>
+          <a class="navitem">Settings</a>
+          <div style="margin-top:auto; padding:16px; border-top:2px solid var(--color-neutral-300);">
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-family:var(--font-heading); font-weight:600;"><span style="width:8px; height:8px; background:var(--color-accent); display:inline-block;"></span>SQLite · no cloud</div>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+          <!-- Top bar -->
+          <header style="display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:2px solid var(--color-text); background:#fff;">
+            <button class="btn btn-primary" style="justify-content:flex-start;">↑ Import statement</button>
+            <input class="input" placeholder="Search transactions…" style="max-width:300px; background:#fff;">
+            <div class="seg" style="margin-left:auto;">
+              <label class="seg-opt" style="background:var(--color-accent); color:var(--color-bg);">Month</label>
+              <label class="seg-opt">Year to date</label>
+            </div>
+            <span style="font-family:var(--font-heading); font-weight:800; font-size:14px; padding:7px 12px; border:1px solid var(--color-divider);">Aug 2026</span>
+          </header>
+
+          <!-- Stat row -->
+          <div style="display:grid; grid-template-columns:repeat(6,1fr); border-bottom:2px solid var(--color-text); background:#fff;">
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300);">
+              <span class="kick">Income</span><span class="big" style="font-size:26px;">$8,240</span>
+            </div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300);">
+              <span class="kick">Spending</span><span class="big" style="font-size:26px;">$5,180</span>
+            </div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300);">
+              <span class="kick">Net Savings</span><span class="big" style="font-size:26px; color:var(--color-accent);">+$3,060</span>
+            </div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300);">
+              <span class="kick">Savings Rate</span><span class="big" style="font-size:26px;">37%</span>
+            </div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300);">
+              <span class="kick">Budgets</span><span class="big" style="font-size:26px;">5<span style="font-size:16px; color:var(--color-neutral-500);">/7</span></span>
+            </div>
+            <div class="stat-cell">
+              <span class="kick">Health Score</span><span class="big" style="font-size:26px;">78<span style="font-size:15px; color:var(--color-neutral-500);"> / 100</span></span>
+            </div>
+          </div>
+
+          <!-- Content grid -->
+          <div style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:20px; background:var(--color-bg);">
+
+            <!-- Cash flow -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Cash Flow — August 2026</span><span class="tag tag-accent">cumulative</span></div>
+              <div style="padding:14px 16px;">
+                <svg viewBox="0 0 560 200" style="width:100%; height:190px; display:block;">
+                  <line x1="0" y1="180" x2="560" y2="180" stroke="var(--color-neutral-300)" stroke-width="1"/>
+                  <line x1="0" y1="120" x2="560" y2="120" stroke="var(--color-neutral-200)" stroke-width="1"/>
+                  <line x1="0" y1="60" x2="560" y2="60" stroke="var(--color-neutral-200)" stroke-width="1"/>
+                  <path d="M0,178 L62,170 L124,150 L186,155 L248,120 L310,95 L372,100 L434,70 L496,45 L558,22 L558,180 L0,180 Z" fill="var(--color-accent-100)"/>
+                  <path d="M0,178 L62,170 L124,150 L186,155 L248,120 L310,95 L372,100 L434,70 L496,45 L558,22" fill="none" stroke="var(--color-accent)" stroke-width="2.5"/>
+                  <circle cx="558" cy="22" r="4" fill="var(--color-accent)"/>
+                </svg>
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--color-neutral-500); font-family:var(--font-heading); font-weight:600; margin-top:4px;"><span>01</span><span>08</span><span>15</span><span>22</span><span>31</span></div>
+              </div>
+            </div>
+
+            <!-- Largest categories -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Largest Categories</span></div>
+              <div style="padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span style="font-variant-numeric:tabular-nums;">$1,800 <span style="color:var(--color-neutral-500);">35%</span></span></div>
+                  <div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:100%; background:var(--color-accent);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span style="font-variant-numeric:tabular-nums;">$620 <span style="color:var(--color-neutral-500);">12%</span></span></div>
+                  <div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:34%; background:var(--color-text);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span style="font-variant-numeric:tabular-nums;">$410 <span style="color:var(--color-neutral-500);">8%</span></span></div>
+                  <div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:23%; background:var(--color-text);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Transport</span><span style="font-variant-numeric:tabular-nums;">$260 <span style="color:var(--color-neutral-500);">5%</span></span></div>
+                  <div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:14%; background:var(--color-text);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Shopping</span><span style="font-variant-numeric:tabular-nums;">$240 <span style="color:var(--color-neutral-500);">5%</span></span></div>
+                  <div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:13%; background:var(--color-text);"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Income vs Expenses -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Income vs Expenses — 12 months</span>
+                <span style="display:flex; gap:14px; font-size:11px; font-family:var(--font-heading); font-weight:600;"><span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:var(--color-text); display:inline-block;"></span>Income</span><span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:var(--color-neutral-400); display:inline-block;"></span>Expenses</span></span>
+              </div>
+              <div style="padding:14px 16px;">
+                <div style="display:flex; align-items:flex-end; gap:8px; height:150px;">
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:121px; background:var(--color-text);"></div><div style="width:8px; height:80px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">S</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:124px; background:var(--color-text);"></div><div style="width:8px; height:87px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">O</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:125px; background:var(--color-text);"></div><div style="width:8px; height:94px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">N</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:130px; background:var(--color-text);"></div><div style="width:8px; height:105px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">D</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:122px; background:var(--color-text);"></div><div style="width:8px; height:76px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">J</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:127px; background:var(--color-text);"></div><div style="width:8px; height:79px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">F</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:124px; background:var(--color-text);"></div><div style="width:8px; height:84px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">M</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:128px; background:var(--color-text);"></div><div style="width:8px; height:77px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">A</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:125px; background:var(--color-text);"></div><div style="width:8px; height:82px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">M</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:127px; background:var(--color-text);"></div><div style="width:8px; height:87px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">J</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:130px; background:var(--color-text);"></div><div style="width:8px; height:79px; background:var(--color-neutral-400);"></div></div><span class="kick" style="font-size:9px;">J</span></div>
+                  <div class="barcell"><div style="display:flex; gap:2px; align-items:flex-end;"><div style="width:8px; height:128px; background:var(--color-accent);"></div><div style="width:8px; height:80px; background:var(--color-accent-300);"></div></div><span class="kick" style="font-size:9px; color:var(--color-accent);">A</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conscious Spending Plan -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Conscious Spending Plan</span><span class="tag tag-neutral">of take-home</span></div>
+              <div style="padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Fixed costs</span><span style="font-variant-numeric:tabular-nums;">52% <span style="color:var(--color-neutral-500);">· target 50–60%</span></span></div>
+                  <div style="position:relative; height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:52%; background:var(--color-text);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Investments</span><span style="font-variant-numeric:tabular-nums;">12% <span style="color:var(--color-neutral-500);">· target ≥10%</span></span></div>
+                  <div style="position:relative; height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:12%; background:var(--color-accent);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Savings</span><span style="font-variant-numeric:tabular-nums;">11% <span style="color:var(--color-neutral-500);">· leftover</span></span></div>
+                  <div style="position:relative; height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:11%; background:var(--color-accent);"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Guilt-free</span><span style="font-variant-numeric:tabular-nums;">25% <span style="color:var(--color-neutral-500);">· target 20–35%</span></span></div>
+                  <div style="position:relative; height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:25%; background:var(--color-text);"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budgets -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Budget Status</span></div>
+              <div style="padding:14px 16px; display:flex; flex-direction:column; gap:11px;">
+                <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Groceries</span><span style="font-variant-numeric:tabular-nums; color:var(--color-neutral-600);">$420 / $500</span></div><div style="height:6px; background:var(--color-neutral-200);"><div style="height:100%; width:84%; background:var(--color-text);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Dining</span><span style="font-variant-numeric:tabular-nums;"><span style="color:var(--color-accent); font-weight:700;">$340 / $300 over</span></span></div><div style="height:6px; background:var(--color-neutral-200);"><div style="height:100%; width:100%; background:var(--color-accent);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Transport</span><span style="font-variant-numeric:tabular-nums; color:var(--color-neutral-600);">$180 / $250</span></div><div style="height:6px; background:var(--color-neutral-200);"><div style="height:100%; width:72%; background:var(--color-text);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Shopping</span><span style="font-variant-numeric:tabular-nums;"><span style="color:var(--color-accent); font-weight:700;">$240 / $200 over</span></span></div><div style="height:6px; background:var(--color-neutral-200);"><div style="height:100%; width:100%; background:var(--color-accent);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Utilities</span><span style="font-variant-numeric:tabular-nums; color:var(--color-neutral-600);">$190 / $220</span></div><div style="height:6px; background:var(--color-neutral-200);"><div style="height:100%; width:86%; background:var(--color-text);"></div></div></div>
+              </div>
+            </div>
+
+            <!-- Recent transactions -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Recent Transactions</span><span class="btn btn-ghost" style="font-size:12px;">View all →</span></div>
+              <div style="padding:4px 16px 12px;">
+                <table class="table">
+                  <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th style="text-align:right;">Amount</th></tr></thead>
+                  <tbody>
+                    <tr><td style="white-space:nowrap;">Aug 12</td><td>Whole Foods Market</td><td><span class="tag tag-neutral">Groceries</span></td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$84.20</td></tr>
+                    <tr><td style="white-space:nowrap;">Aug 11</td><td>Shell</td><td><span class="tag tag-neutral">Transport</span></td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$52.10</td></tr>
+                    <tr><td style="white-space:nowrap;">Aug 10</td><td>Payroll — Acme Co</td><td><span class="tag tag-accent">Income</span></td><td style="text-align:right; font-variant-numeric:tabular-nums; color:var(--color-accent); font-weight:700;">+$4,120.00</td></tr>
+                    <tr><td style="white-space:nowrap;">Aug 09</td><td>Netflix</td><td><span class="tag tag-neutral">Subscriptions</span></td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$15.49</td></tr>
+                    <tr><td style="white-space:nowrap;">Aug 08</td><td>Blue Bottle Coffee</td><td><span class="tag tag-neutral">Dining</span></td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$6.75</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ OPTION 1B — BROADSHEET (top-nav editorial) ══════════════ -->
+    <div id="1b" style="position:relative; width:1320px;">
+      <div class="opt-badge">1b · Broadsheet — top-nav editorial</div>
+      <div style="border:2px solid var(--color-text); background:var(--color-bg);">
+
+        <!-- Masthead nav -->
+        <header style="display:flex; align-items:center; gap:28px; padding:14px 24px; border-bottom:2px solid var(--color-text); background:#fff;">
+          <div style="font-family:var(--font-heading); font-weight:800; font-size:24px; letter-spacing:-0.03em;">ikid</div>
+          <nav style="display:flex; gap:20px; font-family:var(--font-heading); font-weight:600; font-size:13px;">
+            <a style="color:var(--color-accent); text-decoration:none;">Dashboard</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Transactions</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Budgets</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Goals</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Net Worth</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Planner</a>
+            <a style="color:var(--color-neutral-700); text-decoration:none;">Analytics</a>
+          </nav>
+          <input class="input" placeholder="Search…" style="max-width:200px; margin-left:auto; background:#fff;">
+          <button class="btn btn-primary" style="justify-content:flex-start;">↑ Import</button>
+        </header>
+
+        <!-- Hero band -->
+        <div style="display:grid; grid-template-columns:1.1fr 1.4fr; border-bottom:2px solid var(--color-text);">
+          <!-- Left: period + hero metric -->
+          <div style="padding:32px 32px; border-right:2px solid var(--color-text); background:#fff;">
+            <div class="kick" style="color:var(--color-accent);">August 2026 · Net position</div>
+            <div class="big" style="font-size:76px; color:var(--color-accent); margin-top:10px;">+$3,060</div>
+            <div style="font-family:var(--font-heading); font-weight:600; font-size:15px; color:var(--color-neutral-700); margin-top:4px;">saved this month · 37% of take-home</div>
+            <div class="hr" style="margin:22px 0;"></div>
+            <div style="display:flex; gap:28px;">
+              <div><div class="kick">Income</div><div class="big" style="font-size:24px; margin-top:4px;">$8,240</div></div>
+              <div><div class="kick">Spending</div><div class="big" style="font-size:24px; margin-top:4px;">$5,180</div></div>
+            </div>
+          </div>
+          <!-- Right: KPI ledger 2x3 -->
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; background:#fff;">
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300); border-bottom:1px solid var(--color-neutral-300); padding:22px 20px;"><span class="kick">Savings Rate</span><span class="big" style="font-size:30px;">37%</span></div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300); border-bottom:1px solid var(--color-neutral-300); padding:22px 20px;"><span class="kick">Health Score</span><span class="big" style="font-size:30px;">78<span style="font-size:15px; color:var(--color-neutral-500);"> / 100</span></span></div>
+            <div class="stat-cell" style="border-bottom:1px solid var(--color-neutral-300); padding:22px 20px;"><span class="kick">Budgets on track</span><span class="big" style="font-size:30px;">5<span style="font-size:16px; color:var(--color-neutral-500);">/7</span></span></div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300); padding:22px 20px;"><span class="kick">Net Worth</span><span class="big" style="font-size:30px;">$142,300</span></div>
+            <div class="stat-cell" style="border-right:1px solid var(--color-neutral-300); padding:22px 20px;"><span class="kick">Cash on hand</span><span class="big" style="font-size:30px;">$18,940</span></div>
+            <div class="stat-cell" style="padding:22px 20px;"><span class="kick">Recurring / mo</span><span class="big" style="font-size:30px;">$1,240</span></div>
+          </div>
+        </div>
+
+        <!-- Body: 3 ruled columns -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr;">
+          <!-- Cash flow -->
+          <div style="padding:20px 24px; border-right:1px solid var(--color-neutral-300);">
+            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--color-text); padding-bottom:8px; margin-bottom:14px;"><span class="panel-title">Cash Flow</span><span class="kick">Aug</span></div>
+            <svg viewBox="0 0 360 180" style="width:100%; height:170px; display:block;">
+              <line x1="0" y1="160" x2="360" y2="160" stroke="var(--color-neutral-300)" stroke-width="1"/>
+              <path d="M0,158 L40,150 L80,132 L120,138 L160,106 L200,84 L240,88 L280,60 L320,40 L358,20 L358,160 L0,160 Z" fill="var(--color-accent-100)"/>
+              <path d="M0,158 L40,150 L80,132 L120,138 L160,106 L200,84 L240,88 L280,60 L320,40 L358,20" fill="none" stroke="var(--color-accent)" stroke-width="2.5"/>
+              <circle cx="358" cy="20" r="4" fill="var(--color-accent)"/>
+            </svg>
+            <div style="font-size:12px; color:var(--color-neutral-600); margin-top:8px;">Cumulative net — <b style="color:var(--color-text);">+$3,060</b> by month end.</div>
+          </div>
+          <!-- Largest categories -->
+          <div style="padding:20px 24px; border-right:1px solid var(--color-neutral-300);">
+            <div style="border-bottom:2px solid var(--color-text); padding-bottom:8px; margin-bottom:14px;"><span class="panel-title">Largest Categories</span></div>
+            <div style="display:flex; flex-direction:column; gap:11px;">
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span style="font-variant-numeric:tabular-nums;">$1,800</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:100%; background:var(--color-accent);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span style="font-variant-numeric:tabular-nums;">$620</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:34%; background:var(--color-text);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span style="font-variant-numeric:tabular-nums;">$410</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:23%; background:var(--color-text);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Transport</span><span style="font-variant-numeric:tabular-nums;">$260</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:14%; background:var(--color-text);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Shopping</span><span style="font-variant-numeric:tabular-nums;">$240</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:13%; background:var(--color-text);"></div></div></div>
+            </div>
+          </div>
+          <!-- CSP -->
+          <div style="padding:20px 24px;">
+            <div style="border-bottom:2px solid var(--color-text); padding-bottom:8px; margin-bottom:14px;"><span class="panel-title">Conscious Spending</span></div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Fixed costs</span><span style="font-variant-numeric:tabular-nums;">52%</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:52%; background:var(--color-text);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Investments</span><span style="font-variant-numeric:tabular-nums;">12%</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:12%; background:var(--color-accent);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Savings</span><span style="font-variant-numeric:tabular-nums;">11%</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:11%; background:var(--color-accent);"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Guilt-free</span><span style="font-variant-numeric:tabular-nums;">25%</span></div><div style="height:8px; background:var(--color-neutral-200);"><div style="height:100%; width:25%; background:var(--color-text);"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent transactions full width -->
+        <div style="border-top:2px solid var(--color-text); padding:16px 24px 24px; background:#fff;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;"><span class="panel-title">Recent Transactions</span><span class="btn btn-ghost" style="font-size:12px;">View all →</span></div>
+          <table class="table">
+            <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Account</th><th style="text-align:right;">Amount</th></tr></thead>
+            <tbody>
+              <tr><td style="white-space:nowrap;">Aug 12, 2026</td><td>Whole Foods Market</td><td><span class="tag tag-neutral">Groceries</span></td><td style="color:var(--color-neutral-600);">Chase ·1234</td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$84.20</td></tr>
+              <tr><td style="white-space:nowrap;">Aug 11, 2026</td><td>Shell</td><td><span class="tag tag-neutral">Transport</span></td><td style="color:var(--color-neutral-600);">Chase ·1234</td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$52.10</td></tr>
+              <tr><td style="white-space:nowrap;">Aug 10, 2026</td><td>Payroll — Acme Co</td><td><span class="tag tag-accent">Income</span></td><td style="color:var(--color-neutral-600);">Ally ·5678</td><td style="text-align:right; font-variant-numeric:tabular-nums; color:var(--color-accent); font-weight:700;">+$4,120.00</td></tr>
+              <tr><td style="white-space:nowrap;">Aug 09, 2026</td><td>Netflix</td><td><span class="tag tag-neutral">Subscriptions</span></td><td style="color:var(--color-neutral-600);">Chase ·1234</td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$15.49</td></tr>
+              <tr><td style="white-space:nowrap;">Aug 08, 2026</td><td>Blue Bottle Coffee</td><td><span class="tag tag-neutral">Dining</span></td><td style="color:var(--color-neutral-600);">Amex ·9012</td><td style="text-align:right; font-variant-numeric:tabular-nums;">−$6.75</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+</body>
+</html>
