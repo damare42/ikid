@@ -42,7 +42,7 @@ export default function Admin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Admin</h1>
+          <h1 className="font-heading text-2xl font-extrabold tracking-tight">Admin</h1>
           <p className="text-xs text-slate-500">Accounts &amp; usage — no financial data is ever shown here.</p>
         </div>
         <label className="flex items-center gap-2 text-sm">
@@ -121,7 +121,7 @@ export default function Admin() {
                   <td className="td font-mono text-xs text-slate-400">{u.id}</td>
                   <td className="td">
                     {u.role === "admin"
-                      ? <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">admin</span>
+                      ? <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">admin</span>
                       : <span className="text-slate-500">user</span>}
                   </td>
                   <td className="td">

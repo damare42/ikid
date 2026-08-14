@@ -25,7 +25,7 @@ export default function Analytics() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Analytics</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Analytics</h1>
         <div className="flex gap-1 rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
           {(["trends", "breakdown", "recurring", "insights"] as Tab[]).map((t) => (
             <button

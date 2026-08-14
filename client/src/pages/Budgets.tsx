@@ -20,7 +20,7 @@ export default function Budgets() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Budgets</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Budgets</h1>
         <div className="flex gap-2">
           <input type="month" className="input" value={month} onChange={(e) => setMonth(e.target.value)} />
           <button className="btn-primary" onClick={() => setAdding(true)}>+ Budget</button>

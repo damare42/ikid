@@ -124,7 +124,7 @@ export default function Calculators() {
   const key = `${tab}-${loadKey}`;
   return (
     <div className="mx-auto max-w-5xl space-y-4">
-      <h1 className="text-xl font-bold">Calculators</h1>
+      <h1 className="font-heading text-2xl font-extrabold tracking-tight">Calculators</h1>
       {saveError && <ErrorNote message={saveError} />}
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="min-w-0 flex-1 space-y-4">

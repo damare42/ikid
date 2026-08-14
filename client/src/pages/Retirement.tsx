@@ -237,7 +237,7 @@ export default function Retirement() {
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Retirement Planner</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Retirement Planner</h1>
         <button
           className="btn-ghost text-sm disabled:opacity-40"
           disabled={!valid}
