@@ -7,7 +7,7 @@ export function Card({ title, action, children, className = "" }: {
     <div className={`card ${className}`}>
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between">
-          {title && <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300">{title}</h3>}
+          {title && <h3 className="font-heading text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100">{title}</h3>}
           {action}
         </div>
       )}
@@ -21,12 +21,12 @@ export function StatCard({ label, value, sub, tone = "default" }: {
 }) {
   const toneCls =
     tone === "good" ? "text-emerald-600 dark:text-emerald-400"
-    : tone === "bad" ? "text-rose-600 dark:text-rose-400"
+    : tone === "bad" ? "text-brand-600 dark:text-brand-400"
     : "text-slate-900 dark:text-slate-100";
   return (
     <div className="card">
-      <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</div>
-      <div className={`mt-1 text-2xl font-bold tabular-nums ${toneCls}`}>{value}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</div>
+      <div className={`mt-1.5 font-heading text-3xl font-extrabold tracking-tight tabular-nums ${toneCls}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{sub}</div>}
     </div>
   );
@@ -34,7 +34,7 @@ export function StatCard({ label, value, sub, tone = "default" }: {
 
 export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
   const clamped = Math.min(100, Math.max(0, pct));
-  const barColor = color ?? (pct > 100 ? "#e11d48" : pct > 85 ? "#f59e0b" : "#1a7f5a");
+  const barColor = color ?? (pct > 100 ? "#c62f14" : pct > 85 ? "#9a6a10" : "#1a7f5a");
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
       <div className="h-full rounded-full transition-all" style={{ width: `${clamped}%`, backgroundColor: barColor }} />
@@ -45,7 +45,7 @@ export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
 export function Badge({ children, color = "#64748b" }: { children: ReactNode; color?: string }) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold"
       style={{ backgroundColor: color + "22", color }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
@@ -92,8 +92,9 @@ export function EmptyState({ icon, title, hint }: { icon: string; title: string;
 }
 
 export function ErrorNote({ message }: { message: string }) {
+  // Modernist error device: 2px accent left rule on a tinted panel, square.
   return (
-    <div className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300">
+    <div role="alert" className="border-l-2 border-brand-600 bg-brand-50 py-3 pl-6 pr-3 text-sm text-brand-800 dark:bg-brand-900/20 dark:text-brand-200">
       {message}
     </div>
   );
