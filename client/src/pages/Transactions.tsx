@@ -4,7 +4,7 @@ import type { AccountDTO, CategoryDTO, MerchantDTO, Paginated, TransactionDTO } 
 import { api, qs } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtSigned } from "../lib/format";
-import { Badge, Card, ErrorNote, Modal, Spinner } from "../components/ui";
+import { Badge, Card, EmptyState, ErrorNote, Modal } from "../components/ui";
 
 export default function Transactions() {
   const [params] = useSearchParams();
@@ -124,9 +124,13 @@ export default function Transactions() {
     else { setSortBy(col); setSortDir("desc"); }
   }
 
+  const filtersActive = Boolean(
+    search || categoryId || merchantId || accountFilter || from || to || minAmount || maxAmount,
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         <div className="flex items-center gap-2">
           {cameFromDrillDown && (
             <button
@@ -137,7 +141,12 @@ export default function Transactions() {
               ←
             </button>
           )}
-          <h1 className="text-xl font-bold">Transactions</h1>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              {data ? `${data.total.toLocaleString()} transaction${data.total === 1 ? "" : "s"} on file` : "Transactions"}
+            </div>
+            <h1 className="font-heading text-2xl font-extrabold tracking-tight">Transactions</h1>
+          </div>
         </div>
         <button className="btn-primary" onClick={() => setAdding(true)}>+ Add transaction</button>
       </div>
@@ -169,7 +178,17 @@ export default function Transactions() {
 
       {error && <ErrorNote message={error} />}
       {loading && !data ? (
-        <Spinner />
+        <Card><TableSkeleton /></Card>
+      ) : data && data.total === 0 ? (
+        <Card>
+          <EmptyState
+            icon="🧾"
+            title={filtersActive ? "No transactions match these filters" : "No transactions yet"}
+            hint={filtersActive
+              ? "Try clearing a filter or widening the date range."
+              : "Import a bank statement (⬆ Import) or add one manually to get started."}
+          />
+        </Card>
       ) : (
         <Card>
           {/* Bulk account-assignment bar */}
@@ -275,6 +294,24 @@ export default function Transactions() {
           onSaved={() => { setEditing(null); refresh(); }}
         />
       )}
+    </div>
+  );
+}
+
+/** Loading placeholder for the table — pulsing rows (aria-busy). */
+function TableSkeleton() {
+  return (
+    <div aria-busy="true" className="animate-pulse">
+      <div className="mb-3 h-4 w-40 bg-slate-200 dark:bg-slate-800" />
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 border-t border-slate-100 py-3 dark:border-slate-800">
+          <div className="h-3 w-4 bg-slate-200 dark:bg-slate-800" />
+          <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800" />
+          <div className="h-3 flex-1 bg-slate-200 dark:bg-slate-800" />
+          <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800" />
+          <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800" />
+        </div>
+      ))}
     </div>
   );
 }

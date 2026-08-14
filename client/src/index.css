@@ -14,9 +14,12 @@
   body {
     @apply bg-slate-100 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-100;
   }
-  /* Modernist type: heavy, tight headings. */
+  /* Modernist type: heavy, tight headings. Raw font-family avoids depending on
+     the custom `font-heading` utility inside @apply (which breaks if the
+     Tailwind config hasn't reloaded). Everything already inherits Archivo. */
   h1, h2, h3 {
-    @apply font-heading font-extrabold tracking-tight;
+    font-family: "Archivo", system-ui, sans-serif;
+    @apply font-extrabold tracking-tight;
   }
 }
 
