@@ -23,10 +23,25 @@ every component:
 
 Files: `client/tailwind.config.js`, `client/src/index.css`, `client/index.html`.
 
+## Done — Shell (rail, header, avatar menu)
+
+- **Rail** rebuilt to 222px, panel bg, square structure, Archivo nav. Flat nav
+  replaced by the three collapsible groups — **Money** (Dashboard, Transactions,
+  Accounts, Budgets, Goals), **Plan** (Net Worth, Planner, Calculators,
+  Retirement), **Insight** (Analytics, Reports). Group open/closed persists in
+  localStorage; active item = accent text (no filled pill), per spec.
+- **Settings, Admin, Sign out, and profile switching moved into a 34px avatar
+  menu** in the header (was: rail select + footer sign-out button). Open-mode
+  profile list + New profile live there too.
+- **Header** is now 64px with a section kicker (left), centered search, primary
+  ↑ Import, theme toggle, and the avatar. Main content constrained to the
+  1200px wrap.
+- Rail hides below `md` (tablet/mobile) — a proper top-nav bar for that
+  breakpoint is still to come (see mobile pass).
+
 ## Next — screen by screen (per START_HERE build order)
 
-1. **Shell** — rail width (222px), header, avatar menu, dark-mode polish, tablet nav swap.
-2. **Transactions** — table, selection bar, sort/filters, and the 3 states (loading/empty/error).
+1. **Transactions** — table, selection bar, sort/filters, and the 3 states (loading/empty/error).
 3. Dashboard (incl. partial-failure section pattern).
 4. Budgets, Goals, Accounts, Net Worth.
 5. Analytics, Reports.
