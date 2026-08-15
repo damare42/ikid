@@ -53,6 +53,39 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
     return;
   }
+  // Database client never generated (fresh clone, interrupted install, or a
+  // node_modules wipe). Without this the user just sees "Internal server
+  // error" and has no idea the fix is a one-liner.
+  if (/did not initialize yet|@prisma\/client.*initialize/i.test(message)) {
+    logger.error("Prisma client not generated", { message });
+    res.status(503).json({
+      error:
+        "The database client hasn't been generated yet. Stop the server and run `npm run db:setup` (or just `npm run dev`, which does it for you).",
+    });
+    return;
+  }
+
+  // Engine binary missing or built for the wrong platform — common after
+  // copying node_modules between machines or architectures.
+  if (/query engine|engines do not seem to be compatible|file too short/i.test(message)) {
+    logger.error("Prisma engine unusable", { message });
+    res.status(503).json({
+      error:
+        "The database engine isn't usable on this machine. Reinstall dependencies: `rm -rf node_modules && npm install`, then `npm run db:setup`.",
+    });
+    return;
+  }
+
+  // Data directory missing or unwritable (bad IKID_DATA_DIR, unmounted volume).
+  if (code === "ENOENT" || code === "EACCES" || /unable to open the database file/i.test(message)) {
+    logger.error("Database file unreachable", { message, code });
+    res.status(503).json({
+      error:
+        "Can't reach the database file. Check the data folder exists and is writable (IKID_DATA_DIR), then restart.",
+    });
+    return;
+  }
+
   logger.error("Unhandled error", { message });
   res.status(500).json({ error: "Internal server error" });
 }
