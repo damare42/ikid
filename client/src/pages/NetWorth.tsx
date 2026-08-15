@@ -101,7 +101,7 @@ export default function NetWorth() {
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
                   <Legend />
                   <Bar dataKey="assets" name="Assets" fill="#1a7f5a" fillOpacity={0.55} barSize={14} />
-                  <Bar dataKey="liabilities" name="Liabilities" fill="#c62f14" fillOpacity={0.55} barSize={14} />
+                  <Bar dataKey="liabilities" name="Liabilities" fill="#a4123a" fillOpacity={0.55} barSize={14} />
                   <Area type="monotone" dataKey="netWorth" name="Net worth" stroke="none" fill="url(#nwFill)" />
                   <Line type="monotone" dataKey="netWorth" name="Net worth" stroke="#6366f1" strokeWidth={2.5} dot={false} legendType="none" />
                 </ComposedChart>

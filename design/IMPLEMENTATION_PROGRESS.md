@@ -70,6 +70,38 @@ screen, via the theme + shell + primitives, without a per-screen rewrite.
 Verified each step: client typecheck + eslint + production build, and the full
 server test suite (116 passing). Server code was untouched by the redesign.
 
+## Done — accessibility hardening (measured)
+
+Contrast computed with the WCAG relative-luminance formula; AA needs 4.5:1 for
+normal text. The old green palette failed badly (`#1cb474` on white = **2.68**,
+green button = **3.97**), which is a large part of why the new direction was
+adopted.
+
+| Token | Ratio | |
+| --- | --- | --- |
+| accent `#c62f14` on white (actions) | 5.50 | AA ✓ |
+| **neg `#a4123a`** on white (money out) | 7.70 | AA ✓ |
+| neg dark `#ffa2b8` on panel | 8.79 | AA ✓ |
+| pos `#1a7f5a` on white | 4.97 | AA ✓ |
+| active nav `#a82710` on panel | 7.09 | AA ✓ |
+| active nav dark `#df5f42` on panel | 4.63 | AA ✓ |
+
+Three fixes applied:
+
+1. **Negative is no longer the brand colour.** `neg` moved from the brick-red
+   accent to a distinct crimson `#a4123a` (dark: `#ffa2b8`), so "primary
+   action" and "money out" never read as the same colour. All expense /
+   liability / interest / tax chart series and the over-budget bar use it; the
+   logo and buttons keep the accent.
+2. **Kicker floor raised 10px → 12px** across every page and the shell —
+   small-caps labels were below the usual legibility floor.
+3. **Active nav no longer signalled by colour alone** (WCAG 1.4.1): accent text
+   **plus** a 2px left rule and heavier weight. `NavLink` still emits
+   `aria-current="page"` for screen readers.
+
+Still an inherent risk, by design: income/expense remain green/red, so charts
+**must** keep pairing colour with a text label — never colour alone.
+
 ## Remaining — per-screen detail (larger, bespoke work)
 
 Do these screen by screen, build/lint/verify per step:

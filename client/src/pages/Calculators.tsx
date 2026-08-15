@@ -167,7 +167,7 @@ export default function Calculators() {
                       <span>{KIND_EMOJI[c.kind] ?? "🧮"}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">{c.name}</span>
-                        <span className="block text-[10px] text-slate-400">{c.createdAt}</span>
+                        <span className="block text-[12px] text-slate-400">{c.createdAt}</span>
                       </span>
                     </button>
                     <button
@@ -302,7 +302,7 @@ function Amortization({ initial, onSave }: CalcProps) {
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
                 <Legend />
                 <Bar yAxisId="pay" dataKey="principalPaid" name="Principal" stackId="a" fill="#1a7f5a" />
-                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill="#c62f14" />
+                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill="#a4123a" />
                 <Line yAxisId="bal" type="monotone" dataKey="balance" name="Balance" stroke="#6366f1" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -402,9 +402,9 @@ function Fire({ initial, onSave }: CalcProps) {
                 <Legend />
                 <ReferenceLine
                   y={result.fireNumber}
-                  stroke="#c62f14"
+                  stroke="#a4123a"
                   strokeDasharray="6 4"
-                  label={{ value: "FIRE number", fill: "#c62f14", fontSize: 11, position: "insideTopRight" }}
+                  label={{ value: "FIRE number", fill: "#a4123a", fontSize: 11, position: "insideTopRight" }}
                 />
                 <Area type="monotone" dataKey="balance" name="Portfolio" stroke="#f97316" fill="url(#fireBal)" strokeWidth={2} />
                 <Area type="monotone" dataKey="contributed" name="Contributed" stroke="#94a3b8" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />

@@ -58,7 +58,7 @@ export default function Reports() {
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
             <Bar dataKey="income" name="Income" fill="#1a7f5a" />
-            <Bar dataKey="expenses" name="Expenses" fill="#c62f14" />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" />
           </BarChart>
         </ResponsiveContainer>
 

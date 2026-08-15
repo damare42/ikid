@@ -74,7 +74,7 @@ function Trends() {
             <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
             <Legend />
             <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#c62f14" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -112,7 +112,7 @@ function Trends() {
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
             <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#c62f14" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
             <Bar dataKey="savings" name="Savings" fill="#6366f1" radius={[3, 3, 0, 0]} />
             <Bar dataKey="investments" name="Investments" fill="#10b981" radius={[3, 3, 0, 0]} />
           </BarChart>

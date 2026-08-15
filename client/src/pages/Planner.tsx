@@ -256,11 +256,11 @@ export default function Planner() {
                           <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1a7f5a" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
-                      <div className="px-1 text-[10px] text-slate-400">Projected savings balance, next 24 months</div>
+                      <div className="px-1 text-[12px] text-slate-400">Projected savings balance, next 24 months</div>
                     </div>
                   )}
                   {m.source && m.role === "assistant" && (
-                    <div className="mt-1.5 text-[10px] opacity-50">
+                    <div className="mt-1.5 text-[12px] opacity-50">
                       {m.source === "engine" ? "exact math · scenario engine"
                         : m.source === "engine+ollama" ? "exact math · narrated by local AI"
                         : m.source === "ollama" ? "local AI (verify important numbers)"

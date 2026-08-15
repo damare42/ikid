@@ -303,7 +303,7 @@ function ImportRow({ im, accounts, onChanged, onMessage }: {
             </button>
           )}
         </div>
-        {suggested && <div className="mt-0.5 text-[10px] text-amber-600">matched from filename</div>}
+        {suggested && <div className="mt-0.5 text-[12px] text-amber-600">matched from filename</div>}
       </td>
       <td className="td text-slate-500 whitespace-nowrap">{new Date(im.importedAt).toLocaleString()}</td>
       <td className="td text-right">{im.transactionCount}</td>

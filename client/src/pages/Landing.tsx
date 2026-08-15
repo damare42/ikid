@@ -69,7 +69,7 @@ function ImportMock() {
             <span className="text-slate-600 dark:text-slate-300">{desc}</span>
             <span className="flex items-center gap-2">
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                className="rounded-full px-2 py-0.5 text-[12px] font-medium"
                 style={{ backgroundColor: color + "22", color, animation: `popIn .3s ease both ${0.7 + i * 0.35}s` }}
               >
                 {cat}
@@ -88,10 +88,10 @@ function DashboardMock() {
   return (
     <MockWindow title="ikid — dashboard">
       <div className="grid grid-cols-3 gap-2 font-grotesk">
-        {[["Income", "$3,950", "#1a7f5a"], ["Spending", "$3,260", "#c62f14"], ["Saved", "$690", "#6366f1"]].map(
+        {[["Income", "$3,950", "#1a7f5a"], ["Spending", "$3,260", "#a4123a"], ["Saved", "$690", "#6366f1"]].map(
           ([l, v, c], i) => (
             <div key={l} className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800" style={{ animation: `popIn .4s ease both ${i * 0.15}s` }}>
-              <div className="text-[10px] uppercase tracking-wide text-slate-400">{l}</div>
+              <div className="text-[12px] uppercase tracking-wide text-slate-400">{l}</div>
               <div className="text-base font-bold tabular-nums" style={{ color: c }}>{v}</div>
             </div>
           ),

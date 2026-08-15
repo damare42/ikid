@@ -74,7 +74,7 @@ function Num({ label, value, onChange, hint }: {
     <div>
       <label className="label">{label}</label>
       <input type="number" step="any" className="input w-full" value={value} onChange={(e) => onChange(e.target.value)} />
-      {hint && <div className="mt-0.5 text-[10px] text-slate-400">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[12px] text-slate-400">{hint}</div>}
     </div>
   );
 }
@@ -86,7 +86,7 @@ function InfoTip({ children }: { children: React.ReactNode }) {
       <button
         type="button"
         aria-label="More info"
-        className="grid h-4 w-4 cursor-help place-items-center rounded-full bg-slate-200 text-[10px] font-bold leading-none text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+        className="grid h-4 w-4 cursor-help place-items-center rounded-full bg-slate-200 text-[12px] font-bold leading-none text-slate-600 dark:bg-slate-700 dark:text-slate-300"
       >
         i
       </button>
@@ -488,7 +488,7 @@ export default function Retirement() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
                   <Legend />
-                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#c62f14" />
+                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#a4123a" />
                   <Bar dataKey="penalty" name="10% penalty" stackId="t" fill="#7f1d1d" />
                   <Bar dataKey="conversion" name="Roth conversion" fill="#1a7f5a" fillOpacity={0.35} />
                 </BarChart>

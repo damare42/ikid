@@ -142,7 +142,7 @@ export default function Transactions() {
             </button>
           )}
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               {data ? `${data.total.toLocaleString()} transaction${data.total === 1 ? "" : "s"} on file` : "Transactions"}
             </div>
             <h1 className="font-heading text-2xl font-extrabold tracking-tight">Transactions</h1>
@@ -252,7 +252,7 @@ export default function Transactions() {
                     <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
                     <td className="td max-w-64 truncate" title={t.description}>
                       {t.description}
-                      {t.isTransfer && <span className="ml-1.5 rounded bg-slate-200 px-1 text-[10px] dark:bg-slate-700">transfer</span>}
+                      {t.isTransfer && <span className="ml-1.5 rounded bg-slate-200 px-1 text-[12px] dark:bg-slate-700">transfer</span>}
                     </td>
                     <td className="td whitespace-nowrap">{t.merchant?.name ?? "—"}</td>
                     <td className="td whitespace-nowrap text-xs">

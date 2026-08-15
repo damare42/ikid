@@ -126,13 +126,13 @@ function AvatarMenu({ auth }: { auth: AuthStatus | null }) {
           <div className="flex items-center justify-between px-3 py-2">
             <span className="truncate text-sm font-semibold">{who}</span>
             {auth?.isAdmin && (
-              <span className="rounded-chrome bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">admin</span>
+              <span className="rounded-chrome bg-brand-100 px-1.5 py-0.5 text-[12px] font-semibold text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">admin</span>
             )}
           </div>
 
           {!auth?.enabled && info && (
             <div className="border-t border-slate-100 py-1 dark:border-slate-800">
-              <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Profiles</div>
+              <div className="px-3 py-1 text-[12px] font-semibold uppercase tracking-widest text-slate-400">Profiles</div>
               {info.profiles.map((p) => (
                 <button key={p.name} className={itemCls} onClick={() => (p.name === info.active ? setOpen(false) : activate(p.name))}>
                   <span>👤</span>
@@ -227,13 +227,13 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
       <aside className="no-print sticky top-0 hidden h-screen w-[222px] shrink-0 flex-col border-r border-slate-200 bg-white px-[22px] py-6 md:flex dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-6">
           <IkidLogo height={30} />
-          <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
         </div>
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
           {NAV_GROUPS.map((g) => (
             <div key={g.key}>
               <button
-                className="flex w-full items-center justify-between px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                className="flex w-full items-center justify-between px-1 pb-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 onClick={() => toggleGroup(g.key)}
               >
                 {g.label}
@@ -246,11 +246,13 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
                       key={n.to}
                       to={n.to}
                       end={n.to === "/"}
+                      // Active state is NOT signalled by colour alone (WCAG 1.4.1):
+                      // accent text + a 2px left rule + heavier weight.
                       className={({ isActive }) =>
-                        `flex items-center gap-2.5 px-1 py-[7px] text-[13px] font-semibold transition-colors ${
+                        `flex items-center gap-2.5 border-l-2 py-[7px] pl-2 text-[13px] transition-colors ${
                           isActive
-                            ? "text-brand-600"
-                            : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                            ? "border-brand-600 font-extrabold text-brand-700 dark:text-brand-400"
+                            : "border-transparent font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                         }`
                       }
                     >
@@ -262,7 +264,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
             </div>
           ))}
         </nav>
-        <div className="mt-4 border-t border-slate-100 pt-3 text-[10px] text-slate-400 dark:border-slate-800">
+        <div className="mt-4 border-t border-slate-100 pt-3 text-[12px] text-slate-400 dark:border-slate-800">
           100% local · SQLite · no cloud
         </div>
       </aside>
@@ -270,7 +272,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/85 px-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
           <form onSubmit={submitSearch} className="mx-auto hidden max-w-sm flex-1 sm:block">
             <input
               className="input w-full"

@@ -25,7 +25,7 @@ export function StatCard({ label, value, sub, tone = "default" }: {
     : "text-slate-900 dark:text-slate-100";
   return (
     <div className="card">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`mt-1.5 font-heading text-3xl font-extrabold tracking-tight tabular-nums ${toneCls}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{sub}</div>}
     </div>
@@ -34,7 +34,7 @@ export function StatCard({ label, value, sub, tone = "default" }: {
 
 export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
   const clamped = Math.min(100, Math.max(0, pct));
-  const barColor = color ?? (pct > 100 ? "#c62f14" : pct > 85 ? "#9a6a10" : "#1a7f5a");
+  const barColor = color ?? (pct > 100 ? "#a4123a" : pct > 85 ? "#9a6a10" : "#1a7f5a");
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
       <div className="h-full rounded-full transition-all" style={{ width: `${clamped}%`, backgroundColor: barColor }} />

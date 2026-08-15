@@ -28,9 +28,12 @@ export default {
           400: "#bab6b6", 500: "#9b9797", 600: "#7d7979", 700: "#565252",
           800: "#3a3736", 900: "#201e1d", 950: "#161514",
         },
-        // Semantic positives/negatives from the tokens.
+        // Semantic positives/negatives.
+        // NOTE: `neg` is deliberately a crimson distinct from the brick-red
+        // brand accent, so "primary action" and "money out" never read as the
+        // same colour. Both pass WCAG AA as text (7.70:1 / 8.79:1 on panel).
         pos: { DEFAULT: "#1a7f5a", dark: "#5fd3a3" },
-        neg: { DEFAULT: "#c62f14", dark: "#ff7a5e" },
+        neg: { DEFAULT: "#a4123a", dark: "#ffa2b8" },
         warn: { DEFAULT: "#9a6a10", dark: "#e0ad55" },
       },
       borderRadius: {
