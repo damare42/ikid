@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.6.0 — redesign & accessibility
+
+Visual overhaul to the "Modernist" design system, plus a measured accessibility
+pass. No feature was removed — every screen keeps its full functionality.
+
+**Redesign**
+
+- New design language: brick-red accent, warm neutral palette, Archivo
+  typography, square structure with 9px only on interactive chrome
+- Sidebar rail rebuilt at 222px with three collapsible groups — **Money**
+  (Dashboard, Transactions, Accounts, Budgets, Goals), **Plan** (Net Worth,
+  Planner, Calculators, Retirement), **Insight** (Analytics, Reports); open
+  state persists
+- Settings, Admin, Sign out, and profile switching moved into a header avatar
+  menu; 64px header with a section kicker and centred search
+- Transactions gained a header kicker, a pulsing table loading skeleton
+  (`aria-busy`), and a filter-aware empty state
+- Charts recoloured to semantic tokens; logo recoloured to the accent
+
+**Accessibility (measured, not assumed)**
+
+- Fixed four palettes whose text failed WCAG AA: stock `emerald-600` (3.77:1),
+  `rose-500` (3.67:1), `amber-500` (2.15:1) and the app's own `slate-500`
+  (2.89:1) — all now clear 4.5:1. For reference the previous brand green was
+  2.68:1 on white
+- "Money out" is no longer the brand colour: negatives use a distinct crimson,
+  so a primary button and a loss never read the same
+- Active nav is no longer signalled by colour alone (accent text **plus** a 2px
+  left rule and heavier weight), per WCAG 1.4.1
+- Small-caps kicker labels raised from 10px to 12px
+- **25 contrast regression tests** pin every text token in light and dark, so a
+  future palette tweak can't silently reintroduce unreadable text
+
+**Robustness**
+
+- Setup failures now return actionable 503s instead of a bare
+  "Internal server error": ungenerated database client, an engine binary that
+  won't load on this machine, and an unreachable data folder each explain the
+  fix. Unexpected errors still return a generic 500 and never leak internals
+- Covered by error-handler tests, including a check that error payloads can't
+  leak stack traces or credentials
+
+Test suite: **147 passing** (was 116).
+
 ## Unreleased
 
 - Import History → assign accounts from the filename: each row now has an Account column that auto-suggests the account matching the filename (e.g. "chase-oct.csv" → Chase, "capital-one…" → Capital One), with an Assign button that links all that import's transactions in one click. A header "✨ Auto-assign by filename" button does every unmatched import at once (`POST /api/imports/:id/assign-account`). Account balances update immediately
