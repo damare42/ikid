@@ -42,7 +42,23 @@ pass. No feature was removed — every screen keeps its full functionality.
 - Covered by error-handler tests, including a check that error payloads can't
   leak stack traces or credentials
 
-Test suite: **147 passing** (was 116).
+**Security**
+
+- Password hashing strengthened from Node's scrypt defaults (N=16384) to
+  **N=65536, r=8, p=2** — 4× the memory hardness, and slightly *faster* thanks
+  to `p=2`. Cost parameters are now stored with each hash, so existing
+  passwords keep working and are transparently upgraded at the next login.
+  Nobody is locked out and nobody needs to reset anything
+- `SECURITY.md` with a private reporting path, an explicit threat model, and a
+  table mapping each stated guarantee to the test that enforces it
+- Dependabot, CodeQL scanning, least-privilege CI tokens, plus CI gates that
+  fail on high-severity production advisories or any committed user data
+- Patched 6 dependency advisories (13 → 7; every remaining one is dev tooling)
+- Audited the rest of the policy's claims against the code: account isolation,
+  analytics containing no financial data, no path traversal from upload
+  filenames, and no XSS sinks — all verified, now documented
+
+Test suite: **155 passing** (was 116).
 
 ## Unreleased
 

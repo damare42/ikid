@@ -56,8 +56,12 @@ backend, no cloud account, and no third-party analytics. See `docs/PRINCIPLES.md
 
 ## Security properties you can rely on
 
-- **Passwords** are hashed with scrypt (N=16384) and a per-account random salt.
-  Verification is timing-safe. Plaintext passwords are never stored or logged.
+- **Passwords** are hashed with scrypt at **N=65536, r=8, p=2** (64 MB of
+  memory per hash — memory hardness is what makes GPU cracking expensive),
+  with a 16-byte random salt per account. Verification is timing-safe, and
+  plaintext passwords are never stored or logged. Cost parameters are recorded
+  with each hash, so credentials created by older versions keep working and are
+  transparently re-hashed at the next successful login.
 - **Sessions** are 32-byte random tokens in `HttpOnly; SameSite=Strict`
   cookies — unreadable from JavaScript. `IKID_SECURE_COOKIES=1` adds `Secure`
   for HTTPS deployments.
@@ -69,7 +73,29 @@ backend, no cloud account, and no third-party analytics. See `docs/PRINCIPLES.md
 - **Errors** never leak stack traces, file paths, or credentials to the client
   (covered by tests in `server/src/tests/errors.test.ts`).
 - **Analytics**, when enabled, record feature events only — never amounts,
-  merchants, categories, or any transaction content.
+  merchants, categories, or any transaction content. Event names are validated
+  against a strict slug pattern, so arbitrary text can't be smuggled in.
+- **Uploads** are parsed in memory. A statement's filename is stored as a label
+  and never used to build a filesystem path, so a crafted filename cannot
+  traverse directories or overwrite files. Uploads are capped at 25 MB.
+- **Rendering** goes through React's default escaping — there is no
+  `dangerouslySetInnerHTML`, `innerHTML`, or `eval` anywhere in the codebase,
+  so a malicious merchant name or memo in a statement cannot execute.
+
+### Verified by tests
+
+These properties aren't just claims — the suite fails if they regress:
+
+| Property | Test |
+| --- | --- |
+| scrypt cost meets OWASP-equivalent settings | `password-upgrade.test.ts` |
+| Old password hashes still verify (no lockout) | `password-upgrade.test.ts` |
+| Errors never leak stack traces or credentials | `errors.test.ts` |
+| Session cookie is HttpOnly + SameSite=Strict | `auth.test.ts` |
+| Analytics reject non-slug event names | `usage.test.ts` |
+| Admin can't demote/disable the last admin | `accounts.test.ts` |
+
+Run them with `npm test`.
 
 ## Deploying safely
 

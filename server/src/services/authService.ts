@@ -22,23 +22,71 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 30_000;
 
+/**
+ * scrypt cost parameters.
+ *
+ * Node's default (N=16384, r=8, p=1) is below current OWASP guidance, which
+ * asks for N=2^17/r=8/p=1 or the equivalent N=2^16/r=8/p=2. We use the latter:
+ * it is 4x more memory-hard than the default (64MB vs 16MB — memory is what
+ * makes GPU/ASIC cracking expensive) and, thanks to p=2, actually computes
+ * *faster* than the old settings.
+ *
+ * Parameters are stored per credential, so hashes made with older settings
+ * keep verifying and are transparently upgraded on the next successful login.
+ */
+export const SCRYPT_PARAMS = { N: 65536, r: 8, p: 2 } as const;
+/** What credentials written before parameters were recorded used. */
+const LEGACY_PARAMS = { N: 16384, r: 8, p: 1 } as const;
+const KEY_LEN = 64;
+
 export interface Credential {
   salt: string;
   hash: string;
+  /** Cost parameters used for this hash. Absent = legacy (pre-0.6) defaults. */
+  N?: number;
+  r?: number;
+  p?: number;
 }
 
 // ---------- password hashing (pure, unit-tested) ----------
 
+function paramsOf(cred: Credential) {
+  return {
+    N: cred.N ?? LEGACY_PARAMS.N,
+    r: cred.r ?? LEGACY_PARAMS.r,
+    p: cred.p ?? LEGACY_PARAMS.p,
+  };
+}
+
+/** scrypt needs an explicit memory ceiling once N grows past the default. */
+function derive(password: string, salt: string, o: { N: number; r: number; p: number }): Buffer {
+  return scryptSync(password, salt, KEY_LEN, {
+    ...o,
+    maxmem: 256 * o.N * o.r + 1024 * 1024,
+  });
+}
+
 export function hashPassword(password: string, salt?: string): Credential {
   const s = salt ?? randomBytes(16).toString("hex");
-  const hash = scryptSync(password, s, 64).toString("hex");
-  return { salt: s, hash };
+  const hash = derive(password, s, SCRYPT_PARAMS).toString("hex");
+  return { salt: s, hash, ...SCRYPT_PARAMS };
 }
 
 export function verifyPassword(password: string, cred: Credential): boolean {
-  const candidate = scryptSync(password, cred.salt, 64);
+  let candidate: Buffer;
+  try {
+    candidate = derive(password, cred.salt, paramsOf(cred));
+  } catch {
+    return false; // malformed stored parameters — never throw at a login
+  }
   const expected = Buffer.from(cred.hash, "hex");
   return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+}
+
+/** True when a credential was hashed with weaker settings than we now use. */
+export function needsRehash(cred: Credential): boolean {
+  const c = paramsOf(cred);
+  return c.N < SCRYPT_PARAMS.N || c.r < SCRYPT_PARAMS.r || c.p < SCRYPT_PARAMS.p;
 }
 
 // ---------- credential store ----------
@@ -107,6 +155,20 @@ export function checkLogin(profile: string, password: string): { ok: boolean; er
     return { ok: false, error: "Wrong password" };
   }
   failures.delete(profile);
+
+  // Transparent upgrade: the password is correct and in memory right now, so
+  // re-hash it with the current (stronger) cost parameters. Users are never
+  // locked out by a parameter change and never have to reset anything.
+  if (cred && needsRehash(cred)) {
+    try {
+      creds[profile] = hashPassword(password);
+      writeCreds(creds);
+      logger.info("Password hash upgraded to current scrypt parameters", { profile });
+    } catch (e) {
+      // A failed upgrade must never fail the login — the old hash still works.
+      logger.warn("Password re-hash skipped", { profile, message: (e as Error).message });
+    }
+  }
   return { ok: true };
 }
 
