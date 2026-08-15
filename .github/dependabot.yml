@@ -1,0 +1,33 @@
+# Automated dependency updates.
+# Security patches arrive as PRs; version updates are batched weekly so the
+# repo doesn't drown in noise.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for routine dev-tooling bumps instead of a dozen.
+      dev-dependencies:
+        dependency-type: development
+        update-types: ["minor", "patch"]
+      production-minor:
+        dependency-type: production
+        update-types: ["minor", "patch"]
+    labels: ["dependencies"]
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+
+  # Keep the GitHub Actions themselves patched — a compromised action can
+  # read secrets and publish releases.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "ci"
