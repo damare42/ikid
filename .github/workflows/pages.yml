@@ -1,0 +1,48 @@
+# Publishes site/ to GitHub Pages on every push to main.
+# The marketing site is a single static HTML file — no build step, no
+# dependencies, nothing to compromise.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; don't cancel a deploy already in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Guard: the marketing site must never ship real data or secrets.
+      - name: Assert the site is static and clean
+        run: |
+          if grep -rIlE "BEGIN (RSA|OPENSSH|PRIVATE)|api[_-]?key|secret[_-]?key" site/; then
+            echo "::error::Possible secret in site/"; exit 1
+          fi
+          if ls site/*.db site/*.json 2>/dev/null | grep -q .; then
+            echo "::error::Unexpected data file in site/"; exit 1
+          fi
+          echo "site/ is clean."
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ikid — local-first personal finance</title>
+<meta name="description" content="Understand your money without handing it to anyone. ikid imports your bank statements, categorises them, and plans your future — entirely on your own machine. Free and open source." />
+<link rel="canonical" href="https://damare42.github.io/ikid/" />
+
+<!-- Social preview -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="ikid — local-first personal finance" />
+<meta property="og:description" content="Your bank statements, categorised and planned — entirely on your own machine. No cloud account, no bank logins, no tracking." />
+<meta property="og:url" content="https://damare42.github.io/ikid/" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='26' cy='68' r='11' fill='%238a1f0c'/%3E%3Ccircle cx='70' cy='30' r='11' fill='%23c62f14'/%3E%3Cpath d='M33,58 C44,38 52,46 62,38' fill='none' stroke='%23c62f14' stroke-width='5' stroke-dasharray='8 8' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+  /* Design tokens — same system as the app (design/tokens.json). */
+  :root{
+    --bg:#f3f2f2; --panel:#fff; --text:#201e1d; --muted:#565252;
+    --accent:#c62f14; --accent-ink:#a82710; --pos:#1a7f5a; --neg:#a4123a;
+    --line:rgba(32,30,29,.18); --radius-chrome:9px; --wrap:1100px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#161514; --panel:#201e1d; --text:#f3f2f2; --muted:#c4c0bf;
+           --accent:#ff7a5e; --accent-ink:#ffb5a3; --pos:#5fd3a3; --neg:#ffa2b8;
+           --line:rgba(243,242,242,.22); }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:400 16px/1.6 Archivo,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:0}
+  h1{font-size:clamp(38px,6vw,68px)}
+  h2{font-size:clamp(26px,3.4vw,40px);margin-bottom:12px}
+  h3{font-size:18px;letter-spacing:-.01em}
+  p{margin:0 0 14px;color:var(--muted);text-wrap:pretty}
+  a{color:var(--accent-ink)}
+  .kick{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--panel) 88%,transparent);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:20px;height:64px}
+  .nav a{color:var(--text);text-decoration:none;font-size:13px;font-weight:600}
+  .nav a:hover{color:var(--accent-ink)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.03em;margin-right:auto}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:var(--radius-chrome);
+       padding:10px 18px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-ink)}
+  .btn-ghost{border-color:var(--line);color:var(--text)}
+  .btn-ghost:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+  @media (prefers-color-scheme: dark){ .btn-primary{color:#201e1d} }
+
+  /* Hero */
+  .hero{padding:84px 0 64px}
+  .hero p.lead{font-size:19px;max-width:56ch;margin-top:18px}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+  .note{font-size:13px;color:var(--muted);margin-top:14px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .badge{border:1px solid var(--line);padding:5px 11px;font-size:12px;font-weight:600}
+
+  /* Sections */
+  section{padding:56px 0;border-top:1px solid var(--line)}
+  .grid{display:grid;gap:18px}
+  @media(min-width:760px){ .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)} }
+  .card{background:var(--panel);border:1px solid var(--line);padding:22px}
+  .card h3{margin-bottom:8px}
+  .card p{margin:0;font-size:15px}
+  .ico{font-size:22px;display:block;margin-bottom:10px}
+
+  /* Privacy callout */
+  .privacy{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);padding:26px}
+  .privacy ul{margin:10px 0 0;padding-left:20px;color:var(--muted)}
+  .privacy li{margin-bottom:7px}
+
+  /* Steps */
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:16px}
+  @media(min-width:760px){ ol.steps{grid-template-columns:repeat(3,1fr)} }
+  ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);padding:20px}
+  ol.steps li::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;
+       background:var(--accent);color:#fff;font-weight:800;margin-bottom:10px}
+  @media (prefers-color-scheme: dark){ ol.steps li::before{color:#201e1d} }
+
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+       background:color-mix(in srgb,var(--text) 8%,transparent);padding:2px 6px}
+  pre{background:var(--panel);border:1px solid var(--line);padding:16px;overflow-x:auto}
+  pre code{background:none;padding:0}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;font-size:13px;color:var(--muted)}
+  footer a{color:var(--muted)}
+  .foot{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .foot .sp{margin-left:auto}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <span class="brand">
+      <svg width="26" height="26" viewBox="0 0 96 96" aria-hidden="true">
+        <circle cx="26" cy="68" r="11" fill="#8a1f0c"/><circle cx="70" cy="30" r="11" fill="#c62f14"/>
+        <path d="M33,58 C44,38 52,46 62,38" fill="none" stroke="#c62f14" stroke-width="5" stroke-dasharray="8 8" stroke-linecap="round"/>
+      </svg>
+      ikid
+    </span>
+    <a href="#features">Features</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#start">Get started</a>
+    <a class="btn btn-ghost" href="https://github.com/damare42/ikid">GitHub</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <p class="kick">Local-first personal finance</p>
+    <h1>Understand your money<br>without handing it to anyone.</h1>
+    <p class="lead">
+      ikid imports your bank statements, categorises them automatically, and helps you plan —
+      budgets, goals, net worth, even early retirement. It runs entirely on your own machine.
+      No cloud account. No bank logins. No tracking.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#start">Get started — free</a>
+      <a class="btn btn-ghost" href="https://github.com/damare42/ikid">View source</a>
+    </div>
+    <p class="note">Free and open source (MIT). macOS, Windows, Linux — or self-host with Docker.</p>
+    <div class="badges">
+      <span class="badge">🔒 Your data never leaves your machine</span>
+      <span class="badge">🧮 Every number is auditable</span>
+      <span class="badge">🤖 Optional local AI</span>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <p class="kick">What it does</p>
+      <h2>From raw statements to real decisions</h2>
+      <div class="grid g3" style="margin-top:26px">
+        <div class="card"><span class="ico">📄</span><h3>Import anything</h3>
+          <p>Drop a CSV or PDF from any bank. Columns are detected automatically, duplicates are skipped, and 190+ rules categorise as they land.</p></div>
+        <div class="card"><span class="ico">🧠</span><h3>Learns your spending</h3>
+          <p>Correct a category once and ikid remembers it — and retroactively fixes past transactions from the same merchant.</p></div>
+        <div class="card"><span class="ico">📊</span><h3>See where it goes</h3>
+          <p>Dashboard, trends, category and merchant breakdowns, recurring-payment detection, and a conscious-spending view. Click any chart to see the transactions behind it.</p></div>
+        <div class="card"><span class="ico">🎯</span><h3>Budgets &amp; goals</h3>
+          <p>Monthly limits with end-of-month forecasts, and savings goals that project their own completion date.</p></div>
+        <div class="card"><span class="ico">💎</span><h3>Net worth</h3>
+          <p>Track assets and liabilities over time. Loans show a projected payoff date and the interest remaining.</p></div>
+        <div class="card"><span class="ico">🧭</span><h3>Plan retirement properly</h3>
+          <p>Model FIRE, Coast FIRE, and early retirement across 401k, Roth, HSA and brokerage — with Roth conversion ladders, RMDs, and the bridge to 59½.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="wrap">
+      <p class="kick">Why local-first</p>
+      <h2>The safest place for your financial data is your own computer.</h2>
+      <div class="privacy" style="margin-top:22px">
+        <p style="color:var(--text);font-weight:600;margin-bottom:6px">ikid has nothing to leak, by design.</p>
+        <ul>
+          <li><strong>No bank credentials.</strong> You export statements yourself — ikid never asks for logins and has no aggregator.</li>
+          <li><strong>No cloud account.</strong> Everything lives in a SQLite file on your machine.</li>
+          <li><strong>No third-party calls.</strong> No analytics SDKs, no ad networks, no telemetry to us.</li>
+          <li><strong>Optional AI stays local.</strong> Install Ollama and the planner answers freeform questions on your own hardware — or skip it and the deterministic engine still does the maths.</li>
+          <li><strong>Open source.</strong> Read every line. The privacy claim is architectural, not a promise you have to trust.</li>
+        </ul>
+        <p style="margin-top:14px;font-size:14px">
+          Read the <a href="https://github.com/damare42/ikid/blob/main/docs/PRINCIPLES.md">principles</a>
+          and the <a href="https://github.com/damare42/ikid/blob/main/SECURITY.md">security policy</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="wrap">
+      <p class="kick">Get started</p>
+      <h2>Running in about five minutes</h2>
+      <ol class="steps" style="margin-top:24px">
+        <li><h3>Install</h3><p>Download the desktop app for your platform, or run it yourself with Docker or Node.</p></li>
+        <li><h3>Import a statement</h3><p>Export a CSV or PDF from your bank and drop it in. Review the categories, then commit.</p></li>
+        <li><h3>Start deciding</h3><p>Set budgets and goals, then ask the planner what happens if you buy a house — or retire at 45.</p></li>
+      </ol>
+
+      <div class="grid g2" style="margin-top:26px">
+        <div class="card">
+          <h3>Desktop app</h3>
+          <p style="margin-bottom:14px">Double-click to run. No terminal needed.</p>
+          <a class="btn btn-primary" href="https://github.com/damare42/ikid/releases">Download latest release</a>
+          <p style="margin-top:12px;font-size:13px">Builds are unsigned — macOS needs right-click → Open the first time.</p>
+        </div>
+        <div class="card">
+          <h3>Run it yourself</h3>
+          <p style="margin-bottom:12px">Clone and start — or use Docker to self-host on your own server.</p>
+<pre><code>git clone https://github.com/damare42/ikid.git
+cd ikid
+npm install
+npm run dev</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="kick">Honest limitations</p>
+      <h2>What ikid is not</h2>
+      <div class="grid g3" style="margin-top:22px">
+        <div class="card"><h3>Not automatic</h3><p>There's no bank sync — you export statements yourself. That's the trade for never sharing credentials.</p></div>
+        <div class="card"><h3>Not tax advice</h3><p>The retirement and tax tools use real federal tables and are unit-tested, but they're planning support. Confirm decisions with a professional.</p></div>
+        <div class="card"><h3>Not a hosted service</h3><p>There's no ikid server holding your data. If you want access from anywhere, you host it yourself.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>ikid — MIT licensed. Built in the open.</span>
+    <span class="sp"></span>
+    <a href="https://github.com/damare42/ikid">GitHub</a>
+    <a href="https://github.com/damare42/ikid/blob/main/SECURITY.md">Security</a>
+    <a href="https://github.com/damare42/ikid/blob/main/docs/PRINCIPLES.md">Principles</a>
+    <a href="https://github.com/damare42/ikid/releases">Releases</a>
+  </div>
+</footer>
+
+</body>
+</html>
