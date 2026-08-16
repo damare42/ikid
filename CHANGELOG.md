@@ -62,6 +62,20 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **Debt payoff planner** (Calculators → 🏔️ Debt payoff): compares **snowball**
+  (smallest balance first) against **avalanche** (highest rate first) across all
+  your debts at once. Shows the debt-free date, total interest, the balance
+  curve, and — crucially — the **focus order**: which debt to attack with spare
+  money, as distinct from the order debts happen to clear. Prefills from your
+  Net Worth liabilities and credit/loan accounts. Honest about the trade-off:
+  when the interest difference is small it says so, because the plan you'll
+  actually finish beats the mathematically optimal one you abandon.
+  Deterministic and unit-tested (21 tests) per PRINCIPLES rule 2
+- Money helpers (`services/money.ts`) for exact cent-based arithmetic, so
+  totals no longer accumulate floating-point drift — found by measuring the
+  real 1,211-transaction database against CashFlux's "money is never a float"
+  principle. See `docs/COMPETITIVE-NOTES.md`
+
 - Import History → assign accounts from the filename: each row now has an Account column that auto-suggests the account matching the filename (e.g. "chase-oct.csv" → Chase, "capital-one…" → Capital One), with an Assign button that links all that import's transactions in one click. A header "✨ Auto-assign by filename" button does every unmatched import at once (`POST /api/imports/:id/assign-account`). Account balances update immediately
 
 - Settings → Import History: the file label is now editable — click the filename (✎) to rename an import (e.g. "chase-oct.csv" → "Chase — October"); Enter saves, Escape cancels. Cosmetic only; transactions are untouched (`PATCH /api/imports/:id`)

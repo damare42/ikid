@@ -57,8 +57,32 @@ interface CoastResult {
   series: { age: number; balance: number; coastNumber: number }[];
 }
 
+interface DebtRow { name: string; balance: number; ratePct: number; minPayment: number }
+interface PayoffPlanDTO {
+  strategy: "avalanche" | "snowball";
+  feasible: boolean;
+  problem?: string;
+  months: number;
+  payoffDate: string;
+  totalInterest: number;
+  totalPaid: number;
+  monthlyOutlay: number;
+  focusOrder: string[];
+  debts: { name: string; order: number; monthsToPayoff: number; payoffDate: string; interestPaid: number; totalPaid: number }[];
+  schedule: { month: number; remaining: number; interest: number; principal: number }[];
+}
+interface ComparisonDTO {
+  avalanche: PayoffPlanDTO;
+  snowball: PayoffPlanDTO;
+  cheaper: "avalanche" | "snowball";
+  interestSaved: number;
+  monthsSaved: number;
+  advice: string[];
+}
+
 const TABS = [
   { id: "amortization", label: "🏠 Loan / Amortization" },
+  { id: "debt", label: "🏔️ Debt payoff" },
   { id: "compound", label: "📈 Compound Interest" },
   { id: "fire", label: "🔥 FIRE" },
   { id: "coast", label: "🏖️ Coast FIRE" },
@@ -144,6 +168,7 @@ export default function Calculators() {
             ))}
           </div>
           {tab === "amortization" && <Amortization key={key} initial={initial} onSave={onSave("amortization")} />}
+          {tab === "debt" && <DebtPayoff key={key} />}
           {tab === "compound" && <Compound key={key} initial={initial} onSave={onSave("compound")} />}
           {tab === "fire" && <Fire key={key} initial={initial} onSave={onSave("fire")} />}
           {tab === "coast" && <Coast key={key} initial={initial} onSave={onSave("coast")} />}
@@ -310,6 +335,192 @@ function Amortization({ initial, onSave }: CalcProps) {
               Early years are mostly interest — extra principal payments hit hardest at the start.
             </div>
           </Card>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * 🏔️ Debt payoff — snowball vs avalanche across all your debts at once.
+ * Prefills from Net Worth liabilities and credit/loan accounts.
+ */
+function DebtPayoff() {
+  const [rows, setRows] = useState<DebtRow[]>([
+    { name: "Card 1", balance: 3000, ratePct: 24.99, minPayment: 90 },
+    { name: "Card 2", balance: 800, ratePct: 19.99, minPayment: 35 },
+  ]);
+  const [extra, setExtra] = useState("200");
+  const [result, setResult] = useState<ComparisonDTO | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [prefilled, setPrefilled] = useState(false);
+  const [strategy, setStrategy] = useState<"avalanche" | "snowball">("avalanche");
+
+  // Offer the user's real debts once.
+  useEffect(() => {
+    api.get<{ debts: (DebtRow & { source: string })[] }>("/api/calc/debt-plan/prefill")
+      .then((r) => {
+        if (r.debts.length > 0) {
+          setRows(r.debts.map(({ name, balance, ratePct, minPayment }) => ({
+            name, balance,
+            // Sensible starting guesses when we don't know the terms.
+            ratePct: ratePct || 22.99,
+            minPayment: minPayment || Math.max(25, Math.round(balance * 0.02)),
+          })));
+          setPrefilled(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const valid = rows.length > 0 && rows.every((r) => r.name.trim() && r.balance > 0);
+
+  useEffect(() => {
+    if (!valid) return;
+    const t = setTimeout(() => {
+      api.post<ComparisonDTO>("/api/calc/debt-plan", { debts: rows, extraMonthly: Number(extra) || 0 })
+        .then((r) => { setResult(r); setError(null); })
+        .catch((e: any) => setError(e.message));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [JSON.stringify(rows), extra, valid]);
+
+  function update(i: number, patch: Partial<DebtRow>) {
+    setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  }
+  const totalOwed = rows.reduce((s, r) => s + (r.balance || 0), 0);
+  const plan = result ? result[strategy] : null;
+
+  return (
+    <div className="space-y-4">
+      <Card title="Your debts">
+        {prefilled && (
+          <p className="mb-2 text-xs text-slate-500">
+            Prefilled from your accounts and liabilities. Check the rates and minimum payments —
+            we can't read those from a statement, so they're estimates until you set them.
+          </p>
+        )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left dark:border-slate-800">
+                <th className="th">Debt</th>
+                <th className="th text-right">Balance</th>
+                <th className="th text-right">Rate %</th>
+                <th className="th text-right">Min / mo</th>
+                <th className="th" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td className="td"><input className="input !py-1 w-36" value={r.name} onChange={(e) => update(i, { name: e.target.value })} /></td>
+                  <td className="td text-right"><input type="number" step="any" className="input !py-1 w-28 text-right" value={r.balance} onChange={(e) => update(i, { balance: Number(e.target.value) })} /></td>
+                  <td className="td text-right"><input type="number" step="any" className="input !py-1 w-20 text-right" value={r.ratePct} onChange={(e) => update(i, { ratePct: Number(e.target.value) })} /></td>
+                  <td className="td text-right"><input type="number" step="any" className="input !py-1 w-24 text-right" value={r.minPayment} onChange={(e) => update(i, { minPayment: Number(e.target.value) })} /></td>
+                  <td className="td text-right">
+                    <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <button className="btn-ghost !py-1 text-xs" onClick={() => setRows((rs) => [...rs, { name: `Debt ${rs.length + 1}`, balance: 1000, ratePct: 19.99, minPayment: 30 }])}>
+            + Add debt
+          </button>
+          <div>
+            <label className="label">Extra $/month (beyond minimums)</label>
+            <input type="number" step="any" className="input w-40" value={extra} onChange={(e) => setExtra(e.target.value)} />
+          </div>
+          <div className="ml-auto text-sm text-slate-500">
+            Total owed <b className="tabular-nums text-slate-900 dark:text-slate-100">{fmtMoney(totalOwed)}</b>
+          </div>
+        </div>
+        {error && <div className="mt-2"><ErrorNote message={error} /></div>}
+      </Card>
+
+      {result && plan && (
+        <>
+          {!plan.feasible ? (
+            <ErrorNote message={plan.problem ?? "This plan can't pay the debts off."} />
+          ) : (
+            <>
+              <div className="flex w-fit gap-1 bg-slate-100 p-1 dark:bg-slate-800">
+                {(["avalanche", "snowball"] as const).map((s) => (
+                  <button
+                    key={s}
+                    className={`px-4 py-1.5 text-sm font-semibold capitalize ${
+                      strategy === s ? "bg-white shadow dark:bg-slate-700" : "text-slate-500"
+                    }`}
+                    onClick={() => setStrategy(s)}
+                  >
+                    {s === "avalanche" ? "🏔️ Avalanche (highest rate)" : "❄️ Snowball (smallest first)"}
+                    {result.cheaper === s && <span className="ml-1.5 text-emerald-600">✓ cheaper</span>}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <StatCard label="Debt-free" value={fmtMonth(plan.payoffDate)} sub={`${plan.months} months`} tone="good" />
+                <StatCard label="Total interest" value={fmtMoney(plan.totalInterest)} tone="bad" />
+                <StatCard label="Monthly outlay" value={fmtMoney(plan.monthlyOutlay)} sub="minimums + extra" />
+                <StatCard
+                  label={`vs ${strategy === "avalanche" ? "snowball" : "avalanche"}`}
+                  value={result.interestSaved === 0 ? "same" : `${result.cheaper === strategy ? "−" : "+"}${fmtMoney(result.interestSaved)}`}
+                  sub={result.monthsSaved ? `${result.monthsSaved} mo difference` : "same finish date"}
+                  tone={result.cheaper === strategy ? "good" : "default"}
+                />
+              </div>
+
+              <Card title="Where your spare money goes, in order">
+                <ol className="space-y-1.5 text-sm">
+                  {plan.focusOrder.map((name, i) => {
+                    const d = plan.debts.find((x) => x.name === name);
+                    return (
+                      <li key={name} className="flex items-center gap-3">
+                        <span className={`grid h-6 w-6 place-items-center text-xs font-bold ${i === 0 ? "bg-brand-600 text-white" : "bg-slate-200 dark:bg-slate-700"}`}>{i + 1}</span>
+                        <span className="font-medium">{name}</span>
+                        {i === 0 && <span className="text-xs font-semibold text-brand-700 dark:text-brand-400">← attack this one</span>}
+                        {d && <span className="ml-auto text-xs text-slate-500">clear by {fmtMonth(d.payoffDate)} · {fmtMoney(d.interestPaid)} interest</span>}
+                      </li>
+                    );
+                  })}
+                </ol>
+                <p className="mt-3 text-xs text-slate-400">
+                  Keep paying every minimum. Everything spare goes to #1 until it's gone, then rolls to #2 —
+                  which is why the last debts fall fastest.
+                </p>
+              </Card>
+
+              <Card title="Balance over time">
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={plan.schedule}>
+                    <defs>
+                      <linearGradient id="debtFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#a4123a" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#a4123a" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+                    <XAxis dataKey="month" fontSize={11} tickFormatter={(m) => `m${m}`} />
+                    <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
+                    <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => `Month ${m}`} />
+                    <Area type="monotone" dataKey="remaining" name="Still owed" stroke="#a4123a" fill="url(#debtFill)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Card>
+
+              <Card title="📋 What this means">
+                <ul className="space-y-2 text-sm">
+                  {result.advice.map((a, i) => (
+                    <li key={i} className="flex gap-2"><span className="text-brand-600">▸</span><span>{a}</span></li>
+                  ))}
+                </ul>
+              </Card>
+            </>
+          )}
         </>
       )}
     </div>
