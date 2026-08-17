@@ -71,6 +71,7 @@ to wipe everything and start fresh.
 - **Smart Insights** — month-over-month category and merchant movements, possibly-unused subscriptions, recurring-spend totals, savings opportunities, yearly estimates.
 - **Reports** — CSV export of transactions, plus a print-optimized report page (charts, tables, budget + goal status) — use *Save as PDF* in the print dialog.
 - **Settings** — currency, date format, dark mode, accounts, categories, rules, import history/undo, and one-click database backup/restore/export.
+- **No lock-in** — one-click **lossless JSON export** of everything in a profile, with relations stored by name rather than database ID, so the file is readable in a text editor and imports cleanly into another profile (merge or replace). See [docs/EXPORT-FORMAT.md](docs/EXPORT-FORMAT.md).
 
 ## Architecture
 

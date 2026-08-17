@@ -62,11 +62,16 @@ touch. ikid needs a server, so it can't be pure-static like CashFlux — but a
 hosted read-only demo instance, or a "Load demo data / Reset demo" button in a
 throwaway profile, gets 90% of the benefit.
 
-### 2. Lossless JSON export ("no lock-in")
-CashFlux: *"Everything round-trips to plain JSON/CSV. Leave any time."* ikid has
+### 2. Lossless JSON export ("no lock-in") — ✅ **done**
+CashFlux: *"Everything round-trips to plain JSON/CSV. Leave any time."* ikid had
 CSV export and DB backup, but no single human-readable export of everything.
-Cheap to add, and it makes the local-first promise concrete: the export **is**
-the thing that proves you're not locked in.
+
+Shipped in Settings → *Your data — take it anywhere*
+(`GET /api/settings/export.json`, `POST /api/settings/import.json`). The one
+decision worth recording: the file references categories, merchants, accounts
+and imports **by name**, never by database ID — otherwise it round-trips into
+the same database and nowhere else, which would defeat the point. See
+`docs/EXPORT-FORMAT.md`.
 
 ### 3. Debt payoff strategies: snowball vs avalanche
 ikid already has the amortisation and payoff maths (`finmath.ts`). What's missing

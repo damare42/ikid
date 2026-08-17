@@ -62,6 +62,22 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **Lossless JSON export** (Settings → *Your data — take it anywhere*): one
+  human-readable `.json` file containing everything in the profile — accounts,
+  categories, merchants, tags, import history, every transaction, rules,
+  budgets, goals, assets with their full value history, settings, saved
+  calculations and planner conversations. Relations are stored **by name**, not
+  by database ID, so the file is diffable in a text editor and imports cleanly
+  into a different profile or a rebuilt database. Import comes in two modes:
+  **merge** (adds what's missing, skips transactions whose dedupe hash you
+  already have — so re-importing is a no-op) and **replace** (wipes the profile
+  first, behind a confirmation). Dedupe hashes and each transaction's link to
+  its import record survive the round trip, so duplicate detection and "Undo
+  import" still work afterwards. The file is treated as untrusted input:
+  validated with zod before a single row is written, and rejected with a
+  readable message — including a specific one for exports made by a newer
+  version. `GET /api/settings/export.json`, `POST /api/settings/import.json`.
+  20 unit tests cover round-trip fidelity, null preservation, and junk input
 - **Debt payoff planner** (Calculators → 🏔️ Debt payoff): compares **snowball**
   (smallest balance first) against **avalanche** (highest rate first) across all
   your debts at once. Shows the debt-free date, total interest, the balance
