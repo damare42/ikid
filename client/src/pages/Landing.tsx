@@ -305,12 +305,15 @@ export default function Landing() {
       </section>
 
       {/* privacy band */}
-      <section id="privacy" className="scroll-mt-16 bg-[#0e3d33] text-emerald-50">
+      {/* The one dark band on the page: warm near-black from the neutral ramp,
+          not the old brand green. Structure, not decoration — it separates
+          "what it does" above from "questions" below. */}
+      <section id="privacy" className="scroll-mt-16 bg-slate-900 text-slate-50">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-2 md:items-center">
           <Reveal>
             <div>
               <h2 className="font-display text-3xl font-extrabold md:text-4xl">Private by architecture, not by promise</h2>
-              <p className="mt-4 leading-relaxed text-emerald-100/80">
+              <p className="mt-4 leading-relaxed text-slate-300">
                 Everything is a file on your disk: one SQLite database per person, an API that only
                 answers localhost, and zero third-party calls. Households share one install with
                 scrypt-hashed passwords and per-request database isolation.
@@ -325,7 +328,7 @@ export default function Landing() {
                 "Backups are just file copies you control",
                 "Optional AI runs locally via Ollama — nothing leaves the machine",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-2.5 rounded-xl bg-emerald-50/10 px-4 py-3">
+                <li key={t} className="flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
                   <span className="text-brand-300">✓</span>{t}
                 </li>
               ))}
