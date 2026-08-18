@@ -105,6 +105,13 @@ function AvatarMenu({ auth }: { auth: AuthStatus | null }) {
   }
   async function signOut() {
     await api.post("/api/auth/logout").catch(() => {});
+    // Land on the public welcome page rather than the login form: signing out
+    // is usually "I'm done", not "let me log in as someone else".
+    // `replace` rather than setting the hash, so Back doesn't walk into the
+    // page they just left; `reload` is what actually clears the signed-in app
+    // state from memory, since a hash-only change never reloads.
+    const { pathname, search } = window.location;
+    window.location.replace(`${pathname}${search}#/welcome`);
     window.location.reload();
   }
   function go(to: string) { setOpen(false); navigate(to); }
