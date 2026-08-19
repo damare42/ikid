@@ -3,20 +3,28 @@
 Ordered steps to get the website live and the repo presentable. Everything
 here runs on **your** Mac — no tokens are ever pasted into a chat.
 
-Start-of-run facts (verified against the live repo):
+## Status
+
+| Step | State |
+| --- | --- |
+| 0. Verify locally | ✅ 207 tests, both typechecks, client build, lint — all clean |
+| 1. Merge `redesign` → `main` | ✅ merged as `00dd874` and pushed |
+| 2. Enable GitHub Pages | ✅ **live at https://damare42.github.io/ikid/** (verified: page, `robots.txt`, non-HTML assets all serving) |
+| 3. Fill in the repo's About box | ⬜ **next** — run `scripts/set-repo-metadata.sh` |
+| 4. Security settings | ⬜ `docs/REPO-SECURITY.md` |
+| 5. Announce | ⬜ your call, whenever |
+
+Other verified facts:
 
 | | |
 | --- | --- |
-| Repo | `damare42/ikid` — **already public**, 0 stars, 14 commits on `main` |
-| Branch state | `redesign` is **22 commits ahead** of `main` |
-| `site/` on `main` | **no** — so Pages has never deployed |
-| Releases | **none published** |
-| Repo description / topics / website | **not set** |
+| Repo | `damare42/ikid` — public |
+| Releases | none published — the site says so plainly rather than linking to an empty page |
 | Data leaked to git | none — only `database/.gitkeep` and `uploads/.gitkeep` were ever committed |
 
 ---
 
-## 0. Before you merge — verify locally (10 min)
+## 0. Before you merge — verify locally (10 min) ✅ done
 
 ```bash
 cd ~/Projects/Menged
@@ -41,7 +49,7 @@ Finally, the real smoke test — `docs/RELEASE-CHECKLIST.md` §"Manual smoke".
 Import a statement, sign out (you should land on the welcome page), sign back
 in, and export your data as JSON from Settings.
 
-## 1. Land `redesign` on `main`
+## 1. Land `redesign` on `main` ✅ done
 
 22 commits is a lot to review in one PR, but the history is clean and
 each commit stands alone, so a **merge commit** keeps that story intact:
@@ -59,7 +67,7 @@ attached. Don't squash: the individual commit messages explain several
 non-obvious decisions (the dedupe-hash change, the scrypt upgrade, the
 name-not-id export format) and squashing throws that away.
 
-## 2. Turn on GitHub Pages
+## 2. Turn on GitHub Pages ✅ done — https://damare42.github.io/ikid/
 
 Repo → **Settings → Pages** → Source: **GitHub Actions**.
 
@@ -76,19 +84,35 @@ Then check the two things that only work once it's live:
 - Paste the site URL into Slack or iMessage — you should see the preview card,
   not a bare link
 
-## 3. Fill in the repo's front door
+## 3. Fill in the repo's front door ← you are here
 
-Repo home → the ⚙️ next to **About**:
+A stranger landing on the repo currently reads **"No description, website, or
+topics provided."** Topics matter most: they're how people *find* a repo, and
+without them the project is invisible to GitHub search. This is the
+highest-leverage five minutes on the list.
 
-- **Description**: `Local-first personal finance. Import bank statements, categorise, budget, and plan retirement — entirely on your own machine.`
+**One command** (needs `brew install gh && gh auth login`):
+
+```bash
+./scripts/set-repo-metadata.sh
+```
+
+It sets the description, points the website at the now-live Pages URL, and
+applies 14 topics — the category (`personal-finance`, `budgeting`,
+`expense-tracker`), the differentiator (`local-first`, `offline-first`,
+`privacy`, `self-hosted`), and the stack (`sqlite`, `typescript`, `react`,
+`nodejs`). Re-running is safe: it clears topics you've dropped rather than
+piling new ones on top.
+
+**Or by hand** — repo home → ⚙️ next to **About**:
+
+- **Description**: `Local-first personal finance. Import bank statements, categorise, budget, and plan retirement — entirely on your own machine. No cloud, no bank logins, no telemetry.`
 - **Website**: `https://damare42.github.io/ikid/`
-- **Topics**: `personal-finance`, `local-first`, `privacy`, `budgeting`,
-  `self-hosted`, `sqlite`, `typescript`, `react`, `fire`, `retirement-planning`
-- Tick **Releases** off in the sidebar until you actually publish one, so the
-  empty section stops looking like a broken promise.
+- **Topics**: paste the list from the script
 
-This is the highest-leverage five minutes on the list. "No description,
-website, or topics provided" is what a stranger currently sees.
+Either way, finish with the one thing `gh` can't do: **untick "Releases"** in
+that same panel. An empty Releases section reads as a broken promise until you
+actually publish one.
 
 ## 4. Security settings
 
