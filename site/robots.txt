@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://damare42.github.io/ikid/sitemap.xml

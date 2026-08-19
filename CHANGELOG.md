@@ -62,6 +62,28 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **Marketing site rebuilt for launch** (`site/`, deployed to GitHub Pages).
+  It now makes **zero external requests** — the previous version pulled Archivo
+  from Google's font CDN, which handed every visitor's IP to a third party on a
+  page whose entire argument is "your data goes nowhere". No fonts, no scripts,
+  no trackers; the system font stack does the job. Added CSS illustrations of
+  the real import, dashboard, budget and planner screens so the page shows the
+  product instead of only describing it; a self-hosted social preview image
+  (`og.svg` → `og.png`, regenerate with `site/build-og.sh`); `robots.txt`,
+  `sitemap.xml`, `404.html` and `.nojekyll`. Contrast measured on all 30
+  foreground/background pairs — light-mode green and amber were darkened
+  because they fell to 3.85–4.45:1 against the recessed rows and tinted pills.
+  The download CTA now leads with clone/Docker and says plainly that installers
+  aren't published, rather than linking to an empty releases page
+- Honest-limitations section extended: not finished, not multi-currency, not
+  audited. Stale README roadmap replaced — it still listed net worth,
+  calculators, merchant normalization and retirement as future work
+- New `docs/LAUNCH-RUNBOOK.md` with the ordered steps to go live
+- **Sign out** now lands on the public welcome page instead of the sign-in form
+  for the profile you just left
+- **Landing privacy band** was still the pre-redesign brand green
+  (`#0e3d33`) — the only hardcoded hex and only green surface on the page. Now
+  the warm near-black already used as the dark panel token
 - **Lossless JSON export** (Settings → *Your data — take it anywhere*): one
   human-readable `.json` file containing everything in the profile — accounts,
   categories, merchants, tags, import history, every transaction, rules,

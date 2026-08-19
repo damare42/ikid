@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Archivo, Inter, Helvetica, Arial, sans-serif">
+  <!-- Social preview card. Source for og.png; regenerate with site/build-og.sh -->
+  <rect width="1200" height="630" fill="#f3f2f2"/>
+  <rect x="0" y="0" width="1200" height="10" fill="#c62f14"/>
+
+  <!-- logo -->
+  <g transform="translate(88,86) scale(0.72)">
+    <circle cx="26" cy="68" r="11" fill="#8a1f0c"/>
+    <circle cx="70" cy="30" r="11" fill="#c62f14"/>
+    <path d="M33,58 C44,38 52,46 62,38" fill="none" stroke="#c62f14" stroke-width="5"
+          stroke-dasharray="8 8" stroke-linecap="round"/>
+  </g>
+  <text x="152" y="146" font-size="40" font-weight="800" fill="#201e1d" letter-spacing="-1.4">ikid</text>
+  <text x="1112" y="146" font-size="24" font-weight="700" fill="#a82710" text-anchor="end">MIT · open source</text>
+
+  <text x="88" y="238" font-size="26" font-weight="700" fill="#565252" letter-spacing="4">LOCAL-FIRST PERSONAL FINANCE</text>
+
+  <text x="88" y="330" font-size="66" font-weight="800" fill="#201e1d" letter-spacing="-2.6">Understand your money</text>
+  <text x="88" y="406" font-size="66" font-weight="800" fill="#c62f14" letter-spacing="-2.6">without handing it to anyone.</text>
+
+  <text x="88" y="482" font-size="27" fill="#565252">Bank statements in. Budgets, goals and retirement plans out.</text>
+  <text x="88" y="522" font-size="27" fill="#565252">Entirely on your own machine.</text>
+
+  <g font-size="22" font-weight="700" fill="#565252">
+    <rect x="88"  y="548" width="286" height="42" fill="none" stroke="#201e1d" stroke-opacity="0.18"/>
+    <text x="106" y="576">No cloud account</text>
+    <rect x="392" y="548" width="278" height="42" fill="none" stroke="#201e1d" stroke-opacity="0.18"/>
+    <text x="410" y="576">No bank logins</text>
+    <rect x="688" y="548" width="232" height="42" fill="none" stroke="#201e1d" stroke-opacity="0.18"/>
+    <text x="706" y="576">No tracking</text>
+  </g>
+</svg>
