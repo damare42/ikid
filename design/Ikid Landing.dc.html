@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/styles.css">
+<script src="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/_ds_bundle.js"></script>
+<style>
+  :root {
+    --color-accent:#c62f14;
+    --color-accent-600:#a82710;
+    --color-accent-700:#8a1f0c;
+    --poster:#a3260f;
+  }
+  body { background: var(--color-bg); }
+  .kick { font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color: var(--color-accent); font-family: var(--font-heading); font-weight:600; }
+  .display { font-family:var(--font-heading); font-weight:800; letter-spacing:-0.03em; line-height:0.98; }
+  .num { font-variant-numeric:tabular-nums; }
+  .flink { color:var(--color-neutral-700); text-decoration:none; font-family:var(--font-heading); font-weight:600; font-size:13px; cursor:pointer; }
+  .flink:hover { color:var(--color-accent); }
+  .featrow { display:grid; grid-template-columns:120px 1.2fr 1fr; gap:32px; padding:38px 0; border-top:2px solid var(--color-text); align-items:start; }
+  .featrow:hover .fnum { color:var(--color-accent); }
+  .fnum { font-family:var(--font-heading); font-weight:800; font-size:52px; letter-spacing:-0.03em; color:var(--color-neutral-300); line-height:1; transition:color .15s; }
+  .wrap { max-width:1160px; margin:0 auto; padding:0 40px; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;">
+
+  <!-- ══════════ LANDING ══════════ -->
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <!-- top bar -->
+    <header style="border-bottom:2px solid var(--color-text); background:#fff;">
+      <div class="wrap" style="display:flex; align-items:center; gap:14px; padding-top:16px; padding-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <svg viewBox="0 0 60 34" width="52" height="30" style="display:block;"><path d="M6,26 C22,2 38,2 54,26" fill="none" stroke="var(--color-accent)" stroke-width="2.5" stroke-dasharray="5 5"/><circle cx="6" cy="26" r="5" fill="var(--color-text)"/><circle cx="54" cy="26" r="5" fill="var(--color-accent)"/></svg>
+          <span class="display" style="font-size:24px;">ikid</span>
+        </div>
+        <nav style="display:flex; gap:26px; margin-left:36px;">
+          <a class="flink">Features</a><a class="flink">Privacy</a><a class="flink">Download</a><a class="flink">Open source</a>
+        </nav>
+        <button class="btn btn-secondary" style="justify-content:flex-start; margin-left:auto;" onClick="{{ goLogin }}">Sign in</button>
+        <button class="btn btn-primary" style="justify-content:flex-start;" onClick="{{ goSignup }}">Get started</button>
+      </div>
+    </header>
+
+    <!-- hero -->
+    <section style="background:#fff; border-bottom:2px solid var(--color-text);">
+      <div class="wrap" style="display:grid; grid-template-columns:1.35fr 1fr; gap:0;">
+        <div style="padding:72px 48px 72px 0;">
+          <div class="kick">Local-first personal finance</div>
+          <h1 class="display" style="font-size:76px; margin:20px 0 0;">See exactly<br>where your<br>money goes.</h1>
+          <p style="font-size:17px; color:var(--color-neutral-700); max-width:440px; margin:26px 0 0;">Import a bank statement, and Ikid categorizes every transaction, tracks budgets and goals, and shows the whole picture — running entirely on your computer. No cloud. No accounts. No telemetry.</p>
+          <div style="display:flex; gap:12px; margin-top:34px;">
+            <button class="btn btn-primary" style="justify-content:flex-start;" onClick="{{ goSignup }}">Download for Mac →</button>
+            <button class="btn btn-secondary" style="justify-content:flex-start;" onClick="{{ goSignup }}">Start free</button>
+          </div>
+          <div class="kick" style="color:var(--color-neutral-500); margin-top:22px;">100% local · SQLite · your data never leaves the disk</div>
+        </div>
+        <div style="border-left:2px solid var(--color-text); padding:56px 0 56px 48px; display:flex; flex-direction:column; justify-content:center;">
+          <svg viewBox="0 0 200 60" width="150" height="45" style="margin-bottom:26px;"><path d="M8,46 C60,4 140,4 192,46" fill="none" stroke="var(--color-accent)" stroke-width="3" stroke-dasharray="7 7"/><circle cx="8" cy="46" r="7" fill="var(--color-text)"/><circle cx="192" cy="46" r="7" fill="var(--color-accent)"/></svg>
+          <div class="kick" style="color:var(--color-neutral-600);">August · net position</div>
+          <div class="display" style="font-size:68px; color:var(--color-accent); margin:8px 0 2px;">+$3,060</div>
+          <div style="font-family:var(--font-heading); font-weight:600; font-size:14px; color:var(--color-neutral-700);">saved this month · 37% savings rate</div>
+          <svg viewBox="0 0 300 80" style="width:100%; height:76px; margin-top:22px;">
+            <line x1="0" y1="72" x2="300" y2="72" stroke="var(--color-neutral-300)" stroke-width="1"/>
+            <path d="M0,70 L40,64 L80,52 L120,55 L160,38 L200,30 L240,20 L300,8 L300,72 L0,72 Z" fill="var(--color-accent-100)"/>
+            <path d="M0,70 L40,64 L80,52 L120,55 L160,38 L200,30 L240,20 L300,8" fill="none" stroke="var(--color-accent)" stroke-width="2.5"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- trust strip -->
+    <section style="border-bottom:2px solid var(--color-text); background:var(--color-bg);">
+      <div class="wrap" style="display:grid; grid-template-columns:repeat(4,1fr);">
+        <div style="padding:26px 0;"><div class="display" style="font-size:32px;">No cloud</div><div class="kick" style="color:var(--color-neutral-600); margin-top:6px;">localhost only</div></div>
+        <div style="padding:26px 0 26px 28px; border-left:1px solid var(--color-neutral-300);"><div class="display" style="font-size:32px;">No accounts</div><div class="kick" style="color:var(--color-neutral-600); margin-top:6px;">no bank logins</div></div>
+        <div style="padding:26px 0 26px 28px; border-left:1px solid var(--color-neutral-300);"><div class="display" style="font-size:32px;">No telemetry</div><div class="kick" style="color:var(--color-neutral-600); margin-top:6px;">zero tracking</div></div>
+        <div style="padding:26px 0 26px 28px; border-left:1px solid var(--color-neutral-300);"><div class="display" style="font-size:32px;">MIT</div><div class="kick" style="color:var(--color-neutral-600); margin-top:6px;">open source</div></div>
+      </div>
+    </section>
+
+    <!-- features -->
+    <section class="wrap" style="padding-top:64px; padding-bottom:24px;">
+      <div class="kick">What's inside</div>
+      <h2 class="display" style="font-size:44px; margin:12px 0 34px; max-width:640px;">A full financial picture, built from your own statements.</h2>
+      <div style="border-bottom:2px solid var(--color-text);">
+        <div class="featrow">
+          <div class="fnum">01</div>
+          <div><h3 class="display" style="font-size:26px; margin:0 0 8px;">Import any statement</h3><p style="font-size:15px; color:var(--color-neutral-700); margin:0;">Drop a CSV or PDF from any bank. Columns are auto-detected, duplicates skipped, and a review screen lets you fix anything before it commits.</p></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;"><span class="tag tag-neutral">CSV</span><span class="tag tag-neutral">PDF</span><span class="tag tag-neutral">auto-detect columns</span><span class="tag tag-neutral">dedupe</span></div>
+        </div>
+        <div class="featrow">
+          <div class="fnum">02</div>
+          <div><h3 class="display" style="font-size:26px; margin:0 0 8px;">Categorization that learns</h3><p style="font-size:15px; color:var(--color-neutral-700); margin:0;">190+ built-in rules label most transactions instantly. Correct one and Ikid remembers — retroactively fixing every other transaction from that merchant.</p></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;"><span class="tag tag-accent">learned rules</span><span class="tag tag-neutral">merchant match</span><span class="tag tag-neutral">retroactive</span></div>
+        </div>
+        <div class="featrow">
+          <div class="fnum">03</div>
+          <div><h3 class="display" style="font-size:26px; margin:0 0 8px;">Budgets, goals & the plan</h3><p style="font-size:15px; color:var(--color-neutral-700); margin:0;">Monthly budgets with end-of-month forecasts, savings goals with projected completion, and a Conscious Spending Plan measured against your take-home pay.</p></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;"><span class="tag tag-neutral">forecasts</span><span class="tag tag-neutral">goal projection</span><span class="tag tag-neutral">CSP buckets</span></div>
+        </div>
+        <div class="featrow">
+          <div class="fnum">04</div>
+          <div><h3 class="display" style="font-size:26px; margin:0 0 8px;">Planner & calculators</h3><p style="font-size:15px; color:var(--color-neutral-700); margin:0;">Model "buy a house", "invest $500/mo", or early retirement with a deterministic engine — loans, compound growth, FIRE, and tax-aware withdrawals.</p></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;"><span class="tag tag-neutral">what-if</span><span class="tag tag-neutral">amortization</span><span class="tag tag-neutral">FIRE</span><span class="tag tag-neutral">retirement</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- red poster CTA -->
+    <section style="background:var(--poster);">
+      <div class="wrap" style="padding-top:80px; padding-bottom:80px; display:grid; grid-template-columns:1.4fr 1fr; gap:40px; align-items:end;">
+        <div>
+          <svg viewBox="0 0 200 50" width="120" height="30" style="margin-bottom:22px;"><path d="M6,40 C60,4 140,4 194,40" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 6"/><circle cx="6" cy="40" r="6" fill="#fff"/><circle cx="194" cy="40" r="6" fill="var(--color-text)"/></svg>
+          <h2 class="display" style="font-size:60px; color:#fff; margin:0;">Your money.<br>Your machine.<br>No one else's.</h2>
+        </div>
+        <div>
+          <p style="color:#fff; font-size:16px; opacity:0.92; margin:0 0 22px;">Free and open source. Install it, drop in a statement, and own your financial picture — offline, forever.</p>
+          <button class="btn" style="justify-content:flex-start; background:#fff; color:var(--color-accent);" onClick="{{ goSignup }}">Get started free →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- footer -->
+    <footer style="border-top:2px solid var(--color-text); background:#fff;">
+      <div class="wrap" style="display:flex; align-items:center; gap:16px; padding-top:22px; padding-bottom:22px;">
+        <span class="display" style="font-size:18px;">ikid</span>
+        <span class="kick" style="color:var(--color-neutral-500);">Local-first personal finance</span>
+        <div style="margin-left:auto; display:flex; gap:22px;"><a class="flink">GitHub</a><a class="flink">Privacy</a><a class="flink">Docs</a><a class="flink">License · MIT</a></div>
+      </div>
+    </footer>
+  </div>
+  </sc-if>
+
+  <!-- ══════════ LOGIN ══════════ -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh; display:grid; grid-template-columns:1fr 1fr;">
+    <!-- poster side -->
+    <div style="background:var(--poster); padding:56px 56px; display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onClick="{{ goLanding }}">
+        <svg viewBox="0 0 60 34" width="50" height="28"><path d="M6,26 C22,2 38,2 54,26" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="5 5"/><circle cx="6" cy="26" r="5" fill="#fff"/><circle cx="54" cy="26" r="5" fill="var(--color-text)"/></svg>
+        <span class="display" style="font-size:24px; color:#fff;">ikid</span>
+      </div>
+      <div style="margin-top:auto;">
+        <h2 class="display" style="font-size:52px; color:#fff; margin:0 0 18px;">Welcome<br>back.</h2>
+        <p style="color:#fff; opacity:0.92; font-size:16px; max-width:360px; margin:0;">Your data has been sitting right here on your machine the whole time. Sign in to pick up where you left off.</p>
+        <div class="hr" style="background:rgba(255,255,255,0.4); margin:28px 0;"></div>
+        <div style="display:flex; gap:14px; color:#fff; font-family:var(--font-heading); font-weight:600; font-size:13px; opacity:0.92;"><span>No cloud</span><span>·</span><span>No tracking</span><span>·</span><span>Encrypted at rest</span></div>
+      </div>
+    </div>
+    <!-- form side -->
+    <div style="background:#fff; padding:72px 64px; display:flex; flex-direction:column; justify-content:center;">
+      <div style="max-width:360px; width:100%;">
+        <div class="kick">Sign in to Ikid</div>
+        <h1 class="display" style="font-size:40px; margin:12px 0 30px;">Sign in</h1>
+        <div class="field" style="margin-bottom:16px;"><label>Profile or email</label><input class="input" style="background:#fff;" placeholder="you@local"></div>
+        <div class="field" style="margin-bottom:22px;"><label>Password</label><input class="input" type="password" style="background:#fff;" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-block" style="justify-content:flex-start;">Sign in →</button>
+        <div style="margin-top:22px; font-size:14px; color:var(--color-neutral-700);">New to Ikid? <a class="flink" style="color:var(--color-accent); display:inline;" onClick="{{ goSignup }}">Create an account →</a></div>
+        <div class="kick" style="color:var(--color-neutral-400); margin-top:34px;">Runs locally · no password reset email — it never left your machine</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ══════════ SIGNUP ══════════ -->
+  <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh; display:grid; grid-template-columns:1fr 1fr;">
+    <div style="background:var(--poster); padding:56px 56px; display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onClick="{{ goLanding }}">
+        <svg viewBox="0 0 60 34" width="50" height="28"><path d="M6,26 C22,2 38,2 54,26" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="5 5"/><circle cx="6" cy="26" r="5" fill="#fff"/><circle cx="54" cy="26" r="5" fill="var(--color-text)"/></svg>
+        <span class="display" style="font-size:24px; color:#fff;">ikid</span>
+      </div>
+      <div style="margin-top:auto;">
+        <h2 class="display" style="font-size:52px; color:#fff; margin:0 0 18px;">Start<br>the map.</h2>
+        <p style="color:#fff; opacity:0.92; font-size:16px; max-width:360px; margin:0;">Create a local profile — a single SQLite file on your disk. Import a statement and you'll see the whole picture in minutes.</p>
+        <div class="hr" style="background:rgba(255,255,255,0.4); margin:28px 0;"></div>
+        <div style="display:flex; flex-direction:column; gap:8px; color:#fff; font-family:var(--font-heading); font-weight:600; font-size:14px; opacity:0.92;">
+          <span>→ Free forever, no subscription</span><span>→ Nothing uploaded, ever</span><span>→ Multiple profiles, fully separate</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff; padding:72px 64px; display:flex; flex-direction:column; justify-content:center;">
+      <div style="max-width:360px; width:100%;">
+        <div class="kick">Create your profile</div>
+        <h1 class="display" style="font-size:40px; margin:12px 0 30px;">Get started</h1>
+        <div class="field" style="margin-bottom:16px;"><label>Profile name</label><input class="input" style="background:#fff;" placeholder="e.g. Personal, Business"></div>
+        <div class="field" style="margin-bottom:16px;"><label>Email (optional)</label><input class="input" style="background:#fff;" placeholder="you@local"></div>
+        <div class="field" style="margin-bottom:22px;"><label>Password</label><input class="input" type="password" style="background:#fff;" placeholder="Set a password"></div>
+        <button class="btn btn-primary btn-block" style="justify-content:flex-start;">Create account →</button>
+        <div style="margin-top:22px; font-size:14px; color:var(--color-neutral-700);">Already have a profile? <a class="flink" style="color:var(--color-accent); display:inline;" onClick="{{ goLogin }}">Sign in →</a></div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;startView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;landing&quot;,&quot;login&quot;,&quot;signup&quot;],&quot;default&quot;:&quot;landing&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+class Component extends DCLogic {
+  state = { view: null };
+  renderVals() {
+    const view = this.state.view ?? this.props.startView ?? "landing";
+    return {
+      isLanding: view === "landing",
+      isLogin: view === "login",
+      isSignup: view === "signup",
+      goLanding: () => this.setState({ view: "landing" }),
+      goLogin: () => this.setState({ view: "login" }),
+      goSignup: () => this.setState({ view: "signup" }),
+    };
+  }
+}
+</script>
+</body>
+</html>

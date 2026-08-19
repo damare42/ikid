@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/styles.css">
+<script src="_ds/modernist-fa68d897-8770-4d2f-b06f-e9e2cd74ee83/_ds_bundle.js"></script>
+<style>
+  :root { --color-accent:#c62f14; --color-accent-600:#a82710; }
+  body { background:#d9d7d7; }
+  .kick { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--color-neutral-600); font-family:var(--font-heading); font-weight:600; }
+  .display { font-family:var(--font-heading); font-weight:800; letter-spacing:-0.03em; line-height:1; color:var(--color-text); }
+  .big { font-family:var(--font-heading); font-weight:800; letter-spacing:-0.02em; line-height:1; color:var(--color-text); }
+  .num { font-variant-numeric:tabular-nums; }
+  .phone { height:100%; display:flex; flex-direction:column; background:var(--color-bg); }
+  .pscroll { flex:1; overflow:auto; }
+  .track { height:7px; background:var(--color-neutral-200); }
+  .track > div { height:100%; }
+  .brandmark { display:block; }
+  .iconbtn { width:38px; height:38px; flex:none; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--color-text); background:var(--panel,#fff); color:var(--color-text); cursor:pointer; }
+  .iconbtn svg { width:18px; height:18px; }
+  .qa { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; padding:12px 0; cursor:pointer; }
+  .qa svg { width:22px; height:22px; }
+  .qa span { font-size:10px; font-family:var(--font-heading); font-weight:600; }
+  .tabbar { display:flex; border-top:2px solid var(--color-text); background:#fff; padding-bottom:22px; }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:11px 0 6px; color:var(--color-neutral-500); font-family:var(--font-heading); font-weight:600; font-size:10px; }
+  .tab svg { width:22px; height:22px; }
+  .tab.on { color:var(--color-accent); }
+  .catrow { display:block; }
+  .catrow > div:not(:last-child) { margin-bottom:12px; }
+  .caplabel { font-family:var(--font-heading); font-weight:800; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--color-neutral-700); margin-bottom:6px; }
+  .capnote { font-size:12px; color:var(--color-neutral-600); max-width:360px; margin-bottom:16px; }
+  .opt-badge { display:inline-flex; align-items:center; font-family:var(--font-heading); font-weight:800; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--color-bg); background:var(--color-accent); padding:4px 9px; margin-bottom:10px; }
+</style>
+
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:28px; padding:64px 56px; align-items:flex-start;">
+  <div style="max-width:820px;">
+    <div class="kick" style="color:var(--color-accent); letter-spacing:0.14em;">Mobile · header &amp; layout options</div>
+    <h1 class="display" style="font-size:34px; margin:8px 0 8px;">Give the header its space back.</h1>
+    <p style="font-size:15px; color:var(--color-neutral-700); margin:0;">The logo + solid Import button dominated the top, and stacked 2px borders read as a double line on scroll. Three directions borrowed from modern finance apps — all fix the divider (one hairline between sub-sections, one strong rule per module). Compare <a href="#1a">1a</a>, <a href="#1b">1b</a>, <a href="#1c">1c</a>.</p>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:56px; align-items:flex-start;">
+
+    <!-- 1a — Icon bar -->
+    <div>
+      <div class="opt-badge">1a · Icon bar</div>
+      <div class="caplabel">Slim · icon actions</div>
+      <div class="capnote">Mark-only logo, Import + Search demoted to icon buttons (à la Mercury). The bar is ~52px instead of ~80px; the balance leads.</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+        <div class="phone">
+          <header style="display:flex; align-items:center; gap:10px; padding:58px 20px 12px; border-bottom:2px solid var(--color-text); background:#fff;">
+            <svg class="brandmark" viewBox="0 0 74 46" width="42" height="26"><path d="M9,36 Q40,4 65,18" fill="none" stroke="var(--color-accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1.6 6"/><circle cx="9" cy="36" r="6" fill="var(--color-text)"/><circle cx="65" cy="18" r="7" fill="var(--color-accent)"/></svg>
+            <div style="margin-left:auto; display:flex; gap:8px;">
+              <button class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+              <button class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+            </div>
+          </header>
+          <div class="pscroll">
+            <div style="padding:24px 20px; border-bottom:2px solid var(--color-text); background:#fff;">
+              <div class="kick" style="color:var(--color-accent);">August · net position</div>
+              <div class="display" style="font-size:56px; color:var(--color-accent); margin-top:8px;">+$3,060</div>
+              <div style="font-family:var(--font-heading); font-weight:600; font-size:13px; color:var(--color-neutral-700); margin-top:5px;">saved this month · 37% rate</div>
+            </div>
+            <div style="padding:6px 20px 4px;">
+              <div style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><span class="kick">Income</span><span class="big num" style="font-size:20px;">$8,240</span></div>
+              <div style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><span class="kick">Spending</span><span class="big num" style="font-size:20px;">$5,180</span></div>
+              <div style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--color-neutral-300);"><span class="kick">Net worth</span><span class="big num" style="font-size:20px;">$142,300</span></div>
+              <div style="display:flex; justify-content:space-between; padding:14px 0;"><span class="kick">Health score</span><span class="big num" style="font-size:20px;">78 / 100</span></div>
+            </div>
+            <div style="padding:16px 20px 22px; border-top:2px solid var(--color-text);">
+              <div class="kick" style="margin-bottom:12px;">Largest categories</div>
+              <div class="catrow">
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span class="num">$1,800</span></div><div class="track"><div style="width:100%; background:var(--color-accent);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span class="num">$620</span></div><div class="track"><div style="width:34%; background:var(--color-text);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span class="num">$410</span></div><div class="track"><div style="width:23%; background:var(--color-text);"></div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Activity</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Budgets</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4l12 3-4 4 4 4-12 3"/></svg>Goals</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 1b — Content-first -->
+    <div>
+      <div class="opt-badge">1b · Content-first</div>
+      <div class="caplabel">No chrome · scrolls away</div>
+      <div class="capnote">No sticky bar at all (like Copilot). A whisper-small brand row scrolls off; the balance is the first big thing. Import is a quiet inline link.</div>
+      <x-import component-from-global-scope="IOSDevice" hint-size="402px,874px">
+        <div class="phone">
+          <div class="pscroll">
+            <div style="display:flex; align-items:center; gap:8px; padding:58px 20px 4px;">
+              <svg class="brandmark" viewBox="0 0 74 46" width="34" height="21"><path d="M9,36 Q40,4 65,18" fill="none" stroke="var(--color-accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1.6 6"/><circle cx="9" cy="36" r="6" fill="var(--color-text)"/><circle cx="65" cy="18" r="7" fill="var(--color-accent)"/></svg>
+              <span class="display" style="font-size:15px;">ıkıd</span>
+              <svg style="margin-left:auto;" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-neutral-600)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H0"/></svg>
+            </div>
+            <div style="padding:20px 20px 22px;">
+              <div class="kick">Saved in August</div>
+              <div class="display" style="font-size:72px; color:var(--color-accent); margin-top:8px;">+$3,060</div>
+              <div style="font-family:var(--font-heading); font-weight:600; font-size:14px; color:var(--color-neutral-700); margin-top:6px;">37% of take-home · $8,240 in, $5,180 out</div>
+              <div style="margin-top:14px;"><a style="color:var(--color-accent); font-family:var(--font-heading); font-weight:700; font-size:13px;">↑ Import a statement</a></div>
+            </div>
+            <div style="padding:18px 20px; border-top:2px solid var(--color-text);">
+              <div class="kick" style="margin-bottom:12px;">This month</div>
+              <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--color-neutral-300);"><span class="kick">Net worth</span><span class="big num" style="font-size:19px;">$142,300</span></div>
+              <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--color-neutral-300);"><span class="kick">Budgets on track</span><span class="big num" style="font-size:19px;">5 / 7</span></div>
+              <div style="display:flex; justify-content:space-between; padding:12px 0;"><span class="kick">Health score</span><span class="big num" style="font-size:19px;">78 / 100</span></div>
+            </div>
+            <div style="padding:18px 20px 22px; border-top:2px solid var(--color-text);">
+              <div class="kick" style="margin-bottom:10px;">Recent</div>
+              <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0; border-bottom:1px solid var(--color-neutral-300);"><span>Whole Foods</span><span class="num">−$84.20</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0; border-bottom:1px solid var(--color-neutral-300);"><span>Payroll — Acme</span><span class="num" style="color:var(--color-accent); font-weight:700;">+$4,120</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:13px; padding:9px 0;"><span>Netflix</span><span class="num">−$15.49</span></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Activity</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Budgets</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4l12 3-4 4 4 4-12 3"/></svg>Goals</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 1c — Quick actions -->
+    <div>
+      <div class="opt-badge">1c · Quick actions</div>
+      <div class="caplabel">Balance + action row</div>
+      <div class="capnote">Neobank pattern (Revolut / Cash App): compact mark, then the balance, then a row of quick actions — Import lives there with Add, Transfer, Search — so the header stays tiny.</div>
+      <x-import component-from-global-scope="IOSDevice" hint-size="402px,874px">
+        <div class="phone">
+          <header style="display:flex; align-items:center; padding:58px 20px 12px; border-bottom:2px solid var(--color-text); background:#fff;">
+            <svg class="brandmark" viewBox="0 0 74 46" width="40" height="25"><path d="M9,36 Q40,4 65,18" fill="none" stroke="var(--color-accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1.6 6"/><circle cx="9" cy="36" r="6" fill="var(--color-text)"/><circle cx="65" cy="18" r="7" fill="var(--color-accent)"/></svg>
+            <div style="margin-left:auto; width:34px; height:34px; border:1.5px solid var(--color-text); display:flex; align-items:center; justify-content:center; font-family:var(--font-heading); font-weight:800; font-size:13px;">D</div>
+          </header>
+          <div class="pscroll">
+            <div style="padding:22px 20px 18px;">
+              <div class="kick" style="color:var(--color-accent);">August · net position</div>
+              <div class="display" style="font-size:56px; color:var(--color-accent); margin-top:8px;">+$3,060</div>
+              <div style="font-family:var(--font-heading); font-weight:600; font-size:13px; color:var(--color-neutral-700); margin-top:5px;">37% of take-home</div>
+            </div>
+            <div style="display:flex; border-top:2px solid var(--color-text); border-bottom:2px solid var(--color-text);">
+              <div class="qa" style="border-right:1px solid var(--color-neutral-300);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>Import</span></div>
+              <div class="qa" style="border-right:1px solid var(--color-neutral-300);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></div>
+              <div class="qa" style="border-right:1px solid var(--color-neutral-300);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><path d="M7 10l-4 4 4 4M3 14h13M17 4l4 4-4 4M21 8H8"/></svg><span>Transfer</span></div>
+              <div class="qa"><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span>Search</span></div>
+            </div>
+            <div style="padding:16px 20px 22px;">
+              <div class="kick" style="margin-bottom:12px;">Largest categories</div>
+              <div class="catrow">
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Rent</span><span class="num">$1,800</span></div><div class="track"><div style="width:100%; background:var(--color-accent);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Groceries</span><span class="num">$620</span></div><div class="track"><div style="width:34%; background:var(--color-text);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Dining</span><span class="num">$410</span></div><div class="track"><div style="width:23%; background:var(--color-text);"></div></div></div>
+                <div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="font-family:var(--font-heading); font-weight:600;">Transport</span><span class="num">$260</span></div><div class="track"><div style="width:14%; background:var(--color-text);"></div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Activity</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Budgets</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4l12 3-4 4 4 4-12 3"/></svg>Goals</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

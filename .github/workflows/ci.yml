@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: CI only needs to read the repo. Without this the default
+# token can be write-scoped, which a malicious dependency could abuse.
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
@@ -33,3 +38,33 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  # Separate job so a dependency advisory doesn't mask a real test failure.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install
+        run: npm install --ignore-scripts
+
+      # Fail only on vulnerabilities in code that ships to users. Dev-tooling
+      # advisories are reported but don't block (they're handled by Dependabot).
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit everything (informational)
+        run: npm audit || true
+
+      # Belt and braces: real financial data and password hashes must never be
+      # committed, even by accident.
+      - name: Assert no user data is tracked
+        run: |
+          leaked=$(git ls-files database/ uploads/ | grep -v '\.gitkeep$' || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::User data is tracked in git:"; echo "$leaked"; exit 1
+          fi
+          echo "No user data tracked."

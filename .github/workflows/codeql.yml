@@ -1,0 +1,39 @@
+# Static security analysis. Catches injection, path traversal, unsafe
+# deserialization and similar in our own code — the classes of bug that matter
+# most for an app that parses untrusted bank statements.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, so newly-published queries run against existing code.
+    - cron: "23 4 * * 1"
+
+# Least privilege: read the repo, write only security findings.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze TypeScript
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Adds queries beyond the default set (more findings, some noise).
+          queries: security-and-quality
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"

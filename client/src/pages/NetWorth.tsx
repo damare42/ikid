@@ -52,7 +52,7 @@ export default function NetWorth() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Net Worth</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Net Worth</h1>
         <div className="flex gap-2">
           <button className="btn-ghost" onClick={() => setAdding("liability")}>+ Liability</button>
           <button className="btn-primary" onClick={() => setAdding("asset")}>+ Asset</button>
@@ -100,8 +100,8 @@ export default function NetWorth() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
                   <Legend />
-                  <Bar dataKey="assets" name="Assets" fill="#1cb474" fillOpacity={0.55} barSize={14} />
-                  <Bar dataKey="liabilities" name="Liabilities" fill="#f43f5e" fillOpacity={0.55} barSize={14} />
+                  <Bar dataKey="assets" name="Assets" fill="#1a7f5a" fillOpacity={0.55} barSize={14} />
+                  <Bar dataKey="liabilities" name="Liabilities" fill="#a4123a" fillOpacity={0.55} barSize={14} />
                   <Area type="monotone" dataKey="netWorth" name="Net worth" stroke="none" fill="url(#nwFill)" />
                   <Line type="monotone" dataKey="netWorth" name="Net worth" stroke="#6366f1" strokeWidth={2.5} dot={false} legendType="none" />
                 </ComposedChart>

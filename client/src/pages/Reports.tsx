@@ -25,7 +25,7 @@ export default function Reports() {
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <div className="no-print flex items-center justify-between">
-        <h1 className="text-xl font-bold">Reports</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Reports</h1>
         <div className="flex gap-2">
           <a className="btn-ghost" href="/api/reports/csv" download>⬇ Export CSV</a>
           <button className="btn-primary" onClick={() => window.print()}>🖨 Save as PDF</button>
@@ -57,8 +57,8 @@ export default function Reports() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1cb474" />
-            <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" />
+            <Bar dataKey="income" name="Income" fill="#1a7f5a" />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" />
           </BarChart>
         </ResponsiveContainer>
 

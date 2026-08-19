@@ -55,7 +55,7 @@ export default function Accounts() {
     <div className="mx-auto max-w-4xl space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Accounts</h1>
+          <h1 className="font-heading text-2xl font-extrabold tracking-tight">Accounts</h1>
           <p className="text-xs text-slate-500">Where each card/account left off — so you know what to upload next.</p>
         </div>
         <button className="btn-primary" onClick={() => openImport(null)}>⬆ Import statement</button>

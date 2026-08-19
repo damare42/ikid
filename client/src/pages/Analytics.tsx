@@ -25,7 +25,7 @@ export default function Analytics() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Analytics</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Analytics</h1>
         <div className="flex gap-1 rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
           {(["trends", "breakdown", "recurring", "insights"] as Tab[]).map((t) => (
             <button
@@ -73,8 +73,8 @@ function Trends() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1cb474" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -111,8 +111,8 @@ function Trends() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1cb474" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
             <Bar dataKey="savings" name="Savings" fill="#6366f1" radius={[3, 3, 0, 0]} />
             <Bar dataKey="investments" name="Investments" fill="#10b981" radius={[3, 3, 0, 0]} />
           </BarChart>

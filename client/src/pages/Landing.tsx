@@ -69,7 +69,7 @@ function ImportMock() {
             <span className="text-slate-600 dark:text-slate-300">{desc}</span>
             <span className="flex items-center gap-2">
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                className="rounded-full px-2 py-0.5 text-[12px] font-medium"
                 style={{ backgroundColor: color + "22", color, animation: `popIn .3s ease both ${0.7 + i * 0.35}s` }}
               >
                 {cat}
@@ -88,10 +88,10 @@ function DashboardMock() {
   return (
     <MockWindow title="ikid — dashboard">
       <div className="grid grid-cols-3 gap-2 font-grotesk">
-        {[["Income", "$3,950", "#1cb474"], ["Spending", "$3,260", "#f43f5e"], ["Saved", "$690", "#6366f1"]].map(
+        {[["Income", "$3,950", "#1a7f5a"], ["Spending", "$3,260", "#a4123a"], ["Saved", "$690", "#6366f1"]].map(
           ([l, v, c], i) => (
             <div key={l} className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800" style={{ animation: `popIn .4s ease both ${i * 0.15}s` }}>
-              <div className="text-[10px] uppercase tracking-wide text-slate-400">{l}</div>
+              <div className="text-[12px] uppercase tracking-wide text-slate-400">{l}</div>
               <div className="text-base font-bold tabular-nums" style={{ color: c }}>{v}</div>
             </div>
           ),
@@ -108,7 +108,7 @@ function DashboardMock() {
         </div>
         <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90">
           <circle cx="50" cy="50" r="41" fill="none" stroke="#e2e8f0" strokeWidth="14" />
-          <circle cx="50" cy="50" r="41" fill="none" stroke="#1cb474" strokeWidth="14" strokeDasharray="260" strokeDashoffset="80" style={{ animation: "drawArc 1.4s ease both .5s" }} />
+          <circle cx="50" cy="50" r="41" fill="none" stroke="#1a7f5a" strokeWidth="14" strokeDasharray="260" strokeDashoffset="80" style={{ animation: "drawArc 1.4s ease both .5s" }} />
           <circle cx="50" cy="50" r="41" fill="none" stroke="#f59e0b" strokeWidth="14" strokeDasharray="70 190" strokeDashoffset="-180" style={{ animation: "drawArc 1.4s ease both .8s" }} />
         </svg>
       </div>
@@ -305,12 +305,15 @@ export default function Landing() {
       </section>
 
       {/* privacy band */}
-      <section id="privacy" className="scroll-mt-16 bg-[#0e3d33] text-emerald-50">
+      {/* The one dark band on the page: warm near-black from the neutral ramp,
+          not the old brand green. Structure, not decoration — it separates
+          "what it does" above from "questions" below. */}
+      <section id="privacy" className="scroll-mt-16 bg-slate-900 text-slate-50">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-2 md:items-center">
           <Reveal>
             <div>
               <h2 className="font-display text-3xl font-extrabold md:text-4xl">Private by architecture, not by promise</h2>
-              <p className="mt-4 leading-relaxed text-emerald-100/80">
+              <p className="mt-4 leading-relaxed text-slate-300">
                 Everything is a file on your disk: one SQLite database per person, an API that only
                 answers localhost, and zero third-party calls. Households share one install with
                 scrypt-hashed passwords and per-request database isolation.
@@ -325,7 +328,7 @@ export default function Landing() {
                 "Backups are just file copies you control",
                 "Optional AI runs locally via Ollama — nothing leaves the machine",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-2.5 rounded-xl bg-emerald-50/10 px-4 py-3">
+                <li key={t} className="flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
                   <span className="text-brand-300">✓</span>{t}
                 </li>
               ))}

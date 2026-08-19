@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import type { CategoryDTO, RuleDTO, SettingsDTO, ImportDTO, AccountDTO, MerchantDTO } from "@shared/types";
 import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
@@ -49,7 +49,7 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
 
   return (
     <div className="max-w-4xl space-y-4">
-      <h1 className="text-xl font-bold">Settings</h1>
+      <h1 className="font-heading text-2xl font-extrabold tracking-tight">Settings</h1>
       {msg && <div className="rounded-lg border border-brand-300 bg-brand-50 p-3 text-sm text-brand-800 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-200">{msg}</div>}
       {error && <ErrorNote message={error} />}
 
@@ -184,6 +184,10 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
         <SecurityEditor onMessage={setMsg} />
       </Card>
 
+      <Card title="Your data — take it anywhere">
+        <PortableData onMessage={setMsg} onError={setError} />
+      </Card>
+
       <Card title="Database">
         <div className="flex flex-wrap gap-2">
           <button className="btn-primary" onClick={backup}>Backup database</button>
@@ -209,6 +213,106 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
           Everything lives in <code>database/ikid.db</code> on this machine. Backups are written to <code>database/backups/</code>.
         </p>
       </Card>
+    </div>
+  );
+}
+
+type ImportSummary = Record<string, number>;
+
+/**
+ * Lossless JSON export/import. The .db file is the fast path for "same app,
+ * same machine"; this is the escape hatch — plain readable JSON that references
+ * categories, merchants and accounts by name, so it survives being opened in a
+ * text editor, diffed, or imported into a different profile.
+ */
+function PortableData({ onMessage, onError }: {
+  onMessage: (m: string) => void;
+  onError: (m: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [summary, setSummary] = useState<ImportSummary | null>(null);
+
+  async function importJson(file: File, mode: "merge" | "replace") {
+    setBusy(true);
+    setSummary(null);
+    onError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const r = await api.upload<{ mode: string; summary: ImportSummary }>(
+        `/api/settings/import.json?mode=${mode}`,
+        form,
+      );
+      setSummary(r.summary);
+      onMessage(
+        `Imported ${r.summary.transactions} transaction(s)` +
+          (r.summary.duplicateTransactions
+            ? `, skipped ${r.summary.duplicateTransactions} already here`
+            : "") +
+          ". Reload to see everything.",
+      );
+    } catch (e: any) {
+      onError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function pick(mode: "merge" | "replace") {
+    return async (e: ChangeEvent<HTMLInputElement>) => {
+      const f = e.target.files?.[0];
+      e.target.value = ""; // let the same file be chosen twice
+      if (!f) return;
+      if (
+        mode === "replace" &&
+        !confirm(
+          "Replace will DELETE everything in this profile and load the file instead.\n\n" +
+            "Make a backup first if you're not sure. Continue?",
+        )
+      ) return;
+      await importJson(f, mode);
+    };
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <a className="btn-primary" href="/api/settings/export.json" download>
+          Export everything as JSON
+        </a>
+        <label className={`btn-ghost cursor-pointer ${busy ? "pointer-events-none opacity-50" : ""}`}>
+          {busy ? "Importing…" : "Import JSON (merge)"}
+          <input type="file" accept=".json,application/json" className="hidden" onChange={pick("merge")} />
+        </label>
+        <label className={`btn-ghost cursor-pointer text-rose-500 ${busy ? "pointer-events-none opacity-50" : ""}`}>
+          Import JSON (replace all)
+          <input type="file" accept=".json,application/json" className="hidden" onChange={pick("replace")} />
+        </label>
+      </div>
+
+      {summary && (
+        <table className="text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {Object.entries(summary)
+              .filter(([, n]) => n > 0)
+              .map(([k, n]) => (
+                <tr key={k}>
+                  <td className="td capitalize">{k.replace(/([A-Z])/g, " $1").toLowerCase()}</td>
+                  <td className="td text-right tabular-nums">{n}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      )}
+
+      <p className="text-xs text-slate-500">
+        Plain, readable JSON — every transaction, account, category, rule, budget, goal, asset,
+        import record, saved calculation and planner conversation. Relations are stored{" "}
+        <b>by name</b>, not by database ID, so the file opens in any text editor and imports cleanly
+        into another profile.
+        <b> Merge</b> adds what's missing and skips transactions you already have;
+        <b> replace</b> wipes this profile first. Your data is yours — this is the way out.
+      </p>
     </div>
   );
 }
@@ -303,7 +407,7 @@ function ImportRow({ im, accounts, onChanged, onMessage }: {
             </button>
           )}
         </div>
-        {suggested && <div className="mt-0.5 text-[10px] text-amber-600">matched from filename</div>}
+        {suggested && <div className="mt-0.5 text-[12px] text-amber-600">matched from filename</div>}
       </td>
       <td className="td text-slate-500 whitespace-nowrap">{new Date(im.importedAt).toLocaleString()}</td>
       <td className="td text-right">{im.transactionCount}</td>
@@ -601,7 +705,7 @@ function AccountsEditor({ accounts, onChanged }: { accounts: AccountDTO[]; onCha
 
 function CategoriesEditor({ categories, onChanged }: { categories: CategoryDTO[]; onChanged: () => void }) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#1cb474");
+  const [color, setColor] = useState("#1a7f5a");
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-1.5">

@@ -95,7 +95,7 @@ function CspDetailModal({ csp, onClose, onOpenCategory }: {
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {csp.buckets.map((b) => (
-          <section key={b.key} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+          <section key={b.key} className="rounded-none border border-slate-200 p-3 dark:border-slate-800">
             <div className="mb-1 flex items-center justify-between">
               <Badge color={b.color}>{b.label}</Badge>
               <span className="font-bold tabular-nums">{fmtMoney(b.total)}</span>
@@ -186,7 +186,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Dashboard</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
             <button
@@ -242,8 +242,8 @@ export default function Dashboard() {
               <AreaChart data={s.cashFlow}>
                 <defs>
                   <linearGradient id="cf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1cb474" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#1cb474" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -254,7 +254,7 @@ export default function Dashboard() {
                 />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
                 <Tooltip formatter={(v: number) => fmtSigned(v)} labelFormatter={(d) => fmtDate(String(d))} />
-                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke="#1cb474" fill="url(#cf)" />
+                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke="#1a7f5a" fill="url(#cf)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -351,8 +351,8 @@ export default function Dashboard() {
               <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
               <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
               <Legend />
-              <Bar dataKey="income" name="Income" fill="#1cb474" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

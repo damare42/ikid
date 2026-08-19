@@ -74,7 +74,7 @@ function Num({ label, value, onChange, hint }: {
     <div>
       <label className="label">{label}</label>
       <input type="number" step="any" className="input w-full" value={value} onChange={(e) => onChange(e.target.value)} />
-      {hint && <div className="mt-0.5 text-[10px] text-slate-400">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[12px] text-slate-400">{hint}</div>}
     </div>
   );
 }
@@ -86,7 +86,7 @@ function InfoTip({ children }: { children: React.ReactNode }) {
       <button
         type="button"
         aria-label="More info"
-        className="grid h-4 w-4 cursor-help place-items-center rounded-full bg-slate-200 text-[10px] font-bold leading-none text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+        className="grid h-4 w-4 cursor-help place-items-center rounded-full bg-slate-200 text-[12px] font-bold leading-none text-slate-600 dark:bg-slate-700 dark:text-slate-300"
       >
         i
       </button>
@@ -237,7 +237,7 @@ export default function Retirement() {
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Retirement Planner</h1>
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight">Retirement Planner</h1>
         <button
           className="btn-ghost text-sm disabled:opacity-40"
           disabled={!valid}
@@ -380,7 +380,7 @@ export default function Retirement() {
         <>
           {/* Verdict */}
           <div
-            className={`rounded-xl border p-4 text-sm ${
+            className={`rounded-none border p-4 text-sm ${
               result.success
                 ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
                 : "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200"
@@ -471,7 +471,7 @@ export default function Retirement() {
                 <ReferenceLine x={60} stroke="#64748b" strokeDasharray="5 4" label={{ value: "59½", fontSize: 10, fill: "#64748b" }} />
                 <ReferenceLine x={Number(rmdAge)} stroke="#a855f7" strokeDasharray="5 4" label={{ value: "RMD", fontSize: 10, fill: "#a855f7" }} />
                 <Area type="monotone" stackId="1" dataKey="trad" name="Traditional" stroke="#6366f1" fill="#6366f1" fillOpacity={0.5} />
-                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke="#1cb474" fill="#1cb474" fillOpacity={0.5} />
+                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke="#1a7f5a" fill="#1a7f5a" fillOpacity={0.5} />
                 <Area type="monotone" stackId="1" dataKey="brokerage" name="Brokerage" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
                 <Area type="monotone" stackId="1" dataKey="hsa" name="HSA" stroke="#f97316" fill="#f97316" fillOpacity={0.5} />
               </AreaChart>
@@ -488,9 +488,9 @@ export default function Retirement() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
                   <Legend />
-                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#f43f5e" />
+                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#a4123a" />
                   <Bar dataKey="penalty" name="10% penalty" stackId="t" fill="#7f1d1d" />
-                  <Bar dataKey="conversion" name="Roth conversion" fill="#1cb474" fillOpacity={0.35} />
+                  <Bar dataKey="conversion" name="Roth conversion" fill="#1a7f5a" fillOpacity={0.35} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

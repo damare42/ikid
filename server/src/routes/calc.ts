@@ -117,6 +117,68 @@ calcRouter.post("/coast", asyncHandler(async (req, res) => {
   res.json(coastFire(body));
 }));
 
+/** Multi-debt payoff: compare snowball vs avalanche. */
+calcRouter.post("/debt-plan", asyncHandler(async (req, res) => {
+  const body = parse(
+    z.object({
+      debts: z.array(
+        z.object({
+          name: z.string().min(1).max(80),
+          balance: z.number().min(0).max(1e9),
+          ratePct: z.number().min(0).max(50),
+          minPayment: z.number().min(0).max(1e6),
+        }),
+      ).min(1).max(30),
+      extraMonthly: z.number().min(0).max(1e6).default(0),
+    }),
+    req.body,
+  );
+  const { comparePayoff } = await import("../services/debtPayoff.js");
+  res.json(comparePayoff(body.debts, body.extraMonthly));
+}));
+
+/**
+ * Suggest debts from the user's own data: Net Worth liabilities first (they
+ * carry a rate and a monthly payment), then any credit/loan accounts with a
+ * negative balance.
+ */
+calcRouter.get("/debt-plan/prefill", asyncHandler(async (_req, res) => {
+  const { summary } = await import("../services/netWorthService.js");
+  const { accountRepo } = await import("../repositories/index.js");
+  const { prisma } = await import("../lib/prisma.js");
+
+  const debts: { name: string; balance: number; ratePct: number; minPayment: number; source: string }[] = [];
+
+  try {
+    const nw = await summary();
+    for (const a of nw.assets) {
+      if (!a.isLiability || a.value <= 0) continue;
+      debts.push({
+        name: a.name,
+        balance: a.value,
+        ratePct: a.ratePct ?? 0,
+        minPayment: a.monthlyPayment ?? 0,
+        source: "networth",
+      });
+    }
+  } catch { /* no assets yet */ }
+
+  try {
+    const accounts = await accountRepo.all();
+    const sums = await prisma.transaction.groupBy({ by: ["accountId"], _sum: { amount: true } });
+    const byId = new Map(sums.map((s) => [s.accountId, s._sum.amount ?? 0]));
+    for (const a of accounts) {
+      if (a.type !== "credit" && a.type !== "loan") continue;
+      const owed = Math.round(-(byId.get(a.id) ?? 0) * 100) / 100; // spend is negative
+      if (owed <= 0) continue;
+      if (debts.some((d) => d.name.toLowerCase() === a.name.toLowerCase())) continue;
+      debts.push({ name: a.name, balance: owed, ratePct: 0, minPayment: 0, source: "account" });
+    }
+  } catch { /* no accounts yet */ }
+
+  res.json({ debts });
+}));
+
 calcRouter.post("/payoff", asyncHandler(async (req, res) => {
   const body = parse(
     z.object({

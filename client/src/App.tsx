@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "./lib/api";
 import { setCurrency } from "./lib/format";
@@ -28,84 +28,142 @@ interface ProfilesInfo {
   profiles: { name: string; active: boolean; size: number }[];
 }
 
-function ProfileSwitcher({ auth }: { auth: AuthStatus | null }) {
+// Rail is grouped: Money / Plan / Insight. Settings + Admin live in the
+// avatar menu, not the rail (per the redesign).
+const NAV_GROUPS = [
+  {
+    key: "gMoney",
+    label: "Money",
+    items: [
+      { to: "/", label: "Dashboard", icon: "📊" },
+      { to: "/transactions", label: "Transactions", icon: "🧾" },
+      { to: "/accounts", label: "Accounts", icon: "🏦" },
+      { to: "/budgets", label: "Budgets", icon: "🎯" },
+      { to: "/goals", label: "Goals", icon: "🏁" },
+    ],
+  },
+  {
+    key: "gPlan",
+    label: "Plan",
+    items: [
+      { to: "/networth", label: "Net Worth", icon: "💎" },
+      { to: "/planner", label: "Planner", icon: "🧮" },
+      { to: "/calculators", label: "Calculators", icon: "📐" },
+      { to: "/retirement", label: "Retirement", icon: "🧭" },
+    ],
+  },
+  {
+    key: "gInsight",
+    label: "Insight",
+    items: [
+      { to: "/analytics", label: "Analytics", icon: "📈" },
+      { to: "/reports", label: "Reports", icon: "📄" },
+    ],
+  },
+];
+
+const ROUTE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(NAV_GROUPS.flatMap((g) => g.items.map((i) => [i.to, i.label]))),
+  "/settings": "Settings",
+  "/admin": "Admin",
+};
+
+/** 34px avatar → dropdown: profile switcher (open mode), Settings, Admin, Sign out. */
+function AvatarMenu({ auth }: { auth: AuthStatus | null }) {
+  const [open, setOpen] = useState(false);
   const [info, setInfo] = useState<ProfilesInfo | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     api.get<ProfilesInfo>("/api/profiles").then(setInfo).catch(() => {});
   }, []);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
 
-  // Accounts mode: no free switching — just show who's signed in.
-  // (The Sign out button lives in the sidebar footer, below the nav.)
-  if (auth?.enabled) {
-    return (
-      <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
-        <span className="text-sm font-medium">👤 {auth.current}</span>
-        {auth.isAdmin && (
-          <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-            admin
-          </span>
-        )}
-      </div>
-    );
+  const who = (auth?.enabled ? auth.current : info?.active) ?? "?";
+  const initial = who.charAt(0).toUpperCase();
+
+  async function activate(name: string) {
+    try {
+      await api.post("/api/profiles/activate", { name });
+      window.location.reload();
+    } catch (e: any) { alert(e.message); }
   }
-
-  async function onChange(value: string) {
-    if (value === "__new__") {
-      const name = prompt("New profile name (e.g. partner, business):");
-      if (!name?.trim()) return;
-      try {
-        const created = await api.post<{ name: string }>("/api/profiles", { name: name.trim() });
-        await api.post("/api/profiles/activate", { name: created.name });
-        location.reload();
-      } catch (e: any) {
-        alert(e.message);
-      }
-      return;
-    }
-    if (info && value !== info.active) {
-      try {
-        await api.post("/api/profiles/activate", { name: value });
-        location.reload();
-      } catch (e: any) {
-        alert(e.message);
-      }
-    }
+  async function newProfile() {
+    const name = prompt("New profile name (e.g. partner, business):");
+    if (!name?.trim()) return;
+    try {
+      const created = await api.post<{ name: string }>("/api/profiles", { name: name.trim() });
+      await activate(created.name);
+    } catch (e: any) { alert(e.message); }
   }
+  async function signOut() {
+    await api.post("/api/auth/logout").catch(() => {});
+    // Land on the public welcome page rather than the login form: signing out
+    // is usually "I'm done", not "let me log in as someone else".
+    // `replace` rather than setting the hash, so Back doesn't walk into the
+    // page they just left; `reload` is what actually clears the signed-in app
+    // state from memory, since a hash-only change never reloads.
+    const { pathname, search } = window.location;
+    window.location.replace(`${pathname}${search}#/welcome`);
+    window.location.reload();
+  }
+  function go(to: string) { setOpen(false); navigate(to); }
 
-  if (!info) return null;
+  const itemCls = "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-100 hover:text-brand-700 dark:hover:bg-slate-800";
+
   return (
-    <div className="mb-4 px-1">
-      <label className="label px-1">Profile</label>
-      <select
-        className="input w-full"
-        value={info.active}
-        onChange={(e) => onChange(e.target.value)}
-        title="Each profile is a fully separate database"
+    <div className="relative" ref={ref}>
+      <button
+        className="grid h-[34px] w-[34px] place-items-center rounded-chrome bg-brand-600 text-sm font-bold text-white"
+        onClick={() => setOpen((o) => !o)}
+        title={who}
+        aria-label="Account menu"
       >
-        {info.profiles.map((p) => (
-          <option key={p.name} value={p.name}>👤 {p.name}</option>
-        ))}
-        <option value="__new__">＋ New profile…</option>
-      </select>
+        {initial}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-11 z-30 w-[212px] border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="truncate text-sm font-semibold">{who}</span>
+            {auth?.isAdmin && (
+              <span className="rounded-chrome bg-brand-100 px-1.5 py-0.5 text-[12px] font-semibold text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">admin</span>
+            )}
+          </div>
+
+          {!auth?.enabled && info && (
+            <div className="border-t border-slate-100 py-1 dark:border-slate-800">
+              <div className="px-3 py-1 text-[12px] font-semibold uppercase tracking-widest text-slate-400">Profiles</div>
+              {info.profiles.map((p) => (
+                <button key={p.name} className={itemCls} onClick={() => (p.name === info.active ? setOpen(false) : activate(p.name))}>
+                  <span>👤</span>
+                  <span className="flex-1 truncate">{p.name}</span>
+                  {p.name === info.active && <span className="text-brand-600">✓</span>}
+                </button>
+              ))}
+              <button className={itemCls} onClick={newProfile}><span>＋</span> New profile</button>
+            </div>
+          )}
+
+          <div className="border-t border-slate-100 py-1 dark:border-slate-800">
+            <button className={itemCls} onClick={() => go("/settings")}><span>⚙️</span> Settings</button>
+            {auth?.isAdmin && <button className={itemCls} onClick={() => go("/admin")}><span>🛡️</span> Admin</button>}
+            <a className={itemCls} href="#/welcome" onClick={() => setOpen(false)}><span>ℹ️</span> About Ikid</a>
+            {auth?.enabled && (
+              <button className={`${itemCls} hover:!text-brand-700`} onClick={signOut}><span>🚪</span> Sign out</button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-const NAV = [
-  { to: "/", label: "Dashboard", icon: "📊" },
-  { to: "/transactions", label: "Transactions", icon: "🧾" },
-  { to: "/accounts", label: "Accounts", icon: "🏦" },
-  { to: "/budgets", label: "Budgets", icon: "🎯" },
-  { to: "/goals", label: "Goals", icon: "🏁" },
-  { to: "/networth", label: "Net Worth", icon: "💎" },
-  { to: "/planner", label: "Planner", icon: "🧮" },
-  { to: "/calculators", label: "Calculators", icon: "📐" },
-  { to: "/retirement", label: "Retirement", icon: "🧭" },
-  { to: "/analytics", label: "Analytics", icon: "📈" },
-  { to: "/reports", label: "Reports", icon: "📄" },
-  { to: "/settings", label: "Settings", icon: "⚙️" },
-];
 
 function applyTheme(theme: string) {
   const dark =
@@ -122,7 +180,19 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const nav = auth?.isAdmin ? [...NAV, { to: "/admin", label: "Admin", icon: "🛡️" }] : NAV;
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("ikid-nav-groups") ?? "") ?? {}; }
+    catch { return {}; }
+  });
+  const isGroupOpen = (k: string) => openGroups[k] !== false; // default open
+  function toggleGroup(k: string) {
+    setOpenGroups((prev) => {
+      const next = { ...prev, [k]: prev[k] === false ? true : false };
+      localStorage.setItem("ikid-nav-groups", JSON.stringify(next));
+      return next;
+    });
+  }
+  const sectionLabel = ROUTE_LABELS[location.pathname] ?? "";
 
   // Page-view telemetry (feature key only, no data).
   useEffect(() => {
@@ -160,53 +230,57 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="no-print sticky top-0 flex h-screen w-52 shrink-0 flex-col border-r border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-6 px-2 pt-2">
-          <IkidLogo height={34} />
-          <div className="mt-1 text-[10px] uppercase tracking-widest text-slate-400">local finance</div>
+      {/* Rail */}
+      <aside className="no-print sticky top-0 hidden h-screen w-[222px] shrink-0 flex-col border-r border-slate-200 bg-white px-[22px] py-6 md:flex dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-6">
+          <IkidLogo height={30} />
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
         </div>
-        <ProfileSwitcher auth={auth} />
-        <nav className="flex flex-col gap-1">
-          {nav.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.to === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-brand-600 text-white"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`
-              }
-            >
-              <span>{n.icon}</span> {n.label}
-            </NavLink>
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
+          {NAV_GROUPS.map((g) => (
+            <div key={g.key}>
+              <button
+                className="flex w-full items-center justify-between px-1 pb-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                onClick={() => toggleGroup(g.key)}
+              >
+                {g.label}
+                <span className={`text-[11px] transition-transform ${isGroupOpen(g.key) ? "" : "-rotate-90"}`}>▾</span>
+              </button>
+              {isGroupOpen(g.key) && (
+                <div className="flex flex-col">
+                  {g.items.map((n) => (
+                    <NavLink
+                      key={n.to}
+                      to={n.to}
+                      end={n.to === "/"}
+                      // Active state is NOT signalled by colour alone (WCAG 1.4.1):
+                      // accent text + a 2px left rule + heavier weight.
+                      className={({ isActive }) =>
+                        `flex items-center gap-2.5 border-l-2 py-[7px] pl-2 text-[13px] transition-colors ${
+                          isActive
+                            ? "border-brand-600 font-extrabold text-brand-700 dark:text-brand-400"
+                            : "border-transparent font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                        }`
+                      }
+                    >
+                      <span className="w-4 text-center">{n.icon}</span> {n.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
-        {auth?.enabled && (
-          <button
-            className="mt-3 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:text-slate-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-            onClick={async () => {
-              await api.post("/api/auth/logout").catch(() => {});
-              window.location.reload();
-            }}
-          >
-            <span>🚪</span> Sign out
-          </button>
-        )}
-        <div className="mt-auto px-2 pb-2 text-[10px] text-slate-400">
-          <a href="#/welcome" className="hover:text-brand-600">About Ikid →</a>
-          <div className="mt-1">100% local · SQLite · no cloud</div>
+        <div className="mt-4 border-t border-slate-100 pt-3 text-[12px] text-slate-400 dark:border-slate-800">
+          100% local · SQLite · no cloud
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-10 flex items-center gap-3 border-b border-slate-200 bg-white/80 px-5 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
-          <button className="btn-primary" onClick={() => setImportOpen(true)}>⬆ Import</button>
-          <form onSubmit={submitSearch} className="max-w-md flex-1">
+        <header className="no-print sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/85 px-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
+          <form onSubmit={submitSearch} className="mx-auto hidden max-w-sm flex-1 sm:block">
             <input
               className="input w-full"
               placeholder="Search transactions…"
@@ -214,12 +288,16 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </form>
-          <button className="btn-ghost ml-auto" onClick={toggleTheme} title="Toggle dark mode">
-            {document.documentElement.classList.contains("dark") ? "☀️" : "🌙"}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button className="btn-primary" onClick={() => setImportOpen(true)}>↑ Import</button>
+            <button className="btn-ghost !px-2" onClick={toggleTheme} title="Toggle dark mode">
+              {document.documentElement.classList.contains("dark") ? "☀️" : "🌙"}
+            </button>
+            <AvatarMenu auth={auth} />
+          </div>
         </header>
 
-        <main className="flex-1 p-5">
+        <main className="mx-auto w-full max-w-[1200px] flex-1 px-5 py-6 md:px-8">
           <Routes>
             <Route path="/" element={<Dashboard key={refreshKey} />} />
             <Route path="/transactions" element={<Transactions key={refreshKey} />} />

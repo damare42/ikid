@@ -1,6 +1,118 @@
 # Changelog
 
+## 0.6.0 — redesign & accessibility
+
+Visual overhaul to the "Modernist" design system, plus a measured accessibility
+pass. No feature was removed — every screen keeps its full functionality.
+
+**Redesign**
+
+- New design language: brick-red accent, warm neutral palette, Archivo
+  typography, square structure with 9px only on interactive chrome
+- Sidebar rail rebuilt at 222px with three collapsible groups — **Money**
+  (Dashboard, Transactions, Accounts, Budgets, Goals), **Plan** (Net Worth,
+  Planner, Calculators, Retirement), **Insight** (Analytics, Reports); open
+  state persists
+- Settings, Admin, Sign out, and profile switching moved into a header avatar
+  menu; 64px header with a section kicker and centred search
+- Transactions gained a header kicker, a pulsing table loading skeleton
+  (`aria-busy`), and a filter-aware empty state
+- Charts recoloured to semantic tokens; logo recoloured to the accent
+
+**Accessibility (measured, not assumed)**
+
+- Fixed four palettes whose text failed WCAG AA: stock `emerald-600` (3.77:1),
+  `rose-500` (3.67:1), `amber-500` (2.15:1) and the app's own `slate-500`
+  (2.89:1) — all now clear 4.5:1. For reference the previous brand green was
+  2.68:1 on white
+- "Money out" is no longer the brand colour: negatives use a distinct crimson,
+  so a primary button and a loss never read the same
+- Active nav is no longer signalled by colour alone (accent text **plus** a 2px
+  left rule and heavier weight), per WCAG 1.4.1
+- Small-caps kicker labels raised from 10px to 12px
+- **25 contrast regression tests** pin every text token in light and dark, so a
+  future palette tweak can't silently reintroduce unreadable text
+
+**Robustness**
+
+- Setup failures now return actionable 503s instead of a bare
+  "Internal server error": ungenerated database client, an engine binary that
+  won't load on this machine, and an unreachable data folder each explain the
+  fix. Unexpected errors still return a generic 500 and never leak internals
+- Covered by error-handler tests, including a check that error payloads can't
+  leak stack traces or credentials
+
+**Security**
+
+- Password hashing strengthened from Node's scrypt defaults (N=16384) to
+  **N=65536, r=8, p=2** — 4× the memory hardness, and slightly *faster* thanks
+  to `p=2`. Cost parameters are now stored with each hash, so existing
+  passwords keep working and are transparently upgraded at the next login.
+  Nobody is locked out and nobody needs to reset anything
+- `SECURITY.md` with a private reporting path, an explicit threat model, and a
+  table mapping each stated guarantee to the test that enforces it
+- Dependabot, CodeQL scanning, least-privilege CI tokens, plus CI gates that
+  fail on high-severity production advisories or any committed user data
+- Patched 6 dependency advisories (13 → 7; every remaining one is dev tooling)
+- Audited the rest of the policy's claims against the code: account isolation,
+  analytics containing no financial data, no path traversal from upload
+  filenames, and no XSS sinks — all verified, now documented
+
+Test suite: **155 passing** (was 116).
+
 ## Unreleased
+
+- **Marketing site rebuilt for launch** (`site/`, deployed to GitHub Pages).
+  It now makes **zero external requests** — the previous version pulled Archivo
+  from Google's font CDN, which handed every visitor's IP to a third party on a
+  page whose entire argument is "your data goes nowhere". No fonts, no scripts,
+  no trackers; the system font stack does the job. Added CSS illustrations of
+  the real import, dashboard, budget and planner screens so the page shows the
+  product instead of only describing it; a self-hosted social preview image
+  (`og.svg` → `og.png`, regenerate with `site/build-og.sh`); `robots.txt`,
+  `sitemap.xml`, `404.html` and `.nojekyll`. Contrast measured on all 30
+  foreground/background pairs — light-mode green and amber were darkened
+  because they fell to 3.85–4.45:1 against the recessed rows and tinted pills.
+  The download CTA now leads with clone/Docker and says plainly that installers
+  aren't published, rather than linking to an empty releases page
+- Honest-limitations section extended: not finished, not multi-currency, not
+  audited. Stale README roadmap replaced — it still listed net worth,
+  calculators, merchant normalization and retirement as future work
+- New `docs/LAUNCH-RUNBOOK.md` with the ordered steps to go live
+- **Sign out** now lands on the public welcome page instead of the sign-in form
+  for the profile you just left
+- **Landing privacy band** was still the pre-redesign brand green
+  (`#0e3d33`) — the only hardcoded hex and only green surface on the page. Now
+  the warm near-black already used as the dark panel token
+- **Lossless JSON export** (Settings → *Your data — take it anywhere*): one
+  human-readable `.json` file containing everything in the profile — accounts,
+  categories, merchants, tags, import history, every transaction, rules,
+  budgets, goals, assets with their full value history, settings, saved
+  calculations and planner conversations. Relations are stored **by name**, not
+  by database ID, so the file is diffable in a text editor and imports cleanly
+  into a different profile or a rebuilt database. Import comes in two modes:
+  **merge** (adds what's missing, skips transactions whose dedupe hash you
+  already have — so re-importing is a no-op) and **replace** (wipes the profile
+  first, behind a confirmation). Dedupe hashes and each transaction's link to
+  its import record survive the round trip, so duplicate detection and "Undo
+  import" still work afterwards. The file is treated as untrusted input:
+  validated with zod before a single row is written, and rejected with a
+  readable message — including a specific one for exports made by a newer
+  version. `GET /api/settings/export.json`, `POST /api/settings/import.json`.
+  20 unit tests cover round-trip fidelity, null preservation, and junk input
+- **Debt payoff planner** (Calculators → 🏔️ Debt payoff): compares **snowball**
+  (smallest balance first) against **avalanche** (highest rate first) across all
+  your debts at once. Shows the debt-free date, total interest, the balance
+  curve, and — crucially — the **focus order**: which debt to attack with spare
+  money, as distinct from the order debts happen to clear. Prefills from your
+  Net Worth liabilities and credit/loan accounts. Honest about the trade-off:
+  when the interest difference is small it says so, because the plan you'll
+  actually finish beats the mathematically optimal one you abandon.
+  Deterministic and unit-tested (21 tests) per PRINCIPLES rule 2
+- Money helpers (`services/money.ts`) for exact cent-based arithmetic, so
+  totals no longer accumulate floating-point drift — found by measuring the
+  real 1,211-transaction database against CashFlux's "money is never a float"
+  principle. See `docs/COMPETITIVE-NOTES.md`
 
 - Import History → assign accounts from the filename: each row now has an Account column that auto-suggests the account matching the filename (e.g. "chase-oct.csv" → Chase, "capital-one…" → Capital One), with an Assign button that links all that import's transactions in one click. A header "✨ Auto-assign by filename" button does every unmatched import at once (`POST /api/imports/:id/assign-account`). Account balances update immediately
 

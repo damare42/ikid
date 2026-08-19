@@ -17,13 +17,15 @@ npm start       # → http://localhost:3001
 only transactions), then serves everything from a single local process.
 Open **http://localhost:3001**, sign up, and drop in a bank statement.
 
-### Desktop app (no terminal needed)
+### Desktop app (not published yet)
 
-Download the installer for your OS from the [Releases](https://github.com/damare42/ikid/releases)
-page — `.dmg` (macOS), `.exe` (Windows), or `.AppImage` (Linux). Double-click,
-sign up, import a statement. Builds are unsigned for now: see
-[docs/DESKTOP.md](docs/DESKTOP.md) for the one-time "Open Anyway" step and
-how the app is put together.
+Packaging for `.dmg` (macOS), `.exe` (Windows) and `.AppImage` (Linux) is built
+and working, but the builds are **unsigned**, so nothing is on the
+[Releases](https://github.com/damare42/ikid/releases) page yet — an unsigned
+installer for a finance app is a bad first impression, and telling you to click
+past your OS's warning is worse. Until signing is sorted, the quick start above
+is the supported way in. See [docs/DESKTOP.md](docs/DESKTOP.md) for how the
+desktop shell works and how to build it yourself.
 
 ### Docker (self-hosting / home server)
 
@@ -55,7 +57,7 @@ to wipe everything and start fresh.
 ## Features
 
 - **Dashboard** — monthly income, spending, net savings, savings rate, cash flow, largest categories, budget status, recent transactions, and a financial health score.
-- **Import** — drag-and-drop CSV or PDF statements from any bank. Columns (date, description, amount, debit/credit, balance, reference) are auto-detected; a review screen lets you correct anything before committing. Duplicates are detected via a date+amount+description+reference hash and skipped automatically. Imports can be undone from Settings.
+- **Import** — drag-and-drop CSV or PDF statements from any bank. Columns (date, description, amount, debit/credit, balance, reference) are auto-detected; a review screen lets you correct anything before committing. Duplicates are detected via a date + amount + description + merchant hash (per account) and skipped automatically — reference numbers are deliberately excluded, because banks fill them inconsistently and that caused both missed and false duplicates. A row flagged as a duplicate can still be kept if the match is wrong. Imports can be undone from Settings.
 - **Auto-categorization** — keyword rules (longest/most specific match wins) seeded with real merchant patterns. Every time you categorize something — editing a transaction or correcting a category in the import review — Ikid saves a *learned* rule and retroactively fixes other uncategorized transactions from that merchant, so it gets smarter with use. Rules are fully editable in Settings.
 - **Transactions** — search, filter by category/merchant/account/date range/amount range, sort, paginate; edit category, merchant, notes, and tags; mark transfers. Add income or expenses manually (cash, freelance payments, anything not on a statement) with the **+ Add transaction** button.
 - **Accounts** — a per-card/account status page showing the latest transaction already imported, a freshness badge, transaction count, net on file, and the last import file, so you always know where each account left off and what to upload next. The import dialog echoes the same "upload after this date" hint for whichever account you pick.
@@ -71,6 +73,7 @@ to wipe everything and start fresh.
 - **Smart Insights** — month-over-month category and merchant movements, possibly-unused subscriptions, recurring-spend totals, savings opportunities, yearly estimates.
 - **Reports** — CSV export of transactions, plus a print-optimized report page (charts, tables, budget + goal status) — use *Save as PDF* in the print dialog.
 - **Settings** — currency, date format, dark mode, accounts, categories, rules, import history/undo, and one-click database backup/restore/export.
+- **No lock-in** — one-click **lossless JSON export** of everything in a profile, with relations stored by name rather than database ID, so the file is readable in a text editor and imports cleanly into another profile (merge or replace). See [docs/EXPORT-FORMAT.md](docs/EXPORT-FORMAT.md).
 
 ## Architecture
 
@@ -138,11 +141,19 @@ MIT — see [LICENSE](LICENSE). Contributions welcome: see [CONTRIBUTING.md](CON
 
 ## Roadmap
 
+Shipped since the first release: merchant normalization with a merge UI, net
+worth with dated snapshots, loan/compound/FIRE/debt-payoff calculators, the
+retirement planner, investment tracking with manual prices, and lossless JSON
+export. What's still open:
+
 - Import profiles: remember per-bank column mappings after the first import
-- Merchant normalization pass ("AMZN Mktp" → "Amazon") with merge UI
-- Net worth dashboard: asset/liability accounts with balance history
-- Loan payoff + mortgage calculators; retirement projection
-- Optional encrypted backups (SQLCipher or age-encrypted copies)
+- Reconciliation: a `cleared` flag and a "match my statement balance" screen
+- Bills & renewals: project detected recurring payments forward 30 days
 - Rules engine v2: amount ranges, account scoping, regex matches
-- Investment tracking with manual price updates
+- Multi-currency: conversion between currencies inside one profile
+- Optional encrypted backups (SQLCipher or age-encrypted copies)
 - OCR fallback for scanned PDF statements
+- Signed desktop builds, so the installers can go on the releases page
+
+Anything here is triaged against [docs/PRINCIPLES.md](docs/PRINCIPLES.md) first —
+some requests are declined on purpose, and that list is written down too.

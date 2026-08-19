@@ -142,7 +142,7 @@ export default function Planner() {
     <div className="mx-auto flex h-[calc(100vh-7.5rem)] max-w-3xl flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">Planner</h1>
+          <h1 className="font-heading text-2xl font-extrabold tracking-tight">Planner</h1>
           <select
             className="input !py-1 text-xs"
             value={currentId ?? ""}
@@ -235,7 +235,7 @@ export default function Planner() {
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+                  className={`max-w-[85%] rounded-[14px] px-4 py-2.5 text-sm ${
                     m.role === "user"
                       ? "bg-brand-600 text-white"
                       : "bg-slate-100 dark:bg-slate-800"
@@ -244,7 +244,7 @@ export default function Planner() {
                   {m.title && <div className="mb-1 font-semibold">{m.title}</div>}
                   <div className="whitespace-pre-wrap">{m.content}</div>
                   {m.chart && m.chart.length > 0 && (
-                    <div className="mt-3 rounded-xl bg-white p-2 dark:bg-slate-900">
+                    <div className="mt-3 rounded-none bg-white p-2 dark:bg-slate-900">
                       <ResponsiveContainer width="100%" height={180}>
                         <LineChart data={m.chart}>
                           <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -253,14 +253,14 @@ export default function Planner() {
                           <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(l) => fmtMonth(String(l))} />
                           <Legend />
                           <Line type="monotone" dataKey="baseline" name="Keep as-is" stroke="#94a3b8" strokeDasharray="4 4" dot={false} />
-                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1cb474" strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1a7f5a" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
-                      <div className="px-1 text-[10px] text-slate-400">Projected savings balance, next 24 months</div>
+                      <div className="px-1 text-[12px] text-slate-400">Projected savings balance, next 24 months</div>
                     </div>
                   )}
                   {m.source && m.role === "assistant" && (
-                    <div className="mt-1.5 text-[10px] opacity-50">
+                    <div className="mt-1.5 text-[12px] opacity-50">
                       {m.source === "engine" ? "exact math · scenario engine"
                         : m.source === "engine+ollama" ? "exact math · narrated by local AI"
                         : m.source === "ollama" ? "local AI (verify important numbers)"
@@ -272,7 +272,7 @@ export default function Planner() {
             ))}
             {busy && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400 dark:bg-slate-800">
+                <div className="rounded-[14px] bg-slate-100 px-4 py-2.5 text-sm text-slate-400 dark:bg-slate-800">
                   Crunching your numbers…
                 </div>
               </div>
