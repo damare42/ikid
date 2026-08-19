@@ -9,7 +9,7 @@ import { logger } from "../lib/logger.js";
 import { monthlySeries, categoryBreakdown } from "./analyticsService.js";
 import {
   buyHouse, buyCar, bigEvent, stopWork, incomeChange, expenseChange, emergencyFund, investGrowth,
-  parseIntent, parseStatsIntent, parseWindowMonths, type Profile, type ScenarioResult,
+  parseIntent, parseStatsIntent, type Profile, type ScenarioResult,
 } from "./scenarios.js";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";

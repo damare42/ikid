@@ -17,7 +17,7 @@
     "build": "npm run generate --workspace server && npm run build --workspace server && npm run build --workspace client",
     "start": "npm run db:setup && npm run start --workspace server",
     "test": "npm test --workspace server",
-    "lint": "eslint server/src client/src --ext .ts,.tsx",
+    "lint": "eslint server/src client/src --ext .ts,.tsx --max-warnings 0",
     "format": "prettier --write \"{server,client,shared}/**/*.{ts,tsx,css,json}\""
   },
   "devDependencies": {
