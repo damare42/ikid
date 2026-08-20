@@ -10,9 +10,15 @@ here runs on **your** Mac — no tokens are ever pasted into a chat.
 | 0. Verify locally | ✅ 207 tests, both typechecks, client build, lint — all clean |
 | 1. Merge `redesign` → `main` | ✅ merged as `00dd874` and pushed |
 | 2. Enable GitHub Pages | ✅ **live at https://damare42.github.io/ikid/** (verified: page, `robots.txt`, non-HTML assets all serving) |
-| 3. Fill in the repo's About box | ⬜ **next** — run `scripts/set-repo-metadata.sh` |
-| 4. Security settings | ⬜ `docs/REPO-SECURITY.md` |
+| 3. Fill in the repo's About box | ✅ description, website (via the Pages checkbox), 14 topics; Releases panel hidden |
+| 4. Security settings | ⬜ **next** — and there's more here than expected, see below |
 | 5. Announce | ⬜ your call, whenever |
+
+**The red ✗ on the merge commit is stale, not a real failure.** Deploy site #1
+ran on `00dd874` before Pages was switched on and failed in 8s; run #2, started
+manually, succeeded in 23s and is what's live. Every other check on that commit
+is green — CodeQL, audit, and tests on macOS, Ubuntu and Windows. The ✗ clears
+itself on the next push that touches `site/**`.
 
 Other verified facts:
 
@@ -84,7 +90,7 @@ Then check the two things that only work once it's live:
 - Paste the site URL into Slack or iMessage — you should see the preview card,
   not a bare link
 
-## 3. Fill in the repo's front door ← you are here
+## 3. Fill in the repo's front door ✅ done
 
 A stranger landing on the repo currently reads **"No description, website, or
 topics provided."** Topics matter most: they're how people *find* a repo, and
@@ -114,18 +120,43 @@ Either way, finish with the one thing `gh` can't do: **untick "Releases"** in
 that same panel. An empty Releases section reads as a broken promise until you
 actually publish one.
 
-## 4. Security settings
+## 4. Security settings ← you are here
 
-Work through `docs/REPO-SECURITY.md` — it's a checklist, not prose. The three
-that matter most on day one, because the repo is *already public*:
+Observed state of https://github.com/damare42/ikid/security:
 
-- **Secret scanning + push protection** (Settings → Code security). Push
-  protection blocks a credential *before* it lands, which is the only fix that
-  actually works.
+| | |
+| --- | --- |
+| Security policy | ✅ enabled (`SECURITY.md`) |
+| Secret scanning alerts | ✅ enabled |
+| Code scanning (CodeQL) | ✅ enabled — **253 open alerts** |
+| Dependabot **alerts** | ❌ **disabled** |
+| Private vulnerability reporting | ❌ **disabled** |
+| Open PRs | 10 (Dependabot *version* updates) |
+
+Two of these are one click each, and both matter more than they look:
+
+- **Enable Dependabot alerts.** This is the odd one. `.github/dependabot.yml`
+  is already opening version-bump PRs — that's the 10 in the Pull requests tab
+  — but the half that tells you *"this dependency has a known CVE"* is switched
+  off. You're getting the noise without the signal. Enabling it also lets
+  Dependabot prioritise security fixes over routine bumps.
+- **Enable private vulnerability reporting.** Without it, someone who finds a
+  real flaw in a *personal finance app* has nowhere to tell you except a public
+  issue — which discloses it to everyone at the same moment it reaches you.
+
+Then, less urgent but worth doing:
+
 - **Branch protection on `main`** — require a PR and require the `test` and
-  `audit` checks. Do this *after* step 1, or the merge gets blocked.
-- **Private vulnerability reporting**, so a finder has somewhere to go that
-  isn't a public issue.
+  `audit` checks. Deliberately *not* `Deploy site`: it only runs on `site/**`
+  changes, so requiring it would block every code-only PR forever.
+- **Triage the 253 code-scanning alerts.** Don't read this number as "253
+  vulnerabilities" — CodeQL on a TypeScript repo flags a lot of low-severity
+  and stylistic patterns, and some will be in generated or vendored code.
+  Sort by severity and look at High/Critical first; that set is usually tiny
+  and is what actually matters before you announce. Worth a dedicated session.
+
+The rest of `docs/REPO-SECURITY.md` still applies — 2FA, recovery codes,
+Actions permissions, signed commits.
 
 ## 5. Only when you're ready for people to arrive
 
