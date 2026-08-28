@@ -131,7 +131,7 @@ Observed state of https://github.com/damare42/ikid/security:
 | Code scanning (CodeQL) | ✅ enabled — **253 open alerts** |
 | Dependabot **alerts** | ❌ **disabled** |
 | Private vulnerability reporting | ❌ **disabled** |
-| Open PRs | 10 (Dependabot *version* updates) |
+| Open PRs | 10 (Dependabot *version* updates) — **all 10 assessed, see below** |
 
 Two of these are one click each, and both matter more than they look:
 
@@ -174,6 +174,51 @@ Then, less urgent but worth doing:
 The rest of `docs/REPO-SECURITY.md` still applies — 2FA, recovery codes,
 Actions permissions, signed commits.
 
+### The 10 Dependabot PRs, actually tested
+
+Each was applied to a scratch copy and put through the full suite, both
+typechecks, the client build and `npm audit`. They are not equivalent.
+
+**Already taken (verified, in this repo now).** `react-router-dom` 6 → **7.18.3**
+plus the in-range updates `npm update` picks up (papaparse 5.7.0, eslint 9.39.5,
+prettier 3.9.6, tsx 4.23.12, autoprefixer 10.5.4, typescript-eslint 8.68.0).
+React Router 7 needed **no code changes** — HashRouter, Routes, Route, NavLink,
+useNavigate and useLocation are all unchanged — and it takes
+`npm audit --omit=dev` from *2 moderate* to **0**. That advisory
+(GHSA-337j-9hxr-rhxg) is an SSR-hydration bug and this app is a client-side
+SPA, so it was never reachable here; it's fixed anyway because a standing
+audit finding trains you to ignore audit findings. Note Dependabot's own PR
+would **not** have fixed it: it proposed 6.30.6, which is still in the
+affected range.
+
+**Close these — the bots proposed them, but they're not merges:**
+
+- **`@prisma/client` 5.22 → 7.9** is a migration, not an upgrade. Prisma 7
+  removed `url` from the schema's `datasource` block (it now lives in
+  `prisma.config.ts`) and dropped the `datasources` constructor option in
+  favour of driver adapters. That constructor option is exactly how
+  `lib/prisma.ts` builds a client per profile at runtime — it's the mechanism
+  that keeps one person's data out of another's. Verified by running it: the
+  CLI refuses the schema outright with P1012. Worth doing deliberately, with
+  the per-profile isolation tests in front of you. Not from a bot PR.
+- **`recharts` 2.15 → 3.10** produces **23 typecheck errors**, every one the
+  same cause: v3 widened the `Tooltip` formatter's value to
+  `ValueType | undefined`, so `formatter={(v: number) => …}` no longer fits.
+  Mechanical, but it touches 9 page files, so it deserves its own commit.
+  (The vite build passes regardless — vite doesn't typecheck — so *this would
+  have looked fine locally and failed in CI*.)
+- **`vitest` 2.1 → 4.1** — the suite passes on it, all 214. The blocker is
+  npm: 10.9.8 crashes resolving vitest 4's peer set with
+  `Cannot read properties of null (reading 'edgesOut')`, inside npm's own
+  arborist. npm 11 installs it fine. So this one is gated on upgrading npm
+  first, not on any code change.
+
+**The five GitHub Actions bumps are fine to take**, but take the three Pages
+ones *together* — `configure-pages` 5 → 6, `deploy-pages` 4 → 5,
+`upload-pages-artifact` 3 → 5 — since they cooperate on one deploy, and watch
+the run afterwards. `setup-node` 5 → 7 is CI-only; `action-gh-release` 2 → 3
+only matters once you publish a release.
+
 ## 5. Only when you're ready for people to arrive
 
 The site and repo can be live and quietly correct for as long as you like.
@@ -186,7 +231,9 @@ Before you post anywhere:
 - [ ] Someone who isn't you follows the quick start on a clean machine and
       gets to a dashboard. This is the single most valuable test on the list;
       every project's install instructions work on the author's laptop.
-- [ ] `npm audit --omit=dev` is clean
+- [x] `npm audit --omit=dev` is clean — it wasn't (2 moderate, via
+      react-router-dom); fixed by taking React Router 7. Re-check after any
+      dependency change
 - [ ] Decide what you want back. "Try it and tell me what broke" gets more
       useful replies than "check out my app".
 

@@ -62,6 +62,17 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **React Router 6 → 7, which clears the last production advisory.**
+  `npm audit --omit=dev` was reporting 2 moderate vulnerabilities
+  (GHSA-337j-9hxr-rhxg, arbitrary constructor injection in React Router's SSR
+  hydration) and now reports none. The bug was never reachable here — ikid is
+  a client-side SPA on HashRouter and does no SSR — but a standing audit
+  finding teaches you to skim past audit findings, which is the actual danger.
+  No code changes were needed: every router API this app uses is unchanged.
+  Worth noting Dependabot's own PR would *not* have fixed this; it proposed
+  6.30.6, still inside the affected range
+- Routine in-range dependency updates: papaparse 5.7.0, eslint 9.39.5,
+  prettier 3.9.6, tsx 4.23.12, autoprefixer 10.5.4, typescript-eslint 8.68.0
 - **Security: profile names can no longer be treated as paths.** A profile name
   becomes a filename on disk, which makes it the one piece of user input in the
   app that can turn into a path. `createProfile` and `renameProfile` sanitised
