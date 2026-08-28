@@ -4,8 +4,11 @@ type Level = "debug" | "info" | "warn" | "error";
 function log(level: Level, msg: string, meta?: Record<string, unknown>) {
   const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${msg}`;
   const out = level === "error" ? console.error : level === "warn" ? console.warn : console.log;
-  if (meta) out(line, JSON.stringify(meta));
-  else out(line);
+  // Always a single argument. console.log(a, b) treats `a` as a format string,
+  // so a "%s" anywhere in `msg` — a filename, a merchant, an error from a
+  // parsed statement — would swallow the metadata and print something that
+  // never happened. With one argument there is nothing to substitute into.
+  out(meta ? `${line} ${JSON.stringify(meta)}` : line);
 }
 
 export const logger = {

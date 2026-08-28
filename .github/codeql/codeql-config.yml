@@ -30,6 +30,14 @@ queries:
 paths-ignore:
   # Standalone design-tool scaffolding; generated, and not part of the app.
   - design
+  # Vendored developer tooling — 44,168 lines of it, more than twice the size
+  # of the app itself, and the source of most of the remaining alerts (HTML
+  # filtering regexes, insecure randomness, and so on, all in a browser
+  # automation tool). It never runs in the app, never touches user data, and
+  # isn't shipped. We can't fix it and we don't ship it, so scanning it only
+  # buries the findings in code we can act on.
+  - .github/skills
+  - .github/hooks
   # Build output, if it's ever present in the workspace during a scan.
   - "**/dist"
   - "**/node_modules"

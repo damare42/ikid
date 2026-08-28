@@ -165,11 +165,21 @@ Then, less urgent but worth doing:
   style commentary another tool already covers. Expect a much smaller number on
   the next scan; whatever survives is worth reading individually.
 
-  A manual pass over the classes those queries target found no SQL injection
-  (every query goes through Prisma's typed API — there is no `$queryRaw`
-  anywhere), no XSS sinks, and no `child_process` in the server. Two real
-  defects did turn up and are fixed — see the commit for
-  `server/src/lib/prisma.ts`.
+  **Result, read from the actual alert list: 253 → 81 open, 174 auto-closed.**
+  Of the 81 that remained, all but 12 were in `.github/skills` — 44,168 lines
+  of vendored developer tooling, now also excluded. Everything genuinely in
+  app code has been dealt with:
+
+  | Finding | Count | Outcome |
+  | --- | --- | --- |
+  | Missing rate limiting | 11 | **Fixed** — `server/src/lib/rateLimit.ts`, verified live (30 × 200 then 429 with `Retry-After: 300`) |
+  | Externally-controlled format string (`lib/logger.ts`) | 1 | **Fixed** — logging is now a single argument, so `%s` in a message can't swallow the metadata |
+  | SQL injection | 0 | No `$queryRaw` anywhere; everything goes through Prisma's typed API |
+  | XSS sinks | 0 | No `dangerouslySetInnerHTML`, `innerHTML`, `eval` |
+  | Command injection | 0 | No `child_process` in the server |
+
+  Two further defects turned up in the manual pass and are fixed — see the
+  commit for `server/src/lib/prisma.ts`.
 
 The rest of `docs/REPO-SECURITY.md` still applies — 2FA, recovery codes,
 Actions permissions, signed commits.

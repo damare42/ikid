@@ -62,6 +62,31 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **Rate limiting on the API** (`server/src/lib/rateLimit.ts`). Running on
+  localhost this never fires — the ceiling is 300 requests/minute and a
+  dashboard load is about a dozen. It exists for the hosted mode, where the
+  server is reachable from the internet: an unauthenticated endpoint answering
+  as fast as it can be asked is a free denial-of-service. `/api/auth` is much
+  tighter (30 per 5 minutes) because that's where passwords get guessed —
+  `authService` already locks a *profile* after repeated failures, but this
+  limits an *address*, which is what stops one guess being sprayed across many
+  usernames. `/api/health` is deliberately exempt: Docker and the desktop shell
+  poll it, and a limiter that can fail a healthcheck is worse than none.
+  Written in-house rather than adding `express-rate-limit` — it's forty lines
+  of arithmetic, it's unit-tested directly (9 tests, including the exactly-at-
+  the-limit boundary and that expired windows get pruned so the limiter can't
+  become the memory leak it was added to prevent), and it keeps a dependency
+  off the request path of a finance app. Overridable with
+  `IKID_RATE_LIMIT_MAX` / `IKID_AUTH_RATE_LIMIT_MAX`
+- **Logger no longer treats messages as format strings.** `console.log(line,
+  meta)` makes `line` a format string, so a `%s` anywhere in a logged message —
+  a filename, a merchant name, an error from a parsed statement — would swallow
+  the metadata and print a line describing something that never happened. Now
+  always a single argument, so there's nothing to substitute into
+- CodeQL scope narrowed again: `.github/skills` and `.github/hooks` hold 44,168
+  lines of vendored developer tooling — more than twice the app itself — and
+  were the source of most remaining alerts (HTML-filtering regexes, insecure
+  randomness, in a browser-automation tool). Not shipped, not ours to fix
 - **React Router 6 → 7, which clears the last production advisory.**
   `npm audit --omit=dev` was reporting 2 moderate vulnerabilities
   (GHSA-337j-9hxr-rhxg, arbitrary constructor injection in React Router's SSR

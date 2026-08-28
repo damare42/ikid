@@ -5,6 +5,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorHandler } from "./lib/errors.js";
 import { logger } from "./lib/logger.js";
+import {
+  API_MAX, API_WINDOW_MS, AUTH_MAX, AUTH_WINDOW_MS, RateLimiter, rateLimit,
+} from "./lib/rateLimit.js";
 import { transactionsRouter } from "./routes/transactions.js";
 import { importsRouter } from "./routes/imports.js";
 import { metaRouter } from "./routes/meta.js";
@@ -45,7 +48,22 @@ export function createApp() {
     next();
   });
 
+  // Health stays unlimited — Docker and the desktop shell poll it, and a
+  // limiter that can fail a healthcheck is worse than no limiter.
   app.get("/api/health", (_req, res) => res.json({ ok: true, app: "ikid" }));
+
+  // Rate limiting. On localhost this never fires (see lib/rateLimit.ts for the
+  // headroom calculation); it exists for the hosted mode, where the server is
+  // reachable from the internet. Auth is much tighter than the rest, because
+  // that's where passwords get guessed.
+  app.use("/api/auth", rateLimit(
+    new RateLimiter(AUTH_MAX, AUTH_WINDOW_MS),
+    "Too many sign-in attempts from this address. Wait a few minutes and try again.",
+  ));
+  app.use("/api", rateLimit(
+    new RateLimiter(API_MAX, API_WINDOW_MS),
+    "Too many requests. Slow down and try again shortly.",
+  ));
 
   // Auth endpoints are public; every other /api route requires a session
   // when any profile has a password (multi-user mode).

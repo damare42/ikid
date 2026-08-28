@@ -65,7 +65,13 @@ backend, no cloud account, and no third-party analytics. See `docs/PRINCIPLES.md
 - **Sessions** are 32-byte random tokens in `HttpOnly; SameSite=Strict`
   cookies — unreadable from JavaScript. `IKID_SECURE_COOKIES=1` adds `Secure`
   for HTTPS deployments.
-- **Login** is rate limited (5 failures → 30s lockout, per account).
+- **Login** is rate limited two ways: 5 failures → 30s lockout **per account**,
+  and 30 requests per 5 minutes **per address** on `/api/auth`. The first stops
+  someone hammering one password box; the second stops one guess being sprayed
+  across many usernames, which the per-account lockout alone doesn't see. The
+  rest of the API is capped at 300 requests/minute per address (`/api/health`
+  is exempt so healthchecks can't be throttled). Limits are per-process and in
+  memory — honest for a single-instance self-host, and cleared by a restart.
 - **Isolation** is physical: each account is its own SQLite database file, and
   every request is bound to the signed-in account, so a query cannot cross
   accounts. Admins can manage accounts but cannot read another account's
