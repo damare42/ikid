@@ -332,7 +332,7 @@ export const emptySummary = (): ImportSummary => ({
 
 /** Stable in-file key for an import record (filename + exact import moment). */
 export const importKey = (ref: { filename: string; importedAt: string }): string =>
-  `${ref.importedAt} ${ref.filename}`;
+  `${ref.importedAt}\u0000${ref.filename}`;
 
 /**
  * Every entity name a document references, so an import can create the

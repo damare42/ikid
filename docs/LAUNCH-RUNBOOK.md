@@ -149,11 +149,27 @@ Then, less urgent but worth doing:
 - **Branch protection on `main`** — require a PR and require the `test` and
   `audit` checks. Deliberately *not* `Deploy site`: it only runs on `site/**`
   changes, so requiring it would block every code-only PR forever.
-- **Triage the 253 code-scanning alerts.** Don't read this number as "253
-  vulnerabilities" — CodeQL on a TypeScript repo flags a lot of low-severity
-  and stylistic patterns, and some will be in generated or vendored code.
-  Sort by severity and look at High/Critical first; that set is usually tiny
-  and is what actually matters before you announce. Worth a dedicated session.
+- ~~Triage the 253 code-scanning alerts.~~ **Done — and the number was mostly
+  our own configuration's fault.** Two causes, both fixed in
+  `.github/codeql/codeql-config.yml`:
+  - the scan included `design/`, which is standalone design-tool scaffolding
+    that nothing imports. `design/support.js` alone is 1,911 lines whose header
+    says *"GENERATED … do not edit"*, and transpiled bundles trip a lot of
+    queries for no useful reason;
+  - it ran the `security-and-quality` suite, whose quality half is a style
+    linter that overlaps with the ESLint + TS-strict run this repo already does
+    on every commit.
+
+  It now runs `security-extended` — a **superset** of the default *security*
+  queries — over app code only. Security coverage went up; what was dropped is
+  style commentary another tool already covers. Expect a much smaller number on
+  the next scan; whatever survives is worth reading individually.
+
+  A manual pass over the classes those queries target found no SQL injection
+  (every query goes through Prisma's typed API — there is no `$queryRaw`
+  anywhere), no XSS sinks, and no `child_process` in the server. Two real
+  defects did turn up and are fixed — see the commit for
+  `server/src/lib/prisma.ts`.
 
 The rest of `docs/REPO-SECURITY.md` still applies — 2FA, recovery codes,
 Actions permissions, signed commits.

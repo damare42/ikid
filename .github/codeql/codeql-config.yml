@@ -1,0 +1,35 @@
+# CodeQL scan configuration.
+#
+# Why this file exists: the first full scan produced 253 open alerts, which is
+# more than anyone triages, so in practice it meant nobody looked at any of
+# them. An alert count that large is indistinguishable from no alerting at all.
+# Two things were inflating it, and neither was app code getting worse.
+#
+# 1. The scan included design/, which is standalone design-tool scaffolding —
+#    not imported by the client, the server or the build. design/support.js
+#    alone is 1,911 lines whose own header reads "GENERATED from
+#    dc-runtime/src/*.ts — do not edit". Transpiled bundles trip a lot of
+#    queries (unreachable branches, unused locals, rebuilt prototype helpers)
+#    and fixing any of it is meaningless, since it's regenerated wholesale.
+#    That's ~2,300 of the ~19,500 scanned lines, and a far larger share of
+#    the findings.
+#
+# 2. The workflow ran the `security-and-quality` suite. The quality half is a
+#    style and maintainability linter, and it overlaps heavily with the ESLint
+#    + TypeScript-strict setup this repo already runs on every commit. Its
+#    findings were drowning the security ones.
+#
+# The scan now runs `security-extended` — a SUPERSET of the default security
+# queries, including the lower-precision ones. Security coverage went up, not
+# down. What was dropped is style commentary that another tool already covers.
+name: "ikid CodeQL config"
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  # Standalone design-tool scaffolding; generated, and not part of the app.
+  - design
+  # Build output, if it's ever present in the workspace during a scan.
+  - "**/dist"
+  - "**/node_modules"

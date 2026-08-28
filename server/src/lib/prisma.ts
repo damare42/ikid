@@ -68,8 +68,33 @@ export function getProfileId(name: string): string {
   return reg.ids[name];
 }
 
+/**
+ * A profile name is a *filename*, never a path.
+ *
+ * Callers are supposed to have run the name through sanitizeProfileName
+ * already — createProfile and renameProfile do. switchProfile didn't, and the
+ * login route passes a name straight from the request body, so the guarantee
+ * only held by convention. This is the single place every database path is
+ * built, which makes it the one place worth being certain: anything that would
+ * escape DB_DIR is rejected outright rather than quietly opening a file
+ * somewhere else on disk.
+ *
+ * Not known to have been exploitable — /activate is refused entirely once
+ * accounts are enabled, and login still needs the password — but "you'd need
+ * another bug first" is a poor thing to rest a finance app on.
+ */
 export function getDbPath(name: string): string {
-  return path.join(DB_DIR, `${name}.db`);
+  // Two checks, because neither alone is enough. The first says the name is a
+  // bare filename — it rejects "sub/dir" and "/etc/passwd", which the second
+  // misses because path.join flattens them back inside DB_DIR. The second says
+  // the result actually lands in DB_DIR — it rejects "../evil", which the
+  // first misses because basename("../evil") is just "evil".
+  const isFilename = name !== "" && name !== "." && name !== ".." && path.basename(name) === name;
+  const target = path.join(DB_DIR, `${name}.db`);
+  if (!isFilename || path.dirname(path.resolve(target)) !== DB_DIR) {
+    throw new Error(`Invalid profile name: ${JSON.stringify(name)}`);
+  }
+  return target;
 }
 
 export function getActiveProfile(): string {
@@ -154,7 +179,12 @@ export async function renameProfile(oldName: string, rawNewName: string): Promis
   return newName;
 }
 
-export async function switchProfile(name: string): Promise<void> {
+export async function switchProfile(rawName: string): Promise<void> {
+  // createProfile and renameProfile both sanitise; this one didn't, which made
+  // it the odd one out and meant an unsanitised name could be written into the
+  // registry as the active profile.
+  const name = sanitizeProfileName(rawName);
+  if (!name) throw new Error("Profile name must contain letters or numbers");
   if (!fs.existsSync(getDbPath(name))) throw new Error(`Profile "${name}" does not exist`);
   writeRegistry({ ...readRegistry(), active: name });
 }

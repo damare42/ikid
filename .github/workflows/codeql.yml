@@ -31,8 +31,12 @@ jobs:
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
-          # Adds queries beyond the default set (more findings, some noise).
-          queries: security-and-quality
+          # Query set and path exclusions live in the config file, with the
+          # reasoning written down next to them. Short version: this runs
+          # `security-extended` (a superset of the default security queries)
+          # over app code only — the previous `security-and-quality` run over
+          # everything produced 253 alerts, which is more than anyone triages.
+          config-file: ./.github/codeql/codeql-config.yml
 
       - uses: github/codeql-action/analyze@v3
         with:

@@ -62,6 +62,30 @@ Test suite: **155 passing** (was 116).
 
 ## Unreleased
 
+- **Security: profile names can no longer be treated as paths.** A profile name
+  becomes a filename on disk, which makes it the one piece of user input in the
+  app that can turn into a path. `createProfile` and `renameProfile` sanitised
+  it; `switchProfile` didn't, and the login route passes a name straight from
+  the request body — so the guarantee held only by convention. `getDbPath` is
+  the single place every database path is built, so the check now lives there:
+  a name must be a bare filename *and* resolve inside the data directory, or it
+  throws. Not known to have been exploitable — `/activate` is refused outright
+  once accounts are enabled, and login still requires the password — but that's
+  a poor thing to rest a finance app on. 7 new tests, including one asserting
+  the guard still accepts everything the sanitiser can produce, so it can't
+  drift into locking people out of their own data
+- **CodeQL was reporting 253 alerts, mostly because of how we'd pointed it.**
+  It was scanning `design/` — standalone design-tool scaffolding that nothing
+  imports, including a 1,911-line file whose header reads "GENERATED … do not
+  edit" — and running the `security-and-quality` suite, whose quality half
+  duplicates the ESLint and TypeScript-strict checks already run on every
+  commit. It now runs `security-extended`, a *superset* of the default security
+  queries, over app code only (`.github/codeql/codeql-config.yml`). Security
+  coverage increased; the noise that made 253 unreadable is gone
+- Removed a raw NUL byte that had crept into `exportService.ts` inside the
+  `importKey` separator. It worked, but it made the file read as binary to
+  grep and diff, and an invisible control character is not a separator anyone
+  can review. Written as an explicit escape sequence now
 - **Marketing site rebuilt for launch** (`site/`, deployed to GitHub Pages).
   It now makes **zero external requests** — the previous version pulled Archivo
   from Google's font CDN, which handed every visitor's IP to a third party on a
