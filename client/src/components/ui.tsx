@@ -31,18 +31,19 @@ export function StatCard({ label, value, sub, tone = "default" }: {
           "Budget Status" on one line even in the seven-across layout, so the
           cards align because nothing wraps — not because space was padded. */}
       <div
-        className="truncate text-[10px] font-semibold uppercase leading-[14px] tracking-[0.07em] text-slate-500 dark:text-slate-400"
+        className="truncate text-[11px] font-semibold uppercase leading-[14px] tracking-[0.07em] text-slate-500 dark:text-slate-400"
         title={label}
       >
         {label}
       </div>
       {/* Fluid and nowrap. A value like "+$1,057.95" was being clipped at a
           fixed text-3xl; shrinking is the right failure, since a slightly
-          smaller number is readable and half a number is not. Capped at 22px:
-          these are seven glanceable figures, not a hero number. */}
+          smaller number is readable and half a number is not. The row is five
+          cards now rather than seven, so the type can be legible again — this
+          reads ~22px at 1200px wide and still shrinks on a narrow window. */}
       <div
         className={`whitespace-nowrap font-heading font-extrabold leading-[1.15] tracking-tight tabular-nums ${toneCls}`}
-        style={{ fontSize: "clamp(1rem, 1.1vw + 0.3rem, 1.375rem)" }}
+        style={{ fontSize: "clamp(1.125rem, 1.4vw + 0.35rem, 1.625rem)" }}
       >
         {value}
       </div>

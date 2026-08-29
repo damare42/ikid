@@ -209,17 +209,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className={`grid grid-cols-2 gap-2 md:grid-cols-4 ${hasNetWorth ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
+      {/* Budget status and health score used to sit here too, duplicating the
+          budget list and the health breakdown further down the page. Five cards
+          fit one row from md upward without shrinking the type, which is what
+          seven never did. */}
+      <div className={`grid grid-cols-2 gap-2 ${hasNetWorth ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
         <StatCard label="Net Savings" value={fmtSignedCompact(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
         <StatCard label="Savings Rate" value={pct(s.savingsRate * 100)} tone={s.savingsRate >= 0.15 ? "good" : s.savingsRate < 0 ? "bad" : "default"} />
-        <StatCard
-          label="Budget Status"
-          value={s.budgets.length ? `${s.budgets.filter((b) => !b.overBudget).length}/${s.budgets.length}` : "—"}
-          sub={s.budgets.length ? "budgets on track" : "no budgets set"}
-        />
-        <StatCard label="Health Score" value={`${s.healthScore}`} sub="out of 100" tone={scoreTone} />
         {hasNetWorth && (
           <div className="cursor-pointer" onClick={() => navigate("/networth")} title="Open Net Worth">
             <StatCard
@@ -503,7 +501,21 @@ export default function Dashboard() {
       )}
 
       {/* Health notes */}
-      <Card title="Financial Health Breakdown">
+      <Card
+        title="Financial Health"
+        action={
+          <span
+            className={`font-heading text-lg font-extrabold tabular-nums ${
+              scoreTone === "good" ? "text-emerald-600 dark:text-emerald-400"
+              : scoreTone === "bad" ? "text-brand-600 dark:text-brand-400"
+              : "text-slate-900 dark:text-slate-100"
+            }`}
+          >
+            {s.healthScore}
+            <span className="ml-1 text-xs font-semibold text-slate-500 dark:text-slate-400">/ 100</span>
+          </span>
+        }
+      >
         <ul className="grid gap-1 text-sm text-slate-600 dark:text-slate-300 md:grid-cols-3">
           {s.healthNotes.map((n) => <li key={n}>• {n}</li>)}
         </ul>
