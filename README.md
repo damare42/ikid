@@ -2,6 +2,19 @@
 
 Ikid is a personal finance dashboard that runs **entirely on your computer**. Import bank statements (CSV or PDF), auto-categorize transactions, track budgets and savings goals, and see exactly where your money goes. No cloud, no accounts, no telemetry — your data lives in a single SQLite file.
 
+## Where to find it
+
+| | |
+| --- | --- |
+| **Website** | <https://damare42.github.io/ikid/> — what it does, why local-first, and how to start. A static page that makes zero external requests: no fonts, no scripts, no trackers. |
+| **The app itself** | <http://localhost:3001>, on your own machine, after the quick start below. |
+| **Source** | <https://github.com/damare42/ikid> |
+| **Hosted version** | There isn't one, deliberately. There's no ikid server holding anyone's data — if you want access from anywhere, you [host it yourself](docs/DEPLOY-ONLINE.md). |
+
+The website is documentation, not a place to sign in. Nothing you can reach on
+the internet ever sees your transactions; the app only exists on machines you
+run it on.
+
 ## Quick start
 
 Requires **Node.js 20+** ([download](https://nodejs.org)).
@@ -63,6 +76,8 @@ to wipe everything and start fresh.
 - **Accounts** — a per-card/account status page showing the latest transaction already imported, a freshness badge, transaction count, net on file, and the last import file, so you always know where each account left off and what to upload next. The import dialog echoes the same "upload after this date" hint for whichever account you pick.
 - **Profiles & accounts** — fully separate datasets (e.g. you / partner / business), each in its own SQLite file; budgets, goals, rules, and settings are all per-profile. Set a password in Settings → Security to turn profiles into sign-in accounts: scrypt-hashed passwords with per-profile salts, HttpOnly session cookies, login rate-limiting, and per-request database routing so concurrent users only ever see their own data. With no passwords set, Ikid stays in single-user open mode.
 - **Admin & usage analytics** — the first account is an admin. The Admin page (🛡️) shows how many people use the app, active-user counts, the most-used features, an activity trend, and an accounts table (promote/demote, disable/enable, reset password, toggle open sign-ups). Analytics record *feature events only* — never amounts, merchants, or any financial data — and stay entirely local. Admins can manage accounts but never open another user's data. See `docs/GO-PUBLIC.md` for how this maps to a possible hosted version and the local-first trade-offs.
+- **Reconcile** — enter a statement's closing balance and date, and Ikid tells you whether its records agree with the bank. The difference is decomposed rather than just displayed: transactions you haven't marked cleared, transactions dated after the statement, and the **residual** neither explains — the residual being the one that means something is genuinely missing or duplicated. Mark cleared individually or in bulk, with one-click undo. Transfers count here (a card payment really does leave the account), even though they're excluded from income and spending.
+- **Bills** — what's actually leaving your account in the next 30, 60 or 90 days, projected from detected recurring payments, with the total set against your average monthly surplus. Flags subscription price changes ("$15.49 → $17.99 in March") and tells a cancelled subscription apart from a merely late one where it can — and says so where it can't.
 - **Budgets** — monthly limits per category with spent/remaining/% used and an end-of-month spending forecast.
 - **Goals** — target, saved-so-far, monthly contribution, optional deadline. Ikid computes estimated completion, months remaining, required monthly contribution for a deadline, and a projected balance curve — with live "what if?" previews as you tweak numbers.
 - **Net Worth** — track assets (cash, investments, property, vehicles) and liabilities (mortgage, loans, credit cards) as dated value snapshots. Update values whenever you like — back-dating fills in history — and Ikid charts net worth over time with carry-forward between updates. Investments can store units × unit price; loans with a rate and monthly payment show a projected payoff date and remaining interest.
@@ -72,7 +87,8 @@ to wipe everything and start fresh.
 - **Analytics** — monthly/weekly/yearly trends, category and merchant breakdowns, largest purchases, recurring payment detection, savings analysis, and a daily spending heatmap.
 - **Smart Insights** — month-over-month category and merchant movements, possibly-unused subscriptions, recurring-spend totals, savings opportunities, yearly estimates.
 - **Reports** — CSV export of transactions, plus a print-optimized report page (charts, tables, budget + goal status) — use *Save as PDF* in the print dialog.
-- **Settings** — currency, date format, dark mode, accounts, categories, rules, import history/undo, and one-click database backup/restore/export.
+- **Demo mode** — fill a profile with two years of invented transactions (fake banks, fake merchants, fake salary) so every screen has something to show before you import anything real. Generated locally from a fixed seed, so it's identical every time. It goes into its own `demo` profile with its own database file, and refuses outright to load into a profile that already holds real transactions.
+- **Settings** — currency, date format, dark mode, accounts, categories, rules, import history/undo, demo data, one-click database backup/restore, and a lossless JSON export.
 - **No lock-in** — one-click **lossless JSON export** of everything in a profile, with relations stored by name rather than database ID, so the file is readable in a text editor and imports cleanly into another profile (merge or replace). See [docs/EXPORT-FORMAT.md](docs/EXPORT-FORMAT.md).
 
 ## Architecture
