@@ -380,7 +380,7 @@ export default function Retirement() {
         <>
           {/* Verdict */}
           <div
-            className={`rounded-none border p-4 text-sm ${
+            className={`rounded-surface border p-4 text-sm ${
               result.success
                 ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
                 : "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200"

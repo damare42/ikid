@@ -95,7 +95,7 @@ function CspDetailModal({ csp, onClose, onOpenCategory }: {
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {csp.buckets.map((b) => (
-          <section key={b.key} className="rounded-none border border-slate-200 p-3 dark:border-slate-800">
+          <section key={b.key} className="rounded-surface border border-slate-200 p-3 dark:border-slate-800">
             <div className="mb-1 flex items-center justify-between">
               <Badge color={b.color}>{b.label}</Badge>
               <span className="font-bold tabular-nums">{fmtMoney(b.total)}</span>
@@ -209,7 +209,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className={`grid grid-cols-2 gap-3 md:grid-cols-3 ${hasNetWorth ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
+      <div className={`grid grid-cols-2 gap-2 md:grid-cols-4 ${hasNetWorth ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
         <StatCard label="Net Savings" value={fmtSignedCompact(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />

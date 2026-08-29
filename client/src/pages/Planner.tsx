@@ -244,7 +244,7 @@ export default function Planner() {
                   {m.title && <div className="mb-1 font-semibold">{m.title}</div>}
                   <div className="whitespace-pre-wrap">{m.content}</div>
                   {m.chart && m.chart.length > 0 && (
-                    <div className="mt-3 rounded-none bg-white p-2 dark:bg-slate-900">
+                    <div className="mt-3 rounded-surface bg-white p-2 dark:bg-slate-900">
                       <ResponsiveContainer width="100%" height={180}>
                         <LineChart data={m.chart}>
                           <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />

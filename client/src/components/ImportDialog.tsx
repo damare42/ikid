@@ -121,7 +121,7 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
             )}
           </div>
           <div
-            className={`flex cursor-pointer flex-col items-center gap-2 rounded-none border-2 border-dashed p-10 text-center transition-colors ${
+            className={`flex cursor-pointer flex-col items-center gap-2 rounded-surface border-2 border-dashed p-10 text-center transition-colors ${
               dragOver ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20" : "border-slate-300 dark:border-slate-700"
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}

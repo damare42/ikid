@@ -77,7 +77,16 @@ export default {
         warn: { DEFAULT: "#9a6a10", dark: "#e0ad55" },
       },
       borderRadius: {
-        // Design rule: 0 on structure, 9px only on interactive chrome.
+        // Design rule (revised): everything that is a surface is a rounded
+        // rectangle. The original Modernist rule was square structure with 9px
+        // only on interactive chrome — it read as rigid and heavy once the app
+        // had this many panels on a screen, so surfaces are now curved and the
+        // language is consistent instead of mixed.
+        //
+        //   surface — cards, panels, chart containers, drop zones
+        //   chrome  — buttons, inputs, pills, small toggles
+        //   bubble  — chat messages
+        surface: "12px",
         chrome: "9px",
         bubble: "14px",
       },

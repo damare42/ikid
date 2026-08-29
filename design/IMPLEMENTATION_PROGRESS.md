@@ -16,7 +16,11 @@ every component:
   both modes.
 - **Type** — Archivo loaded and set as the base/sans + heading font; headings
   are extra-bold with tight tracking.
-- **Radius rule** — structure is square (`.card`, `.input` → radius 0); only
+- **Radius rule** — ~~structure is square~~ **superseded**: every surface is a
+  rounded rectangle (12px `rounded-surface` on cards and panels, 9px
+  `rounded-chrome` on buttons, inputs and pills). The square rule read as
+  rigid once a screen carried this many panels. Originally: (`.card`,
+  `.input` → radius 0); only
   interactive chrome keeps 9px (`.btn*` → `rounded-chrome`). Semantic
   `pos` / `neg` / `warn` colors added from tokens.
 - Favicon recolored to the accent.
@@ -123,3 +127,19 @@ Do these screen by screen, build/lint/verify per step:
    the accent + Archivo).
 8. **Lucide icons** — replace emoji nav/labels with the Lucide set (18–20px,
    stroke 2).
+
+## Revised — radius (supersedes the square-structure rule above)
+
+The Modernist package specified square structure with 9px only on interactive
+chrome. Built out across fourteen screens it read as rigid and heavy: a
+dashboard is a grid of panels, and hard corners on every one of them made the
+page feel like a spreadsheet rather than a product.
+
+Now: `rounded-surface` (12px) on anything that is a surface — cards, panels,
+chart containers, the import drop zone — and `rounded-chrome` (9px) on
+buttons, inputs, pills and toggles. Inputs moved from square to 9px in the
+same pass, because square inputs beside 9px buttons was the inconsistency that
+made the old rule look like an oversight rather than a choice.
+
+Both radii are tokens in `tailwind.config.js`, so this is one edit away from
+being reversed or retuned.
