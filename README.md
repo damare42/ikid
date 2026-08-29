@@ -132,7 +132,21 @@ Conventions: **negative amount = money out**; transactions marked `isTransfer` (
 | `npm test` | server unit tests (vitest): categorization, parsers, dedupe, goal math |
 | `npm run build` | typecheck + production build of both packages |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
+| `npm run build:demo` | build the browser-only demo into `site/app/` (see [docs/DEMO.md](docs/DEMO.md)) |
 | `npm run db:reset --prefix server` | wipe and reseed the database |
+
+### If a build fails with "Cannot find module @rollup/rollup-…"
+
+A [long-standing npm bug](https://github.com/npm/cli/issues/4828) sometimes
+skips the platform-specific binary that Rollup — and therefore Vite — needs.
+The error suggests deleting `package-lock.json`; **don't**. This project's
+lockfile already lists all 25 platform binaries, so the lockfile is fine and
+regenerating it would only drop the pinned versions. Reinstall from it instead:
+
+```bash
+rm -rf node_modules client/node_modules server/node_modules
+npm ci
+```
 
 ## Importing your own statements
 
