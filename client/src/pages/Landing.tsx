@@ -1,5 +1,79 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { IkidLogo } from "../components/Logo";
+import { IS_DEMO } from "../lib/api";
+import { useFetch } from "../hooks/useFetch";
+
+/**
+ * What the call-to-action buttons should say depends on where this page is
+ * running, and getting it wrong is worse than it sounds.
+ *
+ * Three situations, previously collapsed into one hardcoded "Sign in / Sign up"
+ * pair:
+ *
+ *  - **The hosted demo.** There are no accounts and there is no server. "Sign
+ *    in" led straight to the demo dashboard, which told a visitor that signing
+ *    in does nothing — the opposite of true.
+ *  - **An install with accounts.** Sign in is right, and is what someone
+ *    returning to their own data needs to see.
+ *  - **An install with no password set** (the default, single-user mode).
+ *    There is nothing to sign into yet, so offering it implies a step that
+ *    doesn't exist.
+ */
+interface AuthCtaStatus {
+  enabled: boolean;
+  signedIn?: boolean;
+  allowSignups?: boolean;
+}
+
+function useCta() {
+  // Skipped entirely in the demo — there's nothing to ask and no server to ask.
+  const { data } = useFetch<AuthCtaStatus>(IS_DEMO ? null : "/api/auth/status");
+
+  if (IS_DEMO) {
+    return {
+      primary: { href: "#/", label: "Open the demo →" },
+      // "../" from /ikid/demo/ is the marketing site, where installing is
+      // explained. Relative so it works in local preview too.
+      secondary: { href: "../#start", label: "Install it for real" },
+      note: "This is a sandbox filled with invented data. Accounts, sign-in and your own transactions exist only in an install on your own machine.",
+    };
+  }
+  if (data?.enabled && !data.signedIn) {
+    return {
+      primary: { href: "#/", label: "Sign in" },
+      secondary: data.allowSignups ? { href: "#/signup", label: "Create an account" } : null,
+      note: null,
+    };
+  }
+  if (data?.enabled) {
+    return { primary: { href: "#/", label: "Open ikid →" }, secondary: null, note: null };
+  }
+  // Open mode: no password has been set, so there is no sign-in step at all.
+  return {
+    primary: { href: "#/", label: "Open ikid →" },
+    secondary: null,
+    note: "No password is set, so ikid opens straight to your data. Add one in Settings → Security to require sign-in and to give other people their own separate profiles.",
+  };
+}
+
+/** The one-line explanation under the hero buttons, when there is one to give. */
+function CtaNote() {
+  const { note } = useCta();
+  if (!note) return null;
+  return (
+    <p className="mt-3 max-w-md text-sm text-slate-500 dark:text-slate-400">{note}</p>
+  );
+}
+
+function Cta({ size = "" }: { size?: string }) {
+  const { primary, secondary } = useCta();
+  return (
+    <>
+      <a href={primary.href} className={`btn-primary ${size}`}>{primary.label}</a>
+      {secondary && <a href={secondary.href} className={`btn-ghost ${size}`}>{secondary.label}</a>}
+    </>
+  );
+}
 
 /**
  * Public landing page — #/welcome, no sign-in required.
@@ -211,8 +285,7 @@ export default function Landing() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <a href="#/" className="btn-ghost">Sign in</a>
-            <a href="#/signup" className="btn-primary">Sign up</a>
+            <Cta />
           </div>
         </div>
       </header>
@@ -232,10 +305,10 @@ export default function Landing() {
               Ikid (Amharic for <em>"plan"</em>) turns bank statements into budgets, goals, and
               what-if plans. Everything stays on your computer.
             </p>
-            <div className="mt-6 flex gap-3" style={{ animation: "rise .6s ease both .4s" }}>
-              <a href="#/signup" className="btn-primary !px-6 !py-3 !text-base">Sign up — it's free</a>
-              <a href="#/" className="btn-ghost !px-6 !py-3 !text-base">Sign in</a>
+            <div className="mt-6 flex flex-wrap gap-3" style={{ animation: "rise .6s ease both .4s" }}>
+              <Cta size="!px-6 !py-3 !text-base" />
             </div>
+            <CtaNote />
             <ul className="mt-6 space-y-1.5 text-sm text-slate-500 dark:text-slate-400" style={{ animation: "rise .6s ease both .5s" }}>
               <li>✓ Works with any bank — import CSV or PDF statements</li>
               <li>✓ Your data never leaves this machine</li>
@@ -364,9 +437,8 @@ export default function Landing() {
           <Reveal>
             <h2 className="font-display text-4xl font-extrabold">Ready when you are</h2>
             <p className="mt-3 text-slate-500 dark:text-slate-400">Two minutes from install to your first imported statement.</p>
-            <div className="mt-6 flex justify-center gap-3">
-              <a href="#/signup" className="btn-primary !px-8 !py-3 !text-base">Sign up →</a>
-              <a href="#/" className="btn-ghost !px-8 !py-3 !text-base">Sign in</a>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Cta size="!px-8 !py-3 !text-base" />
             </div>
           </Reveal>
         </div>

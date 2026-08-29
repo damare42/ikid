@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dir = path.join(root, "site", "app");
+const dir = path.join(root, "site", "demo");
 const assets = path.join(dir, "assets");
 
 const problems = [];
@@ -27,12 +27,12 @@ function pass(msg) { ok.push(msg); }
 
 // --- the build produced something at all ---
 if (!fs.existsSync(path.join(dir, "index.html"))) {
-  fail("site/app/index.html is missing — the demo build didn't run.");
+  fail("site/demo/index.html is missing — the demo build didn't run.");
 } else {
   pass("index.html present");
 }
 if (!fs.existsSync(assets)) {
-  console.error("✗ site/app/assets is missing — nothing to check.");
+  console.error("✗ site/demo/assets is missing — nothing to check.");
   process.exit(1);
 }
 
@@ -77,8 +77,8 @@ if (/PrismaClient|@prisma\/client/.test(bundle)) {
 const html = fs.existsSync(path.join(dir, "index.html"))
   ? fs.readFileSync(path.join(dir, "index.html"), "utf8")
   : "";
-if (html && !html.includes("/ikid/app/assets/")) {
-  fail("index.html doesn't reference /ikid/app/assets/ — the --base is wrong, so nothing will load.");
+if (html && !html.includes("/ikid/demo/assets/")) {
+  fail("index.html doesn't reference /ikid/demo/assets/ — the --base is wrong, so nothing will load.");
 } else if (html) {
   pass("asset paths match the deploy base");
 }

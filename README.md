@@ -132,7 +132,7 @@ Conventions: **negative amount = money out**; transactions marked `isTransfer` (
 | `npm test` | server unit tests (vitest): categorization, parsers, dedupe, goal math |
 | `npm run build` | typecheck + production build of both packages |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
-| `npm run build:demo` | build the browser-only demo into `site/app/` (see [docs/DEMO.md](docs/DEMO.md)) |
+| `npm run build:demo` | build the browser-only demo into `site/demo/` (see [docs/DEMO.md](docs/DEMO.md)) |
 | `npm run db:reset --prefix server` | wipe and reseed the database |
 
 ### If a build fails with "Cannot find module @rollup/rollup-…"

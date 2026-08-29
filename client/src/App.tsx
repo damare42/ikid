@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { api } from "./lib/api";
+import { api, IS_DEMO } from "./lib/api";
 import { setCurrency } from "./lib/format";
 import { pageEvent, track } from "./lib/track";
 import type { SettingsDTO } from "@shared/types";
@@ -197,6 +197,19 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
       return next;
     });
   }
+
+  // Collapsing the whole rail to icons buys back ~160px, which matters on the
+  // wide tables (Transactions, Reconcile) and on a 13" laptop generally.
+  // Remembered, because a person who wants the room wants it every time.
+  const [railCollapsed, setRailCollapsed] = useState(
+    () => localStorage.getItem("ikid-nav-collapsed") === "1",
+  );
+  function toggleRail() {
+    setRailCollapsed((prev) => {
+      localStorage.setItem("ikid-nav-collapsed", prev ? "0" : "1");
+      return !prev;
+    });
+  }
   const sectionLabel = ROUTE_LABELS[location.pathname] ?? "";
 
   // Page-view telemetry (feature key only, no data).
@@ -236,39 +249,62 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
   return (
     <div className="flex min-h-screen">
       {/* Rail */}
-      <aside className="no-print sticky top-0 hidden h-screen w-[222px] shrink-0 flex-col border-r border-slate-200 bg-white px-[22px] py-6 md:flex dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-6">
-          <IkidLogo height={30} />
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
+      <aside
+        className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col border-r border-slate-200 bg-white py-6 transition-[width] duration-200 md:flex dark:border-slate-800 dark:bg-slate-900 ${
+          railCollapsed ? "w-[68px] px-3" : "w-[222px] px-[22px]"
+        }`}
+      >
+        <div className={`mb-6 ${railCollapsed ? "flex justify-center" : ""}`}>
+          {/* The wordmark is ~1.54:1, so 22px high is ~34px wide and still
+              fits the 44px of content the collapsed rail leaves. */}
+          <IkidLogo height={railCollapsed ? 22 : 30} />
+          {!railCollapsed && (
+            <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
+          )}
         </div>
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
           {NAV_GROUPS.map((g) => (
             <div key={g.key}>
-              <button
-                className="flex w-full items-center justify-between px-1 pb-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                onClick={() => toggleGroup(g.key)}
-              >
-                {g.label}
-                <span className={`text-[11px] transition-transform ${isGroupOpen(g.key) ? "" : "-rotate-90"}`}>▾</span>
-              </button>
-              {isGroupOpen(g.key) && (
+              {/* Collapsed, the group headings are just noise — the icons are
+                  the whole navigation — but a hairline keeps the grouping
+                  legible rather than running everything together. */}
+              {railCollapsed ? (
+                <div className="mx-2 mb-1 border-t border-slate-100 first:border-0 dark:border-slate-800" />
+              ) : (
+                <button
+                  className="flex w-full items-center justify-between px-1 pb-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                  onClick={() => toggleGroup(g.key)}
+                >
+                  {g.label}
+                  <span className={`text-[11px] transition-transform ${isGroupOpen(g.key) ? "" : "-rotate-90"}`}>▾</span>
+                </button>
+              )}
+              {(railCollapsed || isGroupOpen(g.key)) && (
                 <div className="flex flex-col">
                   {g.items.map((n) => (
                     <NavLink
                       key={n.to}
                       to={n.to}
                       end={n.to === "/"}
+                      // Collapsed to icons, the label has to survive somewhere
+                      // or the nav becomes a guessing game: title for pointer
+                      // users, aria-label for screen readers.
+                      title={railCollapsed ? n.label : undefined}
+                      aria-label={railCollapsed ? n.label : undefined}
                       // Active state is NOT signalled by colour alone (WCAG 1.4.1):
                       // accent text + a 2px left rule + heavier weight.
                       className={({ isActive }) =>
-                        `flex items-center gap-2.5 border-l-2 py-[7px] pl-2 text-[13px] transition-colors ${
+                        `flex items-center gap-2.5 border-l-2 py-[7px] text-[13px] transition-colors ${
+                          railCollapsed ? "justify-center pl-0" : "pl-2"
+                        } ${
                           isActive
                             ? "border-brand-600 font-extrabold text-brand-700 dark:text-brand-400"
                             : "border-transparent font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                         }`
                       }
                     >
-                      <span className="w-4 text-center">{n.icon}</span> {n.label}
+                      <span className="w-4 text-center">{n.icon}</span>
+                      {!railCollapsed && n.label}
                     </NavLink>
                   ))}
                 </div>
@@ -276,8 +312,20 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
             </div>
           ))}
         </nav>
-        <div className="mt-4 border-t border-slate-100 pt-3 text-[12px] text-slate-400 dark:border-slate-800">
-          100% local · SQLite · no cloud
+        <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <button
+            onClick={toggleRail}
+            className="flex w-full items-center gap-2 rounded-chrome px-1 py-1.5 text-[12px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            title={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!railCollapsed}
+          >
+            <span className="w-4 text-center text-[13px]">{railCollapsed ? "»" : "«"}</span>
+            {!railCollapsed && <span>Collapse</span>}
+          </button>
+          {!railCollapsed && (
+            <div className="mt-2 text-[12px] text-slate-400">100% local · SQLite · no cloud</div>
+          )}
         </div>
       </aside>
 
@@ -363,7 +411,10 @@ export default function App() {
       <Routes>
         {/* Public — no sign-in required */}
         <Route path="/welcome" element={<Landing />} />
-        <Route path="/signup" element={<SignupScreen />} />
+        {/* There is nothing to sign up to in the demo: no server, no accounts.
+            Showing the form and failing on submit would waste someone's time
+            and teach them the wrong thing about the product. */}
+        <Route path="/signup" element={IS_DEMO ? <Landing /> : <SignupScreen />} />
         <Route
           path="*"
           element={

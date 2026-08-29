@@ -1,6 +1,6 @@
 # The hosted demo
 
-**Live at [damare42.github.io/ikid/app/](https://damare42.github.io/ikid/app/)**
+**Live at [damare42.github.io/ikid/demo/](https://damare42.github.io/ikid/demo/)**
 
 Nobody installs a personal finance app to evaluate it. The demo is the real
 application, running on two years of invented data, entirely inside the
@@ -60,14 +60,14 @@ itself.
 ## Building and previewing it
 
 ```bash
-npm run build:demo      # → site/app/
-npm run preview:demo    # → http://localhost:4173/ikid/app/
+npm run build:demo      # → site/demo/
+npm run preview:demo    # → http://localhost:4173/ikid/demo/
 ```
 
-**Opening `site/app/index.html` directly will not work**, and neither will
-serving `site/` at a web root. The bundle is built with `--base=/ikid/app/`
+**Opening `site/demo/index.html` directly will not work**, and neither will
+serving `site/` at a web root. The bundle is built with `--base=/ikid/demo/`
 because that is where it is deployed, so its asset URLs are absolute:
-`/ikid/app/assets/…`. `preview:demo` runs Vite's preview server with the same
+`/ikid/demo/assets/…`. `preview:demo` runs Vite's preview server with the same
 base, which is the only local setup that matches production.
 
 That delegates to the `client` workspace and then runs
@@ -83,7 +83,7 @@ The verifier checks what a visitor actually receives:
 - utility classes are present in the CSS
 - the generated dataset is in the bundle
 - no server database code leaked in
-- asset URLs match the deploy base (`/ikid/app/`)
+- asset URLs match the deploy base (`/ikid/demo/`)
 
 It runs locally and in the Pages workflow, because "it compiled" and "it looks
 right" are different questions.
