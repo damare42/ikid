@@ -4,9 +4,20 @@
 //   `brand` -> the brick-red accent, `slate` -> warm neutrals —
 // so existing `bg-slate-*`, `text-slate-*`, `bg-brand-600`, etc. adopt the new
 // look without touching every component. Per-screen polish follows.
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+
 export default {
   darkMode: "class",
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  // Absolute, not relative. Tailwind resolves content globs against the
+  // process working directory, not against this config file — so when the
+  // demo build ran from the repo root ("vite build client"), "./src/**" matched
+  // nothing, Tailwind emitted no utilities at all, and the deployed app was a
+  // column of unstyled text. It looked like a broken stylesheet; it was a
+  // stylesheet that had been generated almost empty.
+  content: [path.join(here, "index.html"), path.join(here, "src/**/*.{ts,tsx}")],
   theme: {
     extend: {
       fontFamily: {
