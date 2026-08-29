@@ -5,6 +5,7 @@ import { useFetch } from "../hooks/useFetch";
 import { setCurrency } from "../lib/format";
 import { Badge, Card, ErrorNote, Spinner } from "../components/ui";
 import { PasswordInput } from "../components/PasswordInput";
+import { DemoModeCard } from "../components/DemoBanner";
 
 export default function Settings({ onThemeChange }: { onThemeChange: (t: string) => void }) {
   const { data: settings, setData: setSettings } = useFetch<SettingsDTO>("/api/settings");
@@ -183,6 +184,8 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
       <Card title="Security & Accounts">
         <SecurityEditor onMessage={setMsg} />
       </Card>
+
+      <DemoModeCard onMessage={setMsg} />
 
       <Card title="Your data — take it anywhere">
         <PortableData onMessage={setMsg} onError={setError} />

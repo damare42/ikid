@@ -253,6 +253,10 @@ export default function Transactions() {
                     <td className="td max-w-64 truncate" title={t.description}>
                       {t.description}
                       {t.isTransfer && <span className="ml-1.5 rounded bg-slate-200 px-1 text-[12px] dark:bg-slate-700">transfer</span>}
+                      {/* Inline rather than its own column — reconciliation
+                          state is context on a row, not a thing you scan a
+                          whole column of. Glyph plus word, never colour alone. */}
+                      {t.cleared && <span className="ml-1.5 whitespace-nowrap text-[12px] text-emerald-700 dark:text-emerald-300" title="Confirmed against a bank statement">✓ cleared</span>}
                     </td>
                     <td className="td whitespace-nowrap">{t.merchant?.name ?? "—"}</td>
                     <td className="td whitespace-nowrap text-xs">

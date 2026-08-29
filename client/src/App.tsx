@@ -22,6 +22,9 @@ import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Bills from "./pages/Bills";
+import Reconcile from "./pages/Reconcile";
+import DemoBanner from "./components/DemoBanner";
 
 interface ProfilesInfo {
   active: string;
@@ -38,6 +41,8 @@ const NAV_GROUPS = [
       { to: "/", label: "Dashboard", icon: "📊" },
       { to: "/transactions", label: "Transactions", icon: "🧾" },
       { to: "/accounts", label: "Accounts", icon: "🏦" },
+      { to: "/reconcile", label: "Reconcile", icon: "⚖️" },
+      { to: "/bills", label: "Bills", icon: "🗓️" },
       { to: "/budgets", label: "Budgets", icon: "🎯" },
       { to: "/goals", label: "Goals", icon: "🏁" },
     ],
@@ -297,11 +302,17 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
           </div>
         </header>
 
+        {/* Sits above the routed page, so it's present on every screen — the
+            one thing you must never miss is that these numbers aren't yours. */}
+        <DemoBanner />
+
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-5 py-6 md:px-8">
           <Routes>
             <Route path="/" element={<Dashboard key={refreshKey} />} />
             <Route path="/transactions" element={<Transactions key={refreshKey} />} />
             <Route path="/accounts" element={<Accounts key={refreshKey} />} />
+            <Route path="/reconcile" element={<Reconcile key={refreshKey} />} />
+            <Route path="/bills" element={<Bills key={refreshKey} />} />
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/goals" element={<Goals />} />
             <Route path="/networth" element={<NetWorth />} />

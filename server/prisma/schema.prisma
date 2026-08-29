@@ -52,6 +52,11 @@ model Transaction {
   notes       String?
   hash        String    @unique
   isTransfer  Boolean   @default(false)
+  /// Reconciliation state: true once the user has confirmed this row appears
+  /// on a bank/card statement. Additive and default false, so every existing
+  /// row becomes "uncleared" on upgrade — nothing is lost and no manual
+  /// migration step is needed. Indexed because reconciliation filters on it.
+  cleared     Boolean   @default(false)
   createdAt   DateTime  @default(now())
   categoryId  Int?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -69,6 +74,11 @@ model Transaction {
   @@index([accountId])
   @@index([amount])
   @@index([isTransfer])
+  @@index([cleared])
+  // Reconciliation always scopes to one account and splits on the statement
+  // date, so the hot query is (accountId, date). This composite index serves
+  // it directly instead of scanning every row of the account.
+  @@index([accountId, date])
 }
 
 model Rule {

@@ -24,6 +24,9 @@ import { calcRouter } from "./routes/calc.js";
 import { retirementRouter } from "./routes/retirement.js";
 import { adminRouter } from "./routes/admin.js";
 import { trackRouter } from "./routes/track.js";
+import { billsRouter } from "./routes/bills.js";
+import { reconcileRouter } from "./routes/reconcile.js";
+import { demoRouter } from "./routes/demo.js";
 
 export function createApp() {
   const app = express();
@@ -98,6 +101,9 @@ export function createApp() {
   app.use("/api/retirement", retirementRouter);
   app.use("/api/track", trackRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/bills", billsRouter);
+  app.use("/api/reconcile", reconcileRouter);
+  app.use("/api/demo", demoRouter);
 
   // SPA fallback for non-API paths (hash router, so mostly "/")
   if (serveClient) {

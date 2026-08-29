@@ -40,6 +40,8 @@ export interface TransactionDTO {
   refNumber: string | null;
   notes: string | null;
   isTransfer: boolean;
+  /** Confirmed against a bank statement during reconciliation. */
+  cleared: boolean;
   category: CategoryDTO | null;
   merchant: MerchantDTO | null;
   account: AccountDTO | null;
@@ -53,6 +55,8 @@ export interface TransactionQuery {
   accountId?: number;
   /** Filter to transactions with no account assigned. */
   unassigned?: boolean;
+  /** Filter by reconciliation state; omit for both. */
+  cleared?: boolean;
   from?: string;
   to?: string;
   minAmount?: number;

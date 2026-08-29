@@ -12,6 +12,7 @@ export function toTransactionDTO(t: any): TransactionDTO {
     refNumber: t.refNumber,
     notes: t.notes,
     isTransfer: t.isTransfer,
+    cleared: t.cleared ?? false,
     category: t.category
       ? { id: t.category.id, name: t.category.name, type: t.category.type, color: t.category.color }
       : null,

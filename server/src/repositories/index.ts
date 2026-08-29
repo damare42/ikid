@@ -28,6 +28,9 @@ export const transactionRepo = {
     if (q.merchantId) where.merchantId = q.merchantId;
     if (q.unassigned) where.accountId = null;
     else if (q.accountId) where.accountId = q.accountId;
+    // Explicit undefined check: `false` is a meaningful filter here (show me
+    // only what I haven't reconciled), so truthiness would drop it silently.
+    if (q.cleared !== undefined) where.cleared = q.cleared;
     if (q.from || q.to) {
       where.date = {};
       if (q.from) where.date.gte = new Date(q.from);

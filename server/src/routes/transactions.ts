@@ -13,7 +13,11 @@ const querySchema = z.object({
   categoryId: z.coerce.number().optional(),
   merchantId: z.coerce.number().optional(),
   accountId: z.coerce.number().optional(),
-  unassigned: z.coerce.boolean().optional(),
+  // NOT z.coerce.boolean(): that is truthiness of a string, so "false" arrives
+  // as `true` and the filter does the opposite of what the URL says. Query
+  // params are always strings, so match on the literal.
+  unassigned: z.enum(["true", "false"]).transform((v) => v === "true").optional(),
+  cleared: z.enum(["true", "false"]).transform((v) => v === "true").optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   minAmount: z.coerce.number().optional(),
