@@ -19,7 +19,8 @@
     "build:demo": "npm run build:demo --workspace client && node scripts/verify-demo-build.mjs",
     "test": "npm test --workspace server",
     "lint": "eslint server/src client/src --ext .ts,.tsx --max-warnings 0",
-    "format": "prettier --write \"{server,client,shared}/**/*.{ts,tsx,css,json}\""
+    "format": "prettier --write \"{server,client,shared}/**/*.{ts,tsx,css,json}\"",
+    "preview:demo": "npm run preview:demo --workspace client"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

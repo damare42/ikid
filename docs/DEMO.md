@@ -57,11 +57,18 @@ The JSON export *does* work, because "your data is yours" is the product's
 central claim and a demo that couldn't demonstrate it would be arguing against
 itself.
 
-## Building it
+## Building and previewing it
 
 ```bash
 npm run build:demo      # → site/app/
+npm run preview:demo    # → http://localhost:4173/ikid/app/
 ```
+
+**Opening `site/app/index.html` directly will not work**, and neither will
+serving `site/` at a web root. The bundle is built with `--base=/ikid/app/`
+because that is where it is deployed, so its asset URLs are absolute:
+`/ikid/app/assets/…`. `preview:demo` runs Vite's preview server with the same
+base, which is the only local setup that matches production.
 
 That delegates to the `client` workspace and then runs
 `scripts/verify-demo-build.mjs`. **The working directory matters**: Tailwind

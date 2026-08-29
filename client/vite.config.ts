@@ -12,10 +12,29 @@ import path from "node:path";
  * silently produced a stylesheet with no utility classes in it and shipped an
  * unstyled app.
  */
+/**
+ * The installed app loads its webfonts from Google. That's a defensible choice
+ * on localhost — it's your machine, your call. It is not defensible on the
+ * public marketing site, which argues at length that it makes no third-party
+ * requests: a visitor clicking "Try the live demo" would go straight from that
+ * claim to a page handing their IP to Google for three font families.
+ *
+ * So the demo build strips the font links and falls back to the system stack,
+ * exactly as site/index.html does.
+ */
+const stripWebfonts = () => ({
+  name: "ikid-strip-webfonts",
+  transformIndexHtml(html: string) {
+    return html
+      .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.[^"]*"[^>]*>/g, "")
+      .replace(/\s*<link[^>]*href="https:\/\/fonts\.googleapis\.com[^"]*"[^>]*>/g, "");
+  },
+});
+
 export default defineConfig(({ mode }) => {
   const isDemo = mode === "demo";
   return {
-    plugins: [react()],
+    plugins: [react(), ...(isDemo ? [stripWebfonts()] : [])],
     // The client reads import.meta.env.VITE_IKID_DEMO; set it from the mode so
     // there's one source of truth and no env var to forget.
     define: {
