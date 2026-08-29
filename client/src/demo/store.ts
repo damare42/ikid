@@ -83,13 +83,29 @@ export function remove(table: TableName, id: number): boolean {
  * rather than reached for generically, so a change in the generator's calls
  * fails here loudly instead of silently returning undefined.
  */
+/**
+ * Columns the Prisma schema fills with `@default(now())`. The generator relies
+ * on that and never sets them, so an in-memory store has to supply them or
+ * every date-formatting call downstream gets `undefined` and throws
+ * "Invalid time value" — which is precisely how this was found.
+ */
+function withDefaults(row: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...row };
+  if (!("importedAt" in out)) delete out.importedAt;
+  return {
+    ...out,
+    ...(row.importedAt === undefined && "filename" in row ? { importedAt: new Date() } : {}),
+    ...(row.createdAt === undefined ? { createdAt: new Date() } : {}),
+  };
+}
+
 function demoDbAdapter(): DemoDb {
   const model = (name: TableName) => ({
     count: async () => store[name].length,
     findMany: async () => store[name],
-    create: async ({ data }: { data: Record<string, unknown> }) => insert(name, data),
+    create: async ({ data }: { data: Record<string, unknown> }) => insert(name, withDefaults(data)),
     createMany: async ({ data }: { data: Record<string, unknown>[] }) => {
-      for (const row of data) insert(name, row);
+      for (const row of data) insert(name, withDefaults(row));
       return { count: data.length };
     },
     deleteMany: async () => {

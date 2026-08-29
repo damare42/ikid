@@ -10,7 +10,15 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "types": ["node"]
+    "types": ["node"],
+    // The demo API test imports client/src/demo, which reaches the shared DTOs
+    // and this workspace's own pure engines through these aliases. Repeated
+    // from client/tsconfig.json so the server typechecker resolves them the
+    // same way the browser build does.
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      "@engine/*": ["./src/services/*"]
+    }
   },
   "include": ["src/**/*.ts", "prisma/*.ts", "../shared/**/*.ts"]
 }

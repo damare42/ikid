@@ -12,3 +12,6 @@ uploads/*
 reports/*.csv
 .DS_Store
 *.log
+
+# Built by `npm run build:demo` and by the Pages workflow — generated, never committed.
+site/app/

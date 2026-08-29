@@ -39,6 +39,28 @@ jobs:
           fi
           echo "site/ is clean."
 
+      # The interactive demo is the real client, built with an in-browser API
+      # instead of a server. Built here rather than committed, so ~900KB of
+      # generated JavaScript stays out of the repository and can never drift
+      # from the source it was built from.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build:demo
+
+      - name: Assert the demo carries no server code
+        run: |
+          # A Prisma client or a node builtin in the bundle would mean a
+          # database-touching module got imported by mistake — it would fail at
+          # runtime for every visitor, so fail the deploy instead.
+          if grep -rlE "PrismaClient|@prisma/client" site/app/assets/ 2>/dev/null; then
+            echo "::error::Server database code leaked into the demo bundle"; exit 1
+          fi
+          test -f site/app/index.html || { echo "::error::demo build produced no index.html"; exit 1; }
+          echo "demo bundle is clean."
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

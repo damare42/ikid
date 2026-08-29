@@ -11,7 +11,16 @@
     "noEmit": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": { "@shared/*": ["../shared/*"] }
+    // @engine reaches the server's *pure* calculation modules — finmath, tax,
+    // retirement, debtPayoff, billsCore, reconcileCore and friends. The hosted
+    // demo runs them in the browser so it computes with the same code the
+    // server does. Only import files from there that have no Prisma import;
+    // anything that touches the database will fail at runtime in a browser.
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      "@engine/*": ["../server/src/services/*"],
+      "@demo": ["./src/demo/index.ts"]
+    }
   },
   "include": ["src", "../shared"]
 }

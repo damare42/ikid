@@ -298,7 +298,7 @@ function goalDTO(g: Record<string, unknown>): GoalDTO {
     targetAmount: g.targetAmount as number,
     currentSaved: g.currentSaved as number,
     monthlyContribution: g.monthlyContribution as number,
-    deadline: g.deadline ? ymd(g.deadline) : null,
+    deadline: g.deadline ? new Date(String(g.deadline)) : null,
   });
   return {
     id: g.id as number,
@@ -348,7 +348,7 @@ route("POST /api/goals/what-if", ({ body }) => {
     targetAmount: Number(b.targetAmount ?? 0),
     currentSaved: Number(b.currentSaved ?? 0),
     monthlyContribution: Number(b.monthlyContribution ?? 0),
-    deadline: b.deadline ? String(b.deadline) : null,
+    deadline: b.deadline ? new Date(String(b.deadline)) : null,
   });
 });
 
