@@ -254,13 +254,31 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
           railCollapsed ? "w-[68px] px-3" : "w-[222px] px-[22px]"
         }`}
       >
-        <div className={`mb-6 ${railCollapsed ? "flex justify-center" : ""}`}>
-          {/* The wordmark is ~1.54:1, so 22px high is ~34px wide and still
-              fits the 44px of content the collapsed rail leaves. */}
-          <IkidLogo height={railCollapsed ? 22 : 30} />
-          {!railCollapsed && (
-            <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
-          )}
+        {/* The toggle lives with the brand, not at the foot of the rail: it's
+            chrome for the panel itself, so it belongs at the panel's head where
+            you look first. Icon only — a button labelled "Collapse" is one more
+            word competing with the navigation it's meant to get out of the way
+            of. */}
+        <div className={`mb-6 flex ${railCollapsed ? "flex-col items-center gap-2" : "items-start gap-2"}`}>
+          <div className="min-w-0 flex-1">
+            {/* The wordmark is ~1.54:1, so 22px high is ~34px wide and still
+                fits the 44px of content the collapsed rail leaves. */}
+            <IkidLogo height={railCollapsed ? 22 : 30} />
+            {!railCollapsed && (
+              <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
+            )}
+          </div>
+          <button
+            onClick={toggleRail}
+            className="shrink-0 rounded-chrome p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            title={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!railCollapsed}
+          >
+            <span aria-hidden="true" className="block text-[15px] leading-none">
+              {railCollapsed ? "»" : "«"}
+            </span>
+          </button>
         </div>
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
           {NAV_GROUPS.map((g) => (
@@ -312,21 +330,11 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
             </div>
           ))}
         </nav>
-        <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
-          <button
-            onClick={toggleRail}
-            className="flex w-full items-center gap-2 rounded-chrome px-1 py-1.5 text-[12px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-            title={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-expanded={!railCollapsed}
-          >
-            <span className="w-4 text-center text-[13px]">{railCollapsed ? "»" : "«"}</span>
-            {!railCollapsed && <span>Collapse</span>}
-          </button>
-          {!railCollapsed && (
-            <div className="mt-2 text-[12px] text-slate-400">100% local · SQLite · no cloud</div>
-          )}
-        </div>
+        {!railCollapsed && (
+          <div className="mt-4 border-t border-slate-100 pt-3 text-[12px] text-slate-400 dark:border-slate-800">
+            100% local · SQLite · no cloud
+          </div>
+        )}
       </aside>
 
       {/* Main */}

@@ -24,25 +24,28 @@ export function StatCard({ label, value, sub, tone = "default" }: {
     : tone === "bad" ? "text-brand-600 dark:text-brand-400"
     : "text-slate-900 dark:text-slate-100";
   return (
-    <div className="card min-w-0">
-      {/* Two lines are reserved whether the label needs them or not. Otherwise
-          "Savings Rate" wraps while "Income" doesn't, and the numbers in a row
-          of cards sit at different heights. */}
-      <div className="min-h-[2rem] text-[12px] font-semibold uppercase leading-4 tracking-[0.14em] text-slate-500 dark:text-slate-400">
+    <div className="card min-w-0 !p-3">
+      {/* One line, always. Reserving two lines for every label (so the wrapping
+          ones lined up) made every card taller than its contents needed and
+          pushed the charts below off the fold. Tighter tracking at 11px fits
+          "Budget Status" on one line even in the seven-across layout, so the
+          cards align because nothing wraps — not because space was padded. */}
+      <div
+        className="truncate text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-slate-500 dark:text-slate-400"
+        title={label}
+      >
         {label}
       </div>
-      {/* Fluid rather than a fixed text-3xl: with seven cards across, a card is
-          about 155px, and a value like "+$1,057.95" simply didn't fit and was
-          clipped mid-digit. Shrinking is the right failure — a number that is
-          slightly smaller is readable, half a number is not. nowrap keeps it
-          from breaking between the sign and the digits. */}
+      {/* Fluid, and capped lower than before. A value like "+$1,057.95" was
+          being clipped at a fixed text-3xl; shrinking is the right failure,
+          since a slightly smaller number is readable and half a number is not. */}
       <div
-        className={`mt-1.5 whitespace-nowrap font-heading font-extrabold leading-tight tracking-tight tabular-nums ${toneCls}`}
-        style={{ fontSize: "clamp(1.25rem, 1.6vw + 0.5rem, 1.875rem)" }}
+        className={`whitespace-nowrap font-heading font-extrabold leading-[1.15] tracking-tight tabular-nums ${toneCls}`}
+        style={{ fontSize: "clamp(1.125rem, 1.35vw + 0.35rem, 1.625rem)" }}
       >
         {value}
       </div>
-      {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{sub}</div>}
+      {sub && <div className="text-[11px] leading-4 text-slate-500 dark:text-slate-400">{sub}</div>}
     </div>
   );
 }
