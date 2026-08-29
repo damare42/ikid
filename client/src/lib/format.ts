@@ -12,8 +12,24 @@ export function fmtMoney(n: number, opts: Intl.NumberFormatOptions = {}): string
   });
 }
 
+/**
+ * Signed, always to the cent. For ledgers and reconciliation, where a single
+ * cent is frequently the thing being looked for.
+ */
 export function fmtSigned(n: number): string {
   return (n > 0 ? "+" : "") + fmtMoney(n, { maximumFractionDigits: 2 });
+}
+
+/**
+ * Signed, but following fmtMoney's magnitude rule — cents only below $1,000.
+ *
+ * For headline figures sitting next to other headline figures. On the
+ * dashboard, Income and Spending round at four digits while Net Savings was
+ * forcing cents, so one card read "+$1,057.95" beside "$3,387": visually
+ * inconsistent, and two characters too wide for the card, which clipped it.
+ */
+export function fmtSignedCompact(n: number): string {
+  return (n > 0 ? "+" : "") + fmtMoney(n);
 }
 
 export function fmtDate(iso: string): string {

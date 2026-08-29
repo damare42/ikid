@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import type { DashboardSummary, MonthlyPoint, NetWorthSummary } from "@shared/types";
 import { useFetch } from "../hooks/useFetch";
-import { fmtDate, fmtMoney, fmtMonth, fmtSigned, monthInputValue, pct } from "../lib/format";
+import { fmtDate, fmtMoney, fmtMonth, fmtSigned, fmtSignedCompact, monthInputValue, pct } from "../lib/format";
 import { Badge, Card, ErrorNote, Modal, ProgressBar, Spinner, StatCard } from "../components/ui";
 import { MonthBreakdownModal } from "../components/MonthBreakdownModal";
 
@@ -212,7 +212,7 @@ export default function Dashboard() {
       <div className={`grid grid-cols-2 gap-3 md:grid-cols-3 ${hasNetWorth ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
-        <StatCard label="Net Savings" value={fmtSigned(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
+        <StatCard label="Net Savings" value={fmtSignedCompact(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
         <StatCard label="Savings Rate" value={pct(s.savingsRate * 100)} tone={s.savingsRate >= 0.15 ? "good" : s.savingsRate < 0 ? "bad" : "default"} />
         <StatCard
           label="Budget Status"

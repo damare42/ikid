@@ -24,9 +24,24 @@ export function StatCard({ label, value, sub, tone = "default" }: {
     : tone === "bad" ? "text-brand-600 dark:text-brand-400"
     : "text-slate-900 dark:text-slate-100";
   return (
-    <div className="card">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</div>
-      <div className={`mt-1.5 font-heading text-3xl font-extrabold tracking-tight tabular-nums ${toneCls}`}>{value}</div>
+    <div className="card min-w-0">
+      {/* Two lines are reserved whether the label needs them or not. Otherwise
+          "Savings Rate" wraps while "Income" doesn't, and the numbers in a row
+          of cards sit at different heights. */}
+      <div className="min-h-[2rem] text-[12px] font-semibold uppercase leading-4 tracking-[0.14em] text-slate-500 dark:text-slate-400">
+        {label}
+      </div>
+      {/* Fluid rather than a fixed text-3xl: with seven cards across, a card is
+          about 155px, and a value like "+$1,057.95" simply didn't fit and was
+          clipped mid-digit. Shrinking is the right failure — a number that is
+          slightly smaller is readable, half a number is not. nowrap keeps it
+          from breaking between the sign and the digits. */}
+      <div
+        className={`mt-1.5 whitespace-nowrap font-heading font-extrabold leading-tight tracking-tight tabular-nums ${toneCls}`}
+        style={{ fontSize: "clamp(1.25rem, 1.6vw + 0.5rem, 1.875rem)" }}
+      >
+        {value}
+      </div>
       {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{sub}</div>}
     </div>
   );
