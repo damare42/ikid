@@ -6,19 +6,14 @@
  */
 import { prisma } from "../lib/prisma.js";
 import { toTransactionDTO } from "../lib/dto.js";
+import {
+  isExpense, isIncome, isInvestment, isTransferTxn, monthKeyOf, round2,
+  type SlimTxn,
+} from "./analyticsTypes.js";
 import { budgetStatus } from "./budgetService.js";
 import type { DashboardSummary, MonthlyPoint } from "../../../shared/types.js";
 
-export interface SlimTxn {
-  date: Date;
-  amount: number;
-  isTransfer: boolean;
-  categoryId: number | null;
-  categoryName: string;
-  categoryColor: string;
-  categoryType: string;
-  merchantName: string;
-}
+export type { SlimTxn } from "./analyticsTypes.js";
 
 export async function loadSlim(from?: Date, to?: Date): Promise<SlimTxn[]> {
   const rows = await prisma.transaction.findMany({
@@ -42,17 +37,11 @@ export async function loadSlim(from?: Date, to?: Date): Promise<SlimTxn[]> {
   }));
 }
 
-/** A transaction is a transfer when flagged OR categorized as a transfer-type
- *  category (Transfers, Savings). Either way it is never income or spending —
- *  paying a credit-card bill must not double-count. */
-export const isTransferTxn = (t: SlimTxn) => t.isTransfer || t.categoryType === "transfer";
-/** Investment purchases are contributions, not consumption — excluded from expenses. */
-export const isInvestment = (t: SlimTxn) =>
-  t.amount < 0 && !isTransferTxn(t) && t.categoryName === "Investment";
-export const isExpense = (t: SlimTxn) => t.amount < 0 && !isTransferTxn(t) && !isInvestment(t);
-export const isIncome = (t: SlimTxn) => t.amount > 0 && !isTransferTxn(t);
-const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-const round2 = (n: number) => Math.round(n * 100) / 100;
+// The conventions live in analyticsTypes.ts — a dependency-free file the
+// hosted demo also imports, so browser and server can't disagree about what
+// counts as spending. Re-exported here so existing importers are unaffected.
+export { isExpense, isIncome, isInvestment, isTransferTxn } from "./analyticsTypes.js";
+const monthKey = monthKeyOf;
 
 export async function monthlySeries(months = 12): Promise<MonthlyPoint[]> {
   const now = new Date();
