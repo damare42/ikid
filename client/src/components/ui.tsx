@@ -24,7 +24,9 @@ export function StatCard({ label, value, sub, tone = "default" }: {
     : tone === "bad" ? "text-brand-600 dark:text-brand-400"
     : "text-slate-900 dark:text-slate-100";
   return (
-    <div className="card min-w-0 !p-2.5">
+    // h-full so a card stretches to its row when the parent is a flex strip
+    // (the dashboard's single-row layout); harmless in a plain grid.
+    <div className="card h-full min-w-0 !p-2.5">
       {/* One line, always. Reserving two lines for every label (so the wrapping
           ones lined up) made every card taller than its contents needed and
           pushed the charts below off the fold. Tight tracking at 10px fits

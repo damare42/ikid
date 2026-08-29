@@ -209,11 +209,18 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      {/* Budget status and health score used to sit here too, duplicating the
-          budget list and the health breakdown further down the page. Five cards
-          fit one row from md upward without shrinking the type, which is what
-          seven never did. */}
-      <div className={`grid grid-cols-2 gap-2 ${hasNetWorth ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
+      {/* One row, always — a flex strip rather than a grid that reflows into
+          two and three rows on narrower windows.
+
+          Each card is `flex-1` with a floor, so they share the width equally
+          when there is room and stop shrinking when there isn't; below that the
+          strip scrolls sideways. Scrolling is the honest failure here: five
+          money figures cannot be legible in 60px each on a phone, and squeezing
+          them until they are unreadable is worse than asking for a swipe.
+
+          Budget status and health score used to sit here too, duplicating the
+          budget list and the health breakdown further down the page. */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [&>*]:min-w-[8.25rem] [&>*]:flex-1">
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
         <StatCard label="Net Savings" value={fmtSignedCompact(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
