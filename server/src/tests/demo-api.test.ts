@@ -148,6 +148,76 @@ describe("the screens that need a computed engine", () => {
     expect(prefill.annualSpending).toBeGreaterThan(0);
   });
 
+  // The planner shipped broken and the suite above didn't notice, because
+  // "GET /api/planner/status" only had to return something non-null — and
+  // `{ profile: "demo" }` is non-null. The page fed that string into fmtMoney,
+  // `undefined.toLocaleString` threw during render, and the whole route came up
+  // blank. An endpoint answering is not the same as an endpoint answering in
+  // the shape its caller reads, so these check the shape and the behaviour.
+  it("planner status returns a profile of numbers, not a placeholder", async () => {
+    const status = (await get("/api/planner/status")) as {
+      profile: Record<string, unknown>;
+      ollama: { available: boolean; reason?: string };
+    };
+    for (const field of [
+      "avgMonthlyIncome", "avgMonthlyExpenses", "avgMonthlySavings",
+      "savingsRate", "avgHousingCost", "liquidSavings", "monthsOfData",
+    ]) {
+      expect(typeof status.profile[field], field).toBe("number");
+      expect(Number.isFinite(status.profile[field] as number), field).toBe(true);
+    }
+    expect(status.profile.avgMonthlyIncome as number).toBeGreaterThan(0);
+    // Local AI can't run in a web page, and the demo says so rather than pretending.
+    expect(status.ollama.available).toBe(false);
+    expect(status.ollama.reason).toMatch(/ollama/i);
+  });
+
+  it("the scenario engine answers with real arithmetic and a projection", async () => {
+    const reply = (await post("/api/planner/chat", {
+      message: "Buy a house for $450k with 20% down",
+      history: [],
+    })) as { source: string; title: string; reply: string; chart: { baseline: number; scenario: number }[] };
+    expect(reply.source).toBe("engine");
+    expect(reply.reply.length).toBeGreaterThan(40);
+    // 20% of $450k plus ~3% closing — the number a visitor can check by hand.
+    expect(reply.reply).toMatch(/\$103,500|\$90,000/);
+    expect(reply.chart.length).toBeGreaterThan(0);
+    // Buying is the expensive branch, so it must end below carrying on as-is.
+    const last = reply.chart[reply.chart.length - 1];
+    expect(last.scenario).toBeLessThan(last.baseline);
+  });
+
+  it("a question the engine can't parse explains itself instead of going quiet", async () => {
+    const reply = (await post("/api/planner/chat", {
+      message: "what do you think about my life choices",
+      history: [],
+    })) as { source: string; reply: string };
+    expect(reply.source).toBe("fallback");
+    expect(reply.reply).toMatch(/ollama/i);
+    // And it still tells you what it *can* do, with your own numbers in it.
+    expect(reply.reply).toMatch(/Buy a house/);
+  });
+
+  it("planner conversations round-trip: save, list, load, update, delete", async () => {
+    const messages = [{ role: "user", content: "Buy a $30k car" }];
+    const created = (await post("/api/planner/conversations", { title: "Car", messages })) as { id: number };
+    const list = (await get("/api/planner/conversations")) as { id: number; messageCount: number }[];
+    expect(list.find((c) => c.id === created.id)?.messageCount).toBe(1);
+
+    const loaded = (await get(`/api/planner/conversations/${created.id}`)) as { messages: unknown[] };
+    expect(loaded.messages).toHaveLength(1);
+
+    await handle("PATCH", `/api/planner/conversations/${created.id}`, {
+      messages: [...messages, { role: "assistant", content: "..." }],
+    });
+    const reloaded = (await get(`/api/planner/conversations/${created.id}`)) as { messages: unknown[] };
+    expect(reloaded.messages).toHaveLength(2);
+
+    await handle("DELETE", `/api/planner/conversations/${created.id}`, undefined);
+    const after = (await get("/api/planner/conversations")) as { id: number }[];
+    expect(after.find((c) => c.id === created.id)).toBeUndefined();
+  });
+
   it("calculators compute (the engines are the real ones)", async () => {
     const amort = (await post("/api/calc/amortization", {
       principal: 300000, ratePct: 6, years: 30, extraMonthly: 0,

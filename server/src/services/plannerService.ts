@@ -8,9 +8,13 @@ import { prisma } from "../lib/prisma.js";
 import { logger } from "../lib/logger.js";
 import { monthlySeries, categoryBreakdown } from "./analyticsService.js";
 import {
-  buyHouse, buyCar, bigEvent, stopWork, incomeChange, expenseChange, emergencyFund, investGrowth,
-  parseIntent, parseStatsIntent, type Profile, type ScenarioResult,
+  parseStatsIntent, profileAverages, statsFromSeries, type Profile, type ScenarioResult,
 } from "./scenarios.js";
+
+// The dispatch itself is pure and lives in the engine, so the hosted demo can
+// run the same code in a browser. Re-exported here because this is where the
+// rest of the server expects to find it.
+export { runScenario } from "./scenarios.js";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "llama3.1";
@@ -19,14 +23,10 @@ export async function buildProfile(windowMonths = 12): Promise<Profile> {
   // Fetch one extra month so the current (partial) month can be dropped and
   // the window still covers `windowMonths` complete months.
   const series = await monthlySeries(Math.min(25, windowMonths + 1));
-  const complete = series.slice(0, -1);
-  // Ignore months with no activity (before the user's data starts) so they
-  // don't drag the averages toward zero.
-  const active = complete.filter((p) => p.income > 0 || p.expenses > 0);
-  const src = active.length > 0 ? active : complete.length > 0 ? complete : series;
-  const n = Math.max(1, src.length);
-  const avgIncome = src.reduce((s, p) => s + p.income, 0) / n;
-  const avgExpenses = src.reduce((s, p) => s + p.expenses, 0) / n;
+  // Dropping the partial month and ignoring inactive ones is arithmetic the
+  // demo has to do identically, so it lives in the engine.
+  const averages = profileAverages(series);
+  const n = averages.monthsOfData;
 
   // Current housing cost: average Housing/Rent/Mortgage spend over the window
   const now = new Date();
@@ -42,13 +42,9 @@ export async function buildProfile(windowMonths = 12): Promise<Profile> {
 
   const r2 = (x: number) => Math.round(x * 100) / 100;
   return {
-    avgMonthlyIncome: r2(avgIncome),
-    avgMonthlyExpenses: r2(avgExpenses),
-    avgMonthlySavings: r2(avgIncome - avgExpenses),
-    savingsRate: avgIncome > 0 ? r2((avgIncome - avgExpenses) / avgIncome) : 0,
+    ...averages,
     avgHousingCost: r2(housingTotal / n),
     liquidSavings: r2(liquid),
-    monthsOfData: n,
   };
 }
 
@@ -56,47 +52,7 @@ export async function buildProfile(windowMonths = 12): Promise<Profile> {
 export async function statsAnswer(text: string): Promise<ScenarioResult | null> {
   const intent = parseStatsIntent(text);
   if (!intent) return null;
-  const series = await monthlySeries(intent.months);
-  const fmt = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
-  const totalIncome = series.reduce((s, p) => s + p.income, 0);
-  const totalExpenses = series.reduce((s, p) => s + p.expenses, 0);
-  const complete = series.length > 1 ? series.slice(0, -1) : series;
-  const avgExpenses = complete.reduce((s, p) => s + p.expenses, 0) / Math.max(1, complete.length);
-  const avgIncome = complete.reduce((s, p) => s + p.income, 0) / Math.max(1, complete.length);
-  const lines = [
-    `Totals: income ${fmt(totalIncome)}, expenses ${fmt(totalExpenses)}, net saved ${fmt(totalIncome - totalExpenses)}.`,
-    `Monthly average (complete months): income ${fmt(avgIncome)}, expenses ${fmt(avgExpenses)}, savings ${fmt(avgIncome - avgExpenses)}.`,
-    "",
-    ...series.map((p) => `${p.month}:  income ${fmt(p.income)} · expenses ${fmt(p.expenses)} · saved ${fmt(p.savings)}`),
-  ];
-  return { title: `📊 Your last ${series.length} months`, lines };
-}
-
-export function runScenario(profile: Profile, text: string): ScenarioResult | null {
-  const intent = parseIntent(text);
-  if (!intent) return null;
-  switch (intent.kind) {
-    case "house":
-      return buyHouse(profile, intent.params as any);
-    case "car":
-      return buyCar(profile, intent.params as any);
-    case "event":
-      return bigEvent(profile, intent.params as any);
-    case "stopwork":
-      return stopWork(profile, intent.params as any);
-    case "emergency":
-      return emergencyFund(profile, intent.params as any);
-    case "income": {
-      const amount = Number(intent.params.amount);
-      // Treat small numbers as monthly, big ones as yearly salary
-      const monthly = amount > 20_000 ? amount / 12 : amount;
-      return incomeChange(profile, Math.round(monthly * 100) / 100);
-    }
-    case "expense":
-      return expenseChange(profile, Number(intent.params.delta));
-    case "invest":
-      return investGrowth(profile, intent.params as any);
-  }
+  return statsFromSeries(text, await monthlySeries(intent.months));
 }
 
 // ---------- optional Ollama ----------
@@ -170,23 +126,6 @@ export async function ollamaChat(
   }
 }
 
-export function fallbackReply(profile: Profile, ollamaReason?: string): string {
-  const fmt = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
-  return [
-    `Here's where you stand: you take home ~${fmt(profile.avgMonthlyIncome)}/mo, spend ~${fmt(profile.avgMonthlyExpenses)}/mo, and save ~${fmt(profile.avgMonthlySavings)}/mo (${Math.round(profile.savingsRate * 100)}%).`,
-    "",
-    "I can model these scenarios exactly — try:",
-    '• "Buy a house for $450k with 10% down"',
-    '• "Buy a $30k car"',
-    '• "Wedding costing $20k in 18 months"',
-    '• "Moving, about $6k"',
-    '• "How much do I need to cover 6 months of expenses?"',
-    '• "Invest $500 a month at 7% for 20 years"',
-    '• "Stop working for 8 months"',
-    '• "What if my expenses go up $800"  ·  "What if I earn $95k"',
-    "",
-    ollamaReason
-      ? `⚠️ Local AI unavailable: ${ollamaReason}`
-      : "Tip: install Ollama (ollama.com) and run `ollama pull llama3.1` to unlock freeform questions here — still 100% local.",
-  ].join("\n");
-}
+// The suggestion list is pure text over a profile, and the demo needs it for
+// exactly the same reason — so it lives in the engine and is re-exported here.
+export { fallbackReply } from "./scenarios.js";

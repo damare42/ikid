@@ -37,8 +37,12 @@ Three deliberate choices, in order of how much they matter:
 2. **The engines are shared, not reimplemented.** `finmath`, `retirement`,
    `debtPayoff`, `goalMath`, `scenarios`, `billsCore` and `reconcileCore` are
    pure TypeScript and run unchanged in a browser, reached through the
-   `@engine` alias. Calculators, bills and reconciliation compute with the
-   server's arithmetic.
+   `@engine` alias. Calculators, bills, reconciliation and the planner compute
+   with the server's arithmetic. When something the demo needs turns out to
+   live in a Prisma-importing service, it moves into the engine rather than
+   getting copied: `runScenario`, `statsFromSeries`, `profileAverages` and
+   `fallbackReply` were all lifted out of `plannerService` for that reason, and
+   the server now imports them back.
 3. **`analyticsTypes.ts` owns the accounting conventions** — the four
    predicates deciding what counts as income, spending, a transfer and an
    investment. The demo imports them rather than restating them. A drifting
@@ -106,7 +110,17 @@ distinct keys, and nothing security-relevant depends on it.
 
 `server/src/tests/demo-api.test.ts` drives the same handlers the browser calls,
 across every endpoint the client is known to request — a blank screen in a
-marketing demo is worse than no demo. It also pins that the generated world
+marketing demo is worse than no demo.
+
+That sweep is necessary and wasn't sufficient. It asserted each endpoint
+returned something non-null, and `/api/planner/status` returned
+`{ profile: "demo" }` — non-null, and the wrong shape. The Planner page fed
+that string to `fmtMoney`, `undefined.toLocaleString` threw during render, and
+the route came up blank while every test stayed green. So the planner now has
+tests that check the *shape* and the *answer*: the profile is seven finite
+numbers, "buy a house for $450k with 20% down" comes back with $103,500 upfront
+and a 25-point projection that ends below the baseline, an unparseable question
+returns the fallback rather than silence, and saved conversations round-trip. It also pins that the generated world
 obeys the app's accounting invariants (net savings is exactly income minus
 spending, the savings rate is plausible), that reconciliation's core identity
 holds, and that the refusals above explain themselves.

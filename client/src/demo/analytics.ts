@@ -45,7 +45,7 @@ const dateParam = (v?: string): Date | undefined => (v ? new Date(v) : undefined
 // Series
 // ---------------------------------------------------------------------------
 
-function monthlySeries(months = 12): MonthlyPoint[] {
+export function monthlySeries(months = 12): MonthlyPoint[] {
   const now = latestDate();
   const from = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
   const txns = slim(from);
@@ -111,7 +111,7 @@ route("GET /api/analytics/yearly", () => {
 
 interface CatRow { id: number | null; name: string; color: string; total: number; count: number }
 
-function categoryBreakdown(from?: Date, to?: Date): CatRow[] {
+export function categoryBreakdown(from?: Date, to?: Date): CatRow[] {
   const map = new Map<string, CatRow>();
   for (const t of slim(from, to)) {
     if (!isExpense(t)) continue;

@@ -272,10 +272,25 @@ export function expenseChange(p: Profile, deltaMonthly: number): ScenarioResult 
 
 // ---------- intent parsing (built-in, no LLM required) ----------
 
-export interface ParsedIntent {
-  kind: "house" | "car" | "event" | "stopwork" | "income" | "expense" | "emergency" | "invest";
-  params: Record<string, number | string>;
-}
+/**
+ * A discriminated union rather than `Record<string, number | string>`.
+ *
+ * The parser always supplies the required field — a bare "buy a house" gets the
+ * default $400k — but the loose type couldn't say so, so the dispatch had to
+ * cast through `any` to call the scenario functions. `any` in the one place
+ * that decides which arithmetic runs is the wrong place for it: it would have
+ * accepted a house intent with no price and produced NaN all the way to the
+ * chart. Now the parser has to prove each shape at the point it builds it.
+ */
+export type ParsedIntent =
+  | { kind: "house"; params: HouseParams }
+  | { kind: "car"; params: CarParams }
+  | { kind: "event"; params: EventParams }
+  | { kind: "stopwork"; params: StopWorkParams }
+  | { kind: "emergency"; params: { months?: number } }
+  | { kind: "invest"; params: InvestParams }
+  | { kind: "income"; params: { amount: number } }
+  | { kind: "expense"; params: { delta: number } };
 
 /**
  * Parse "$400k", "400,000", "1.2m" style amounts; returns the first found.
@@ -400,4 +415,132 @@ export function parseIntent(text: string): ParsedIntent | null {
     return { kind: "expense", params: { delta: negative ? -money : money } };
   }
   return null;
+}
+
+// ---------- dispatch ----------
+
+/**
+ * Text in, exact answer out, or null if nothing here understands the question.
+ *
+ * This lives in the engine rather than in plannerService because it is pure —
+ * a profile and a string — and the hosted demo needs to run it in a browser,
+ * where plannerService can't go (it imports Prisma). A demo that reimplemented
+ * the dispatch would be a second copy of the app's arithmetic, which is the one
+ * thing the demo may not be.
+ */
+export function runScenario(profile: Profile, text: string): ScenarioResult | null {
+  const intent = parseIntent(text);
+  if (!intent) return null;
+  switch (intent.kind) {
+    case "house":
+      return buyHouse(profile, intent.params);
+    case "car":
+      return buyCar(profile, intent.params);
+    case "event":
+      return bigEvent(profile, intent.params);
+    case "stopwork":
+      return stopWork(profile, intent.params);
+    case "emergency":
+      return emergencyFund(profile, intent.params);
+    case "income": {
+      // Treat small numbers as monthly, big ones as a yearly salary.
+      const { amount } = intent.params;
+      const monthly = amount > 20_000 ? amount / 12 : amount;
+      return incomeChange(profile, Math.round(monthly * 100) / 100);
+    }
+    case "expense":
+      return expenseChange(profile, intent.params.delta);
+    case "invest":
+      return investGrowth(profile, intent.params);
+  }
+}
+
+/** One month of the income/expense series, as both callers already have it. */
+export interface MonthTotals {
+  month: string;
+  income: number;
+  expenses: number;
+  savings: number;
+}
+
+/**
+ * "What did I spend over the last six months" — real totals, no model involved.
+ *
+ * Takes the series rather than fetching it, so the server can pass Prisma's and
+ * the demo can pass its own. Returns null when the question wasn't a stats
+ * question, matching `runScenario`.
+ */
+export function statsFromSeries(text: string, series: MonthTotals[]): ScenarioResult | null {
+  if (!parseStatsIntent(text)) return null;
+  const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+  const totalIncome = series.reduce((s, p) => s + p.income, 0);
+  const totalExpenses = series.reduce((s, p) => s + p.expenses, 0);
+  // The running month is partial, so it would drag every average down.
+  const complete = series.length > 1 ? series.slice(0, -1) : series;
+  const n = Math.max(1, complete.length);
+  const avgIncome = complete.reduce((s, p) => s + p.income, 0) / n;
+  const avgExpenses = complete.reduce((s, p) => s + p.expenses, 0) / n;
+  return {
+    title: `📊 Your last ${series.length} months`,
+    lines: [
+      `Totals: income ${money(totalIncome)}, expenses ${money(totalExpenses)}, net saved ${money(totalIncome - totalExpenses)}.`,
+      `Monthly average (complete months): income ${money(avgIncome)}, expenses ${money(avgExpenses)}, savings ${money(avgIncome - avgExpenses)}.`,
+      "",
+      ...series.map((p) => `${p.month}:  income ${money(p.income)} · expenses ${money(p.expenses)} · saved ${money(p.savings)}`),
+    ],
+  };
+}
+
+/**
+ * Averages from a month series — the arithmetic half of `buildProfile`.
+ *
+ * Split out for the same reason as `runScenario`: the demo has its own series
+ * and must not compute its averages a second, slightly different way.
+ */
+export function profileAverages(series: MonthTotals[]): {
+  avgMonthlyIncome: number; avgMonthlyExpenses: number; avgMonthlySavings: number;
+  savingsRate: number; monthsOfData: number;
+} {
+  const complete = series.slice(0, -1);
+  // Months before the user's data starts have no activity and would drag the
+  // averages toward zero.
+  const active = complete.filter((p) => p.income > 0 || p.expenses > 0);
+  const src = active.length > 0 ? active : complete.length > 0 ? complete : series;
+  const n = Math.max(1, src.length);
+  const avgIncome = src.reduce((s, p) => s + p.income, 0) / n;
+  const avgExpenses = src.reduce((s, p) => s + p.expenses, 0) / n;
+  const r2 = (x: number) => Math.round(x * 100) / 100;
+  return {
+    avgMonthlyIncome: r2(avgIncome),
+    avgMonthlyExpenses: r2(avgExpenses),
+    avgMonthlySavings: r2(avgIncome - avgExpenses),
+    savingsRate: avgIncome > 0 ? r2((avgIncome - avgExpenses) / avgIncome) : 0,
+    monthsOfData: n,
+  };
+}
+
+/**
+ * What to say when nothing deterministic matched and no model is available.
+ *
+ * Pure text over a profile, so both the server and the hosted demo use it.
+ */
+export function fallbackReply(profile: Profile, ollamaReason?: string): string {
+  const fmt = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+  return [
+    `Here's where you stand: you take home ~${fmt(profile.avgMonthlyIncome)}/mo, spend ~${fmt(profile.avgMonthlyExpenses)}/mo, and save ~${fmt(profile.avgMonthlySavings)}/mo (${Math.round(profile.savingsRate * 100)}%).`,
+    "",
+    "I can model these scenarios exactly — try:",
+    '• "Buy a house for $450k with 10% down"',
+    '• "Buy a $30k car"',
+    '• "Wedding costing $20k in 18 months"',
+    '• "Moving, about $6k"',
+    '• "How much do I need to cover 6 months of expenses?"',
+    '• "Invest $500 a month at 7% for 20 years"',
+    '• "Stop working for 8 months"',
+    '• "What if my expenses go up $800"  ·  "What if I earn $95k"',
+    "",
+    ollamaReason
+      ? `⚠️ Local AI unavailable: ${ollamaReason}`
+      : "Tip: install Ollama (ollama.com) and run `ollama pull llama3.1` to unlock freeform questions here — still 100% local.",
+  ].join("\n");
 }

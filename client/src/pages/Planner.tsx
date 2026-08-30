@@ -140,6 +140,16 @@ export default function Planner() {
     }
   }
 
+  // The three figures the empty state quotes, only if they're all real numbers.
+  const p = status?.profile;
+  const profileNumbers =
+    p &&
+    [p.avgMonthlyIncome, p.avgMonthlyExpenses, p.avgMonthlySavings].every(
+      (n) => typeof n === "number" && Number.isFinite(n),
+    )
+      ? p
+      : null;
+
   return (
     <div className="mx-auto flex h-[calc(100vh-7.5rem)] max-w-3xl flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -220,8 +230,14 @@ export default function Planner() {
             <div className="font-medium">Model a decision before you make it</div>
             <p className="max-w-md text-sm text-slate-500">
               I use your real numbers
-              {status &&
-                ` — ${fmtMoney(status.profile.avgMonthlyIncome)}/mo income, ${fmtMoney(status.profile.avgMonthlyExpenses)}/mo expenses, ${fmtMoney(status.profile.avgMonthlySavings)}/mo saved`}
+              {/* Guarded, because this line took the whole page down once. If
+                  /api/planner/status came back without a numeric profile,
+                  fmtMoney received undefined, `undefined.toLocaleString` threw
+                  during render, and React unmounted the route — a blank
+                  Planner, with the actual fault three layers away in an
+                  endpoint. One bad field should cost one sentence. */}
+              {profileNumbers &&
+                ` — ${fmtMoney(profileNumbers.avgMonthlyIncome)}/mo income, ${fmtMoney(profileNumbers.avgMonthlyExpenses)}/mo expenses, ${fmtMoney(profileNumbers.avgMonthlySavings)}/mo saved`}
               . Ask about a house, car, wedding, moving, a career break, or income/expense changes.
             </p>
             <div className="flex max-w-lg flex-wrap justify-center gap-2">

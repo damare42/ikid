@@ -13,10 +13,14 @@ import { comparePayoff } from "@engine/debtPayoff.js";
 import { simulateRetirement } from "@engine/retirement.js";
 import { buildBillsSummary, type MerchantCharges } from "@engine/billsCore.js";
 import { buildReconciliation, type ReconcileTxn } from "@engine/reconcileCore.js";
-import { parseIntent } from "@engine/scenarios.js";
+import {
+  fallbackReply, parseStatsIntent, parseWindowMonths, profileAverages, runScenario,
+  statsFromSeries, type Profile,
+} from "@engine/scenarios.js";
 import { DemoHttpError, num, route, str } from "./router.js";
 import { db, find, insert, remove } from "./store.js";
 import { allTxns, asDate, categoryDTO, latestDate, merchantDTO, round2, ymd } from "./data.js";
+import { categoryBreakdown, monthlySeries } from "./analytics.js";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const today = () => {
@@ -365,39 +369,130 @@ route("GET /api/retirement/prefill", () => {
 // Planner — the deterministic engine works; the local LLM obviously cannot
 // ---------------------------------------------------------------------------
 
+const OLLAMA_REASON =
+  "The optional local AI needs Ollama running on your own machine, so it can't be part of a demo in a web page. " +
+  "Everything else still works: the scenario engine is deterministic and does all the arithmetic — the model only ever narrates it.";
+
+/**
+ * The same profile the server builds, from the demo's own transactions.
+ *
+ * This used to return the string "demo", which the Planner page fed straight
+ * into `fmtMoney` — `undefined.toLocaleString` threw during render and React
+ * unmounted the route, so the whole page came up blank. A stub that doesn't
+ * match the shape it stands in for isn't a stub, it's a crash.
+ */
+function demoProfile(windowMonths = 12): Profile {
+  const series = monthlySeries(Math.min(25, windowMonths + 1));
+  const averages = profileAverages(series);
+  const now = latestDate();
+  const from = new Date(now.getFullYear(), now.getMonth() - averages.monthsOfData, 1);
+  const housing = categoryBreakdown(from, now)
+    .filter((c) => ["housing", "rent", "mortgage"].includes(c.name.toLowerCase()))
+    .reduce((s, c) => s + c.total, 0);
+  const liquid = db().goal.reduce((s, g) => s + ((g.currentSaved as number) ?? 0), 0);
+  return {
+    ...averages,
+    avgHousingCost: round2(housing / Math.max(1, averages.monthsOfData)),
+    liquidSavings: round2(liquid),
+  };
+}
+
 route("GET /api/planner/status", () => ({
-  profile: "demo",
-  ollama: {
-    available: false,
-    model: "llama3.1",
-    reason:
-      "The optional local AI needs Ollama running on your own machine, so it can't be part of a demo in a web page. " +
-      "Everything below still works: the scenario engine is deterministic and does all the arithmetic — the model only ever narrates it.",
-  },
+  profile: demoProfile(),
+  ollama: { available: false, model: "llama3.1", reason: OLLAMA_REASON },
 }));
 
-route("GET /api/planner/conversations", () => []);
-route("POST /api/planner/conversations", ({ body }) => {
-  const title = String((body as { title?: string })?.title ?? "New conversation");
-  const row = insert("conversation", { title, messages: "[]" });
-  return { id: row.id, title };
+// ---- saved conversations: they really save, for this browser session ----
+
+const convoMessages = (row: Record<string, unknown>): unknown[] => {
+  try { return JSON.parse(String(row.messages ?? "[]")); } catch { return []; }
+};
+
+route("GET /api/planner/conversations", () =>
+  db().conversation
+    .map((r) => ({
+      id: r.id,
+      title: r.title as string,
+      updatedAt: asDate(r.updatedAt).toISOString(),
+      messageCount: convoMessages(r).length,
+    }))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+
+route("GET /api/planner/conversations/:id", ({ params }) => {
+  const row = find("conversation", Number(params.id));
+  if (!row) throw new DemoHttpError(404, "Conversation not found");
+  return { id: row.id, title: row.title, messages: convoMessages(row) };
 });
 
+route("POST /api/planner/conversations", ({ body }) => {
+  const b = (body ?? {}) as { title?: string; messages?: unknown[] };
+  // Prisma fills createdAt/updatedAt from the schema; the in-memory store only
+  // does that for rows inserted through the seeding adapter, so handlers set
+  // them themselves.
+  const now = new Date();
+  const row = insert("conversation", {
+    title: String(b.title ?? "New conversation"),
+    messages: JSON.stringify(b.messages ?? []),
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { id: row.id, title: row.title };
+});
+
+route("PATCH /api/planner/conversations/:id", ({ params, body }) => {
+  const row = find("conversation", Number(params.id));
+  if (!row) throw new DemoHttpError(404, "Conversation not found");
+  const b = (body ?? {}) as { title?: string; messages?: unknown[] };
+  if (b.title != null) row.title = b.title;
+  if (b.messages != null) row.messages = JSON.stringify(b.messages);
+  row.updatedAt = new Date();
+  return { id: row.id, title: row.title };
+});
+
+route("DELETE /api/planner/conversations/:id", ({ params }) => {
+  remove("conversation", Number(params.id));
+  return { ok: true };
+});
+
+// ---- chat ----
+
+/**
+ * The same two deterministic paths the server tries, in the same order, using
+ * the same engine functions — `statsFromSeries` and `runScenario` are pure and
+ * imported, not reimplemented.
+ *
+ * The third path, a local LLM for freeform questions, is the one thing here a
+ * web page genuinely cannot do, so it says so instead of inventing an answer.
+ * That refusal is the point: the model never does arithmetic in this app, so a
+ * demo without it still shows every number the product would show.
+ */
 route("POST /api/planner/chat", ({ body }) => {
   const message = String((body as { message?: string })?.message ?? "");
-  const intent = parseIntent(message);
-  if (!intent) {
+  const windowMonths = parseWindowMonths(message) ?? 12;
+  const profile = demoProfile(windowMonths);
+
+  const statsIntent = parseStatsIntent(message);
+  const stats = statsIntent ? statsFromSeries(message, monthlySeries(statsIntent.months)) : null;
+  if (stats) {
+    return { source: "engine", title: stats.title, reply: stats.lines.join("\n"), lines: stats.lines, chart: null };
+  }
+
+  const scenario = runScenario(profile, message);
+  if (scenario) {
     return {
-      reply:
-        "The demo runs the deterministic scenario engine, which understands things like " +
-        '"buy a house for $450k with 10% down", "invest $500 a month at 7% for 20 years", ' +
-        'or "stop working for 8 months". Freeform questions need a local Ollama model, which a web page can\'t reach.',
-      result: null,
+      source: "engine",
+      title: scenario.title,
+      reply: scenario.lines.join("\n"),
+      lines: scenario.lines,
+      chart: scenario.chart ?? null,
     };
   }
+
   return {
-    reply: `Here is what the engine computes for that, from the demo's own averages.`,
-    result: null,
-    intent,
+    source: "fallback",
+    title: null,
+    reply: fallbackReply(profile, OLLAMA_REASON),
+    lines: [],
+    chart: null,
   };
 });

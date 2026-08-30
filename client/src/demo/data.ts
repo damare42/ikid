@@ -15,7 +15,22 @@ export const round2 = (n: number): number => Math.round(n * 100) / 100;
 export const ymd = (d: unknown): string =>
   d instanceof Date ? d.toISOString().slice(0, 10) : String(d).slice(0, 10);
 
-export const asDate = (d: unknown): Date => (d instanceof Date ? d : new Date(String(d)));
+/**
+ * Coerce a stored value to a Date, falling back to now for anything unusable.
+ *
+ * The fallback is not laziness. Prisma fills `@default(now())` columns on the
+ * server, and the in-memory store only reproduces that for rows created through
+ * the seeding adapter — a handler that inserts a row directly and forgets a
+ * timestamp used to produce `new Date("undefined")`, whose `toISOString()`
+ * throws `RangeError: Invalid time value` and takes the whole page down with
+ * it. A missing timestamp is worth a slightly wrong date; it is not worth a
+ * blank screen.
+ */
+export const asDate = (d: unknown): Date => {
+  if (d instanceof Date) return isNaN(d.getTime()) ? new Date() : d;
+  const parsed = new Date(String(d));
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+};
 
 // ---------- joins ----------
 

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+**The demo's Planner works**
+
+It rendered blank. `/api/planner/status` returned `{ profile: "demo" }` where
+the page expected a numbers object, so `fmtMoney(undefined)` threw during
+render and React unmounted the route. The chat handler had the same problem one
+layer down: it parsed the question and then dropped the result, so no scenario
+ever ran.
+
+- The demo builds a real profile from its own transactions and runs the actual
+  scenario engine — "buy a house for $450k with 20% down" now answers with
+  $103,500 upfront and a 24-month projection, same as the installed app
+- `runScenario`, `statsFromSeries`, `profileAverages` and `fallbackReply` moved
+  from `plannerService` (which imports Prisma) into the pure `scenarios` engine
+  so both the server and the browser run one copy
+- Saved conversations save, list, load, update and delete in the demo
+- `ParsedIntent` is a discriminated union instead of
+  `Record<string, number | string>`, removing the `as any` casts from the one
+  function that decides which arithmetic runs
+- `asDate` no longer returns an invalid Date, which was one missing timestamp
+  away from blanking a page the same way
+
 **Chart colour means one thing again**
 
 Green and crimson had drifted from "money in / money out" to "good / bad", and
