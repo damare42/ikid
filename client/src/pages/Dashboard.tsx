@@ -9,6 +9,7 @@ import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtMoney, fmtMonth, fmtSigned, fmtSignedCompact, monthInputValue, pct } from "../lib/format";
 import { Badge, Card, ErrorNote, Modal, ProgressBar, Spinner, StatCard } from "../components/ui";
 import { MonthBreakdownModal } from "../components/MonthBreakdownModal";
+import { useChartColors } from "../lib/chartColors";
 
 interface CspBucket {
   key: string;
@@ -140,6 +141,7 @@ function CspDetailModal({ csp, onClose, onOpenCategory }: {
 }
 
 export default function Dashboard() {
+  const c = useChartColors();
   // Month/range live in the URL so browser Back returns to the exact view.
   const [params, setParams] = useSearchParams();
   const month = params.get("month") ?? monthInputValue();
@@ -247,8 +249,8 @@ export default function Dashboard() {
               <AreaChart data={s.cashFlow}>
                 <defs>
                   <linearGradient id="cf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0} />
+                    <stop offset="0%" stopColor={c.series[0]} stopOpacity={0.5} />
+                    <stop offset="100%" stopColor={c.series[0]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -259,7 +261,10 @@ export default function Dashboard() {
                 />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
                 <Tooltip formatter={(v: number) => fmtSigned(v)} labelFormatter={(d) => fmtDate(String(d))} />
-                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke="#1a7f5a" fill="url(#cf)" />
+                {/* Categorical, not semantic: a running cash-flow total crosses zero.
+                    Drawing it in the income green claimed "money in" for a line
+                    that is frequently negative. */}
+                <Area type="monotone" dataKey="cumulative" name="Cumulative" stroke={c.series[0]} fill="url(#cf)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -356,8 +361,8 @@ export default function Dashboard() {
               <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
               <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
               <Legend />
-              <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

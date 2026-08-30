@@ -9,6 +9,7 @@ import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtMoney, fmtMonth } from "../lib/format";
 import { Badge, Card, ProgressBar, Spinner } from "../components/ui";
 import { MonthBreakdownModal } from "../components/MonthBreakdownModal";
+import { useChartColors } from "../lib/chartColors";
 
 type Tab = "trends" | "breakdown" | "recurring" | "insights";
 
@@ -47,6 +48,7 @@ export default function Analytics() {
 }
 
 function Trends() {
+  const c = useChartColors();
   const { data: monthly } = useFetch<MonthlyPoint[]>("/api/analytics/monthly?months=12");
   const [breakdownMonth, setBreakdownMonth] = useState<string | null>(null);
   const { data: weekly } = useFetch<{ week: string; spending: number }[]>("/api/analytics/weekly?weeks=12");
@@ -73,8 +75,8 @@ function Trends() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -86,7 +88,7 @@ function Trends() {
             <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={11} />
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
-            <Line type="monotone" dataKey="savings" name="Net savings" stroke="#6366f1" strokeWidth={2} dot />
+            <Line type="monotone" dataKey="savings" name="Net savings" stroke={c.series[0]} strokeWidth={2} dot />
           </LineChart>
         </ResponsiveContainer>
       </Card>
@@ -98,7 +100,7 @@ function Trends() {
             <XAxis dataKey="week" tickFormatter={(d) => d.slice(5)} fontSize={11} />
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
-            <Bar dataKey="spending" name="Spending" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="spending" name="Spending" fill={c.out} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -111,10 +113,10 @@ function Trends() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1a7f5a" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="savings" name="Savings" fill="#6366f1" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="investments" name="Investments" fill="#10b981" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="savings" name="Savings" fill={c.series[0]} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="investments" name="Investments" fill={c.series[1]} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -189,6 +191,7 @@ function Heatmap({ data }: { data: { date: string; total: number }[] }) {
 }
 
 function Breakdown() {
+  const c = useChartColors();
   // Date range lives in the URL so Back restores the exact view.
   const [params, setParams] = useSearchParams();
   const from = params.get("from") ?? "";
@@ -271,7 +274,7 @@ function Breakdown() {
                 <XAxis type="number" fontSize={11} tickFormatter={(v) => fmtMoney(v)} />
                 <YAxis type="category" dataKey="name" fontSize={11} width={110} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} />
-                <Bar dataKey="total" fill="#0ea5e9" radius={[0, 3, 3, 0]} />
+                <Bar dataKey="total" fill={c.series[0]} radius={[0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

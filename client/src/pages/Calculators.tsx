@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card, ErrorNote, StatCard } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 /** Deterministic calculators backed by the server's tested finmath engine. */
 
@@ -261,6 +262,7 @@ function useCalc<T>(url: string, body: Record<string, number> | null) {
 }
 
 function Amortization({ initial, onSave }: CalcProps) {
+  const c = useChartColors();
   const [principal, setPrincipal] = useState(init(initial, "principal", "320000"));
   const [ratePct, setRatePct] = useState(init(initial, "ratePct", "6.5"));
   const [years, setYears] = useState(init(initial, "years", "30"));
@@ -326,13 +328,24 @@ function Amortization({ initial, onSave }: CalcProps) {
                 <YAxis yAxisId="bal" orientation="right" fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
                 <Legend />
-                <Bar yAxisId="pay" dataKey="principalPaid" name="Principal" stackId="a" fill="#1a7f5a" />
-                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill="#a4123a" />
-                <Line yAxisId="bal" type="monotone" dataKey="balance" name="Balance" stroke="#6366f1" strokeWidth={2} dot={false} />
+                {/* Categorical, not semantic. This used to be green principal
+                    on crimson interest, which read as "good money / bad money"
+                    — but both bars are cash leaving your account on the same
+                    day. The only true difference is where it lands: principal
+                    becomes equity you own, interest is the lender's fee. Two
+                    neutral hues say "these are different" without pretending
+                    one of them is income. */}
+                <Bar yAxisId="pay" dataKey="principalPaid" name="Principal" stackId="a" fill={c.series[0]} />
+                <Bar yAxisId="pay" dataKey="interestPaid" name="Interest" stackId="a" fill={c.series[1]} />
+                {/* The outstanding balance is the backdrop the split happens
+                    against, so it takes the receding comparator colour rather
+                    than a third categorical slot. */}
+                <Line yAxisId="bal" type="monotone" dataKey="balance" name="Balance" stroke={c.muted} strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
             <div className="mt-2 text-xs text-slate-400">
-              Early years are mostly interest — extra principal payments hit hardest at the start.
+              Both bars are money leaving your account — the split is how much of it you keep.
+              Early years are mostly interest, so extra principal payments hit hardest at the start.
             </div>
           </Card>
         </>
@@ -346,6 +359,7 @@ function Amortization({ initial, onSave }: CalcProps) {
  * Prefills from Net Worth liabilities and credit/loan accounts.
  */
 function DebtPayoff() {
+  const c = useChartColors();
   const [rows, setRows] = useState<DebtRow[]>([
     { name: "Card 1", balance: 3000, ratePct: 24.99, minPayment: 90 },
     { name: "Card 2", balance: 800, ratePct: 19.99, minPayment: 35 },
@@ -498,16 +512,19 @@ function DebtPayoff() {
                 <ResponsiveContainer width="100%" height={240}>
                   <AreaChart data={plan.schedule}>
                     <defs>
+                      {/* Crimson is right here and stays: a debt balance is
+                          money owed, the same thing liabilities mean on Net
+                          Worth. Semantic use, not decoration. */}
                       <linearGradient id="debtFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#a4123a" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#a4123a" stopOpacity={0.05} />
+                        <stop offset="0%" stopColor={c.out} stopOpacity={0.4} />
+                        <stop offset="100%" stopColor={c.out} stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
                     <XAxis dataKey="month" fontSize={11} tickFormatter={(m) => `m${m}`} />
                     <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                     <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => `Month ${m}`} />
-                    <Area type="monotone" dataKey="remaining" name="Still owed" stroke="#a4123a" fill="url(#debtFill)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="remaining" name="Still owed" stroke={c.out} fill="url(#debtFill)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </Card>
@@ -528,6 +545,7 @@ function DebtPayoff() {
 }
 
 function Fire({ initial, onSave }: CalcProps) {
+  const c = useChartColors();
   const [age, setAge] = useState(init(initial, "currentAge", "30"));
   const [balance, setBalance] = useState(init(initial, "currentBalance", "50000"));
   const [monthly, setMonthly] = useState(init(initial, "monthlyContribution", "1500"));
@@ -602,8 +620,8 @@ function Fire({ initial, onSave }: CalcProps) {
               <AreaChart data={result.series}>
                 <defs>
                   <linearGradient id="fireBal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f97316" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="#f97316" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={c.series[0]} stopOpacity={0.45} />
+                    <stop offset="100%" stopColor={c.series[0]} stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -611,14 +629,17 @@ function Fire({ initial, onSave }: CalcProps) {
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={85} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(v) => `Age ${v}`} />
                 <Legend />
+                {/* The FIRE number is a target you are trying to reach. It was
+                    drawn in the money-out crimson, which framed the goal as a
+                    warning. Annotation colour instead. */}
                 <ReferenceLine
                   y={result.fireNumber}
-                  stroke="#a4123a"
+                  stroke={c.reference}
                   strokeDasharray="6 4"
-                  label={{ value: "FIRE number", fill: "#a4123a", fontSize: 11, position: "insideTopRight" }}
+                  label={{ value: "FIRE number", fill: c.reference, fontSize: 11, position: "insideTopRight" }}
                 />
-                <Area type="monotone" dataKey="balance" name="Portfolio" stroke="#f97316" fill="url(#fireBal)" strokeWidth={2} />
-                <Area type="monotone" dataKey="contributed" name="Contributed" stroke="#94a3b8" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
+                <Area type="monotone" dataKey="balance" name="Portfolio" stroke={c.series[0]} fill="url(#fireBal)" strokeWidth={2} />
+                <Area type="monotone" dataKey="contributed" name="Contributed" stroke={c.muted} fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
               </AreaChart>
             </ResponsiveContainer>
             {!result.achievable && !result.alreadyFire && (
@@ -635,6 +656,7 @@ function Fire({ initial, onSave }: CalcProps) {
 }
 
 function Coast({ initial, onSave }: CalcProps) {
+  const c = useChartColors();
   const [age, setAge] = useState(init(initial, "currentAge", "30"));
   const [retireAge, setRetireAge] = useState(init(initial, "retireAge", "65"));
   const [balance, setBalance] = useState(init(initial, "currentBalance", "50000"));
@@ -733,13 +755,13 @@ function Coast({ initial, onSave }: CalcProps) {
                 {result.coastAge != null && !result.alreadyCoasting && (
                   <ReferenceLine
                     x={result.series.reduce((best, pt) => (Math.abs(pt.age - result.coastAge!) < Math.abs(best - result.coastAge!) ? pt.age : best), result.series[0].age)}
-                    stroke="#1a7f5a"
+                    stroke={c.reference}
                     strokeDasharray="6 4"
-                    label={{ value: "coast!", fill: "#1a7f5a", fontSize: 11, position: "insideTopLeft" }}
+                    label={{ value: "coast!", fill: c.reference, fontSize: 11, position: "insideTopLeft" }}
                   />
                 )}
-                <Line type="monotone" dataKey="balance" name="Portfolio" stroke="#0ea5e9" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="coastNumber" name="Coast threshold" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+                <Line type="monotone" dataKey="balance" name="Portfolio" stroke={c.series[0]} strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="coastNumber" name="Coast threshold" stroke={c.series[1]} strokeWidth={2} strokeDasharray="5 4" dot={false} />
               </LineChart>
             </ResponsiveContainer>
             <div className="mt-2 text-xs text-slate-400">
@@ -753,6 +775,7 @@ function Coast({ initial, onSave }: CalcProps) {
 }
 
 function Compound({ initial, onSave }: CalcProps) {
+  const c = useChartColors();
   const [principal, setPrincipal] = useState(init(initial, "principal", "10000"));
   const [monthly, setMonthly] = useState(init(initial, "monthly", "500"));
   const [ratePct, setRatePct] = useState(init(initial, "ratePct", "7"));
@@ -814,12 +837,12 @@ function Compound({ initial, onSave }: CalcProps) {
               <AreaChart data={result.series}>
                 <defs>
                   <linearGradient id="cgBal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={c.series[0]} stopOpacity={0.5} />
+                    <stop offset="100%" stopColor={c.series[0]} stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="cgCon" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#94a3b8" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#94a3b8" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={c.muted} stopOpacity={0.5} />
+                    <stop offset="100%" stopColor={c.muted} stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -827,8 +850,8 @@ function Compound({ initial, onSave }: CalcProps) {
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
                 <Legend />
-                <Area type="monotone" dataKey="balance" name="Balance" stroke="#1a7f5a" fill="url(#cgBal)" strokeWidth={2} />
-                <Area type="monotone" dataKey="contributed" name="Contributed" stroke="#94a3b8" fill="url(#cgCon)" strokeWidth={2} />
+                <Area type="monotone" dataKey="balance" name="Balance" stroke={c.series[0]} fill="url(#cgBal)" strokeWidth={2} />
+                <Area type="monotone" dataKey="contributed" name="Contributed" stroke={c.muted} fill="url(#cgCon)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
             <div className="mt-2 text-xs text-slate-400">

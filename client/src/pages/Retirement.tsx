@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney } from "../lib/format";
 import { Card, ErrorNote, StatCard } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 /**
  * 🧭 Retirement — methodical early-retirement planning across account types.
@@ -101,6 +102,7 @@ function InfoTip({ children }: { children: React.ReactNode }) {
 }
 
 export default function Retirement() {
+  const c = useChartColors();
   // About you
   const [currentAge, setCurrentAge] = useState("35");
   const [retireAge, setRetireAge] = useState("45");
@@ -467,13 +469,21 @@ export default function Retirement() {
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={85} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
                 <Legend />
-                <ReferenceLine x={Number(retireAge)} stroke="#f59e0b" strokeDasharray="5 4" label={{ value: "retire", fontSize: 10, fill: "#f59e0b" }} />
-                <ReferenceLine x={60} stroke="#64748b" strokeDasharray="5 4" label={{ value: "59½", fontSize: 10, fill: "#64748b" }} />
-                <ReferenceLine x={Number(rmdAge)} stroke="#a855f7" strokeDasharray="5 4" label={{ value: "RMD", fontSize: 10, fill: "#a855f7" }} />
-                <Area type="monotone" stackId="1" dataKey="trad" name="Traditional" stroke="#6366f1" fill="#6366f1" fillOpacity={0.5} />
-                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke="#1a7f5a" fill="#1a7f5a" fillOpacity={0.5} />
-                <Area type="monotone" stackId="1" dataKey="brokerage" name="Brokerage" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
-                <Area type="monotone" stackId="1" dataKey="hsa" name="HSA" stroke="#f97316" fill="#f97316" fillOpacity={0.5} />
+                {/* Three annotations, one annotation colour. They were amber, cool
+                    grey and purple — three hues that looked like three more series
+                    on a chart that already has four. They are labelled and sit at
+                    different ages; they don't need to be told apart by hue. */}
+                <ReferenceLine x={Number(retireAge)} stroke={c.reference} strokeDasharray="5 4" label={{ value: "retire", fontSize: 10, fill: c.reference }} />
+                <ReferenceLine x={60} stroke={c.reference} strokeDasharray="5 4" label={{ value: "59½", fontSize: 10, fill: c.reference }} />
+                <ReferenceLine x={Number(rmdAge)} stroke={c.reference} strokeDasharray="5 4" label={{ value: "RMD", fontSize: 10, fill: c.reference }} />
+                {/* Four account types are four categories, not four verdicts — Roth
+                    was green only because Roth is the one people like. Colours are
+                    taken from the ramp in stack order, which is what keeps the one
+                    confusable pair (slots 0 and 2) from ending up adjacent. */}
+                <Area type="monotone" stackId="1" dataKey="trad" name="Traditional" stroke={c.series[0]} fill={c.series[0]} fillOpacity={0.5} />
+                <Area type="monotone" stackId="1" dataKey="roth" name="Roth" stroke={c.series[1]} fill={c.series[1]} fillOpacity={0.5} />
+                <Area type="monotone" stackId="1" dataKey="brokerage" name="Brokerage" stroke={c.series[2]} fill={c.series[2]} fillOpacity={0.5} />
+                <Area type="monotone" stackId="1" dataKey="hsa" name="HSA" stroke={c.series[3]} fill={c.series[3]} fillOpacity={0.5} />
               </AreaChart>
             </ResponsiveContainer>
           </Card>
@@ -488,9 +498,13 @@ export default function Retirement() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
                   <Legend />
-                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill="#a4123a" />
-                  <Bar dataKey="penalty" name="10% penalty" stackId="t" fill="#7f1d1d" />
-                  <Bar dataKey="conversion" name="Roth conversion" fill="#1a7f5a" fillOpacity={0.35} />
+                  {/* Tax and penalty really are money out, so crimson is correct and
+                      stays; the two stack, so the penalty takes the deeper stop of
+                      the same colour rather than a different meaning. The Roth
+                      conversion is an amount moved, not income — it loses the green. */}
+                  <Bar dataKey="tax" name="Federal tax" stackId="t" fill={c.out} />
+                  <Bar dataKey="penalty" name="10% penalty" stackId="t" fill={c.outAlt} />
+                  <Bar dataKey="conversion" name="Roth conversion" fill={c.series[0]} fillOpacity={0.35} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

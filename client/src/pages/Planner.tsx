@@ -3,6 +3,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { api } from "../lib/api";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 interface ChartPoint {
   month: string;
@@ -48,6 +49,7 @@ interface ConvoSummary {
 }
 
 export default function Planner() {
+  const c = useChartColors();
   const [status, setStatus] = useState<PlannerStatus | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -252,8 +254,11 @@ export default function Planner() {
                           <YAxis fontSize={10} tickFormatter={(v) => fmtMoney(v)} width={70} />
                           <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(l) => fmtMonth(String(l))} />
                           <Legend />
-                          <Line type="monotone" dataKey="baseline" name="Keep as-is" stroke="#94a3b8" strokeDasharray="4 4" dot={false} />
-                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke="#1a7f5a" strokeWidth={2} dot={false} />
+                          {/* The scenario used to be green and the baseline grey, which told
+                              the reader the proposal was the better one before the
+                              engine had said so. Two neutral hues; the numbers argue. */}
+                          <Line type="monotone" dataKey="baseline" name="Keep as-is" stroke={c.muted} strokeDasharray="4 4" dot={false} />
+                          <Line type="monotone" dataKey="scenario" name="This scenario" stroke={c.series[0]} strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                       <div className="px-1 text-[12px] text-slate-400">Projected savings balance, next 24 months</div>

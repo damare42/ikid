@@ -6,6 +6,7 @@ import type { AdminOverviewDTO, AdminUserDTO } from "@shared/types";
 import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { Card, ErrorNote, Spinner, StatCard } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 /**
  * 🛡️ Admin — account management + usage analytics. Admin-only (the server
@@ -13,6 +14,7 @@ import { Card, ErrorNote, Spinner, StatCard } from "../components/ui";
  * they use — never any financial data.
  */
 export default function Admin() {
+  const c = useChartColors();
   const { data: overview, loading, error, refresh } = useFetch<AdminOverviewDTO>("/api/admin/overview");
   const { data: users, refresh: refreshUsers } = useFetch<AdminUserDTO[]>("/api/admin/users");
   const [busy, setBusy] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function Admin() {
                 <XAxis type="number" fontSize={11} allowDecimals={false} />
                 <YAxis type="category" dataKey="feature" fontSize={11} width={110} />
                 <Tooltip formatter={(v: number) => [`${v} events`, ""]} />
-                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={c.series[0]} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -90,8 +92,8 @@ export default function Admin() {
               <XAxis dataKey="day" fontSize={10} tickFormatter={(d) => d.slice(5)} interval={4} />
               <YAxis fontSize={11} allowDecimals={false} width={30} />
               <Tooltip />
-              <Line type="monotone" dataKey="events" name="Events" stroke="#1a7f5a" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="users" name="Active users" stroke="#f59e0b" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="events" name="Events" stroke={c.series[0]} strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="users" name="Active users" stroke={c.series[1]} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </Card>

@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card, EmptyState, ErrorNote, Modal, Spinner, StatCard } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 const ASSET_KINDS: { value: AssetKind; label: string }[] = [
   { value: "cash", label: "💵 Cash / bank" },
@@ -26,6 +27,7 @@ const KIND_LABEL: Record<string, string> = Object.fromEntries(
 );
 
 export default function NetWorth() {
+  const c = useChartColors();
   const { data: sum, loading, error, refresh } = useFetch<NetWorthSummary>("/api/networth/summary");
   const { data: hist, refresh: refreshHist } = useFetch<NetWorthPoint[]>("/api/networth/history?months=24");
   const [adding, setAdding] = useState<"asset" | "liability" | null>(null);
@@ -91,8 +93,8 @@ export default function NetWorth() {
                 <ComposedChart data={hist}>
                   <defs>
                     <linearGradient id="nwFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                      <stop offset="0%" stopColor={c.series[0]} stopOpacity={0.25} />
+                      <stop offset="100%" stopColor={c.series[0]} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
@@ -100,10 +102,10 @@ export default function NetWorth() {
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
                   <Legend />
-                  <Bar dataKey="assets" name="Assets" fill="#1a7f5a" fillOpacity={0.55} barSize={14} />
-                  <Bar dataKey="liabilities" name="Liabilities" fill="#a4123a" fillOpacity={0.55} barSize={14} />
+                  <Bar dataKey="assets" name="Assets" fill={c.in} fillOpacity={0.55} barSize={14} />
+                  <Bar dataKey="liabilities" name="Liabilities" fill={c.out} fillOpacity={0.55} barSize={14} />
                   <Area type="monotone" dataKey="netWorth" name="Net worth" stroke="none" fill="url(#nwFill)" />
-                  <Line type="monotone" dataKey="netWorth" name="Net worth" stroke="#6366f1" strokeWidth={2.5} dot={false} legendType="none" />
+                  <Line type="monotone" dataKey="netWorth" name="Net worth" stroke={c.series[0]} strokeWidth={2.5} dot={false} legendType="none" />
                 </ComposedChart>
               </ResponsiveContainer>
             </Card>

@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+**Chart colour means one thing again**
+
+Green and crimson had drifted from "money in / money out" to "good / bad", and
+once that happens the income chart can't be trusted either. The amortization
+chart showed it plainly: principal in green, interest in crimson, when both are
+cash leaving your account on the same day.
+
+- New `client/src/lib/chartPalette.ts` splits semantic colour (`in`, `out`)
+  from categorical colour (`series[0..3]`, `muted`, `reference`). Green and
+  crimson are now reserved for the direction money moved
+- Principal vs interest, Roth vs brokerage, scenario vs baseline, goal
+  progress, budget bars under 100% and the FIRE target line all moved off the
+  verdict colours
+- The palette is mode-aware (`useChartColors()`): no crimson clears 3:1 on both
+  white and the dark panel while still looking like crimson
+- `server/src/tests/chart-palette.test.ts` pins contrast and colour-blind
+  separability per chart. It caught the money-out crimson sitting at 2.2:1 in
+  dark mode, and that the money pair is carried almost entirely by lightness —
+  `in` moved to emerald-500 to widen that gap
+
 ## 0.6.0 — redesign & accessibility
 
 Visual overhaul to the "Modernist" design system, plus a measured accessibility

@@ -708,7 +708,9 @@ function AccountsEditor({ accounts, onChanged }: { accounts: AccountDTO[]; onCha
 
 function CategoriesEditor({ categories, onChanged }: { categories: CategoryDTO[]; onChanged: () => void }) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#1a7f5a");
+  // A new category is a category, not income — it shouldn't be handed the
+  // money-in green as its default swatch.
+  const [color, setColor] = useState("#3a6098");
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-1.5">

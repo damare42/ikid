@@ -143,3 +143,50 @@ made the old rule look like an oversight rather than a choice.
 
 Both radii are tokens in `tailwind.config.js`, so this is one edit away from
 being reversed or retuned.
+
+## Revised — chart colour (supersedes "charts recoloured to semantic tokens")
+
+The 0.6.0 pass moved the charts onto the semantic tokens, which was half the
+job and made the other half worse: green and crimson got applied to anything
+that wanted to look positive or negative, whether or not money was moving.
+
+The amortization chart is the clearest case. Principal was green and interest
+was crimson — but both bars are cash leaving your account on the same day. The
+green was saying "good", not "in". The same slippage had spread: Roth balances
+green, goal progress green, budget bars under 100% green, the planner drawing
+its *proposed* scenario in green before the engine had said whether it beat
+the baseline, the FIRE target line in the money-out crimson so the goal read
+as a warning. Once green means "the nice one" it stops meaning "income", and
+the income chart is left making a claim the reader can't trust.
+
+The rule now, in `client/src/lib/chartPalette.ts`:
+
+- **`in` / `out`** are semantic. Green is money arriving, crimson is money
+  leaving. Income vs spending, assets vs liabilities, tax, a debt balance.
+  Nothing else.
+- **`series[0..3]`** are categorical: "a different thing", no verdict. Take
+  from the front of the ramp.
+- **`muted`** is a comparator that should recede; **`reference`** is a neutral
+  for annotation lines, which are not data and shouldn't be coloured like it.
+
+Two ramps, light and dark, because clearing 3:1 against both white and
+`#201e1d` confines a colour to a luminance band in which no crimson still
+looks like crimson. `useChartColors()` picks between them off the `dark` class.
+
+The values were found by search and are pinned by
+`server/src/tests/chart-palette.test.ts`, which checks contrast and simulated
+deuteranopia/protanopia — per chart, using the `chartCombinations` map, because
+the global "everything differs from everything" version is unsatisfiable and
+drives the palette to greyscale. Adding a chart means adding an entry there.
+Worst co-occurring pair as shipped: ΔE 13.1.
+
+Two things the guard caught that eyeballing had not: the money-out crimson sat
+at 2.2:1 on the dark panel, and the money pair is separated almost entirely by
+lightness — to a protanope the green and the crimson differ by 4.7 in hue and
+saturation, which is to say not at all. `in` moved from emerald-600 to
+emerald-500 to widen the lightness gap from 11.9 to 14.1.
+
+Still open: the 22 default category swatches in `server/src/services/defaults.ts`
+are stock Tailwind hues, several of them green or red, and they colour the
+category pie next to charts where green and red mean something. They're user
+data rather than chart semantics, so changing them is a separate decision.

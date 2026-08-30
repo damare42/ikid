@@ -7,8 +7,10 @@ import type { BudgetStatusDTO, GoalDTO, MonthlyPoint } from "@shared/types";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth, monthInputValue } from "../lib/format";
 import { Badge, Card, ProgressBar, Spinner } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 export default function Reports() {
+  const c = useChartColors();
   const [month] = useState(monthInputValue());
   const { data: monthly } = useFetch<MonthlyPoint[]>("/api/analytics/monthly?months=12");
   const { data: cats } = useFetch<{ name: string; color: string; total: number }[]>("/api/analytics/categories");
@@ -57,8 +59,8 @@ export default function Reports() {
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
             <Legend />
-            <Bar dataKey="income" name="Income" fill="#1a7f5a" />
-            <Bar dataKey="expenses" name="Expenses" fill="#a4123a" />
+            <Bar dataKey="income" name="Income" fill={c.in} />
+            <Bar dataKey="expenses" name="Expenses" fill={c.out} />
           </BarChart>
         </ResponsiveContainer>
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useChartColors } from "../lib/chartColors";
 
 export function Card({ title, action, children, className = "" }: {
   title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string;
@@ -55,8 +56,15 @@ export function StatCard({ label, value, sub, tone = "default" }: {
 }
 
 export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
+  const c = useChartColors();
   const clamped = Math.min(100, Math.max(0, pct));
-  const barColor = color ?? (pct > 100 ? "#a4123a" : pct > 85 ? "#9a6a10" : "#1a7f5a");
+  // Under budget is the ordinary case and gets the neutral series colour, not
+  // green. Green in this app means money came in; a budget bar sitting at 40%
+  // is not income, and spending green next to income green trains the reader
+  // to read green as "good" — which is exactly what made the charts lie.
+  // Amber still means "getting close" and crimson means "spent past the plan",
+  // which is money out beyond what you allowed for.
+  const barColor = color ?? (pct > 100 ? c.out : pct > 85 ? "#9a6a10" : c.series[0]);
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
       <div className="h-full rounded-full transition-all" style={{ width: `${clamped}%`, backgroundColor: barColor }} />
@@ -64,7 +72,9 @@ export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
   );
 }
 
-export function Badge({ children, color = "#64748b" }: { children: ReactNode; color?: string }) {
+// Default is the warm neutral from the app's ramp, not Tailwind's stock cool
+// slate — the two are visibly different next to everything else on the page.
+export function Badge({ children, color = "#767272" }: { children: ReactNode; color?: string }) {
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold"

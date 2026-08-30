@@ -5,8 +5,10 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card, EmptyState, ErrorNote, Modal, ProgressBar, Spinner } from "../components/ui";
+import { useChartColors } from "../lib/chartColors";
 
 export default function Goals() {
+  const c = useChartColors();
   const { data: goals, loading, error, refresh } = useFetch<GoalDTO[]>("/api/goals");
   const [editing, setEditing] = useState<GoalDTO | null>(null);
   const [adding, setAdding] = useState(false);
@@ -48,7 +50,7 @@ export default function Goals() {
                   <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => remove(g.id)}>✕</button>
                 </div>
               </div>
-              <ProgressBar pct={g.progressPct} color="#1a7f5a" />
+              <ProgressBar pct={g.progressPct} color={c.series[0]} />
               <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
                 <div>
                   <div className="text-slate-500">Progress</div>
@@ -71,15 +73,15 @@ export default function Goals() {
                 <AreaChart data={g.projection} margin={{ top: 10, left: 0, right: 0 }}>
                   <defs>
                     <linearGradient id={`g${g.id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#1a7f5a" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#1a7f5a" stopOpacity={0} />
+                      <stop offset="0%" stopColor={c.series[0]} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={c.series[0]} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
                   <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={10} interval="preserveStartEnd" />
                   <YAxis hide domain={[0, g.targetAmount * 1.05]} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
-                  <Area type="monotone" dataKey="balance" stroke="#1a7f5a" fill={`url(#g${g.id})`} />
+                  <Area type="monotone" dataKey="balance" stroke={c.series[0]} fill={`url(#g${g.id})`} />
                 </AreaChart>
               </ResponsiveContainer>
             </Card>
