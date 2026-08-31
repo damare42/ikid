@@ -282,8 +282,17 @@ export default function Dashboard() {
           {s.largestCategories.length === 0 ? (
             <div className="p-6 text-center text-sm text-slate-500">No spending yet this month.</div>
           ) : (
-            <div className="flex items-center">
-              <ResponsiveContainer width="60%" height={220}>
+            <div>
+              {/* Chart above, list below — not side by side.
+                  A ResponsiveContainer given a percentage width inside a flex
+                  row is under-defined: the percentage resolves against the flex
+                  container, but the item's basis is its content and it is still
+                  allowed to shrink, so the width Recharts measured and the width
+                  the item ends up with disagree. Recharts positions its svg
+                  absolutely, so the difference doesn't clip — the chart is drawn
+                  on top of the list beside it and neither is readable. Stacking
+                  removes the negotiation entirely. */}
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={s.largestCategories}
@@ -304,18 +313,21 @@ export default function Dashboard() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-col gap-1.5">
+              {/* Two columns of smaller rows: six categories in three lines
+                  rather than six, so the list costs about the height the pie
+                  gave back. */}
+              <div className="mt-1 grid grid-cols-1 gap-x-4 gap-y-0.5 sm:grid-cols-2">
                 {s.largestCategories.map((c) => (
                   <button
                     key={c.name}
-                    className="flex items-center justify-between gap-4 rounded px-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="flex min-w-0 items-center justify-between gap-2 rounded px-1 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={() => openCategory(c)}
                     title="View these transactions"
                   >
                     <Badge color={c.color}>{c.name}</Badge>
-                    <span className="tabular-nums">
+                    <span className="shrink-0 tabular-nums">
                       {fmtMoney(c.total)}
-                      <span className="ml-1.5 text-xs text-slate-400">
+                      <span className="ml-1.5 text-slate-500 dark:text-slate-400">
                         {s.spending > 0 ? Math.round((c.total / s.spending) * 100) : 0}%
                       </span>
                     </span>
@@ -391,8 +403,9 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="flex items-center">
-                <ResponsiveContainer width="55%" height={200}>
+              {/* Stacked, for the reason described on Largest Categories. */}
+              <div>
+                <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
                       data={csp.buckets.filter((b) => b.total > 0)}
@@ -411,7 +424,7 @@ export default function Dashboard() {
                     <Tooltip formatter={(v: number) => fmtMoney(v)} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex flex-1 flex-col gap-2">
+                <div className="mt-1 grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
                   {csp.buckets.map((b) => {
                     // Saving/investing above target is good; overspending fixed/guilt-free is not.
                     const saverBucket = b.key === "investments" || b.key === "savings";
@@ -429,13 +442,13 @@ export default function Dashboard() {
                     return (
                       <div
                         key={b.key}
-                        className="cursor-pointer rounded px-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="cursor-pointer rounded px-1 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
                         onClick={() => setCspOpen(true)}
                         title="View bucket details"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <Badge color={b.color}>{b.label}</Badge>
-                          <span className="tabular-nums">{fmtMoney(b.total)}</span>
+                          <span className="shrink-0 tabular-nums">{fmtMoney(b.total)}</span>
                         </div>
                         <div className="mt-0.5 flex items-center justify-between text-xs text-slate-500">
                           <span>

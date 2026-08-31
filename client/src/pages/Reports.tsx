@@ -65,8 +65,13 @@ export default function Reports() {
         </ResponsiveContainer>
 
         <h3 className="mb-2 mt-6 font-semibold">Spending by Category (all time)</h3>
-        <div className="flex items-center">
-          <ResponsiveContainer width="50%" height={220}>
+        {/* Stacked. Side by side, the pie's ResponsiveContainer had a
+            percentage width inside a flex row — under-defined, so the svg was
+            drawn over the category list. This card is also what "Save as PDF"
+            prints, where the paper width differs from the screen and the
+            mismatch is worse. */}
+        <div>
+          <ResponsiveContainer width="100%" height={210}>
             <PieChart>
               <Pie data={cats.slice(0, 8)} dataKey="total" nameKey="name" outerRadius={85}>
                 {cats.slice(0, 8).map((c) => <Cell key={c.name} fill={c.color} />)}
@@ -74,16 +79,17 @@ export default function Reports() {
               <Tooltip formatter={(v: number) => fmtMoney(v)} />
             </PieChart>
           </ResponsiveContainer>
-          <table className="flex-1 text-sm">
-            <tbody>
-              {cats.slice(0, 8).map((c) => (
-                <tr key={c.name} className="border-b border-slate-100 dark:border-slate-800">
-                  <td className="py-1"><Badge color={c.color}>{c.name}</Badge></td>
-                  <td className="py-1 text-right tabular-nums">{fmtMoney(c.total)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mt-1 grid grid-cols-1 gap-x-6 gap-y-0.5 text-xs sm:grid-cols-2">
+            {cats.slice(0, 8).map((c) => (
+              <div
+                key={c.name}
+                className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-100 py-1 dark:border-slate-800"
+              >
+                <Badge color={c.color}>{c.name}</Badge>
+                <span className="shrink-0 tabular-nums">{fmtMoney(c.total)}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {budgets && budgets.length > 0 && (

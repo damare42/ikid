@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+**Pie charts were drawn on top of the lists beside them**
+
+Four cards put a chart and its category list side by side in a flex row, with
+the chart in a `ResponsiveContainer width="55%"` (or 50%, or 60%). That is
+under-defined: the percentage resolves against the flex container, but the
+item's basis is its content and it is still allowed to shrink, so the width
+Recharts measured and the width the item ends up with disagree — and Recharts
+positions its `<svg>` absolutely, so the overflow doesn't clip. It lands on the
+list, and neither is readable.
+
+Chart above, list below, in two columns at `text-xs`. Six categories take three
+lines rather than six, so the list costs roughly the height the pie gave back.
+Dashboard's Largest Categories and Conscious Spending Plan, Analytics' Category
+Breakdown, and the Reports page.
+
+The Reports card is also what **Save as PDF** prints, where the mismatch is
+worse and unfixable by the reader: the print viewport is the paper, not the
+window, so the container narrows while the svg keeps its screen width. The
+print stylesheet now holds charts to their own box, keeps colour (browsers drop
+backgrounds by default, which printed every category chip as an empty outline),
+and stops a heading being split from the chart it names.
+
+
 **32 measured contrast failures, from three causes**
 
 Walked the live demo in both themes and computed the rendered contrast of every

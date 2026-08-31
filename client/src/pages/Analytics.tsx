@@ -235,8 +235,12 @@ function Breakdown() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Category Breakdown">
           {!cats ? <Spinner /> : (
-            <div className="flex items-center">
-              <ResponsiveContainer width="55%" height={260}>
+            <div>
+              {/* Stacked, for the reason described on the dashboard's Largest
+                  Categories: a ResponsiveContainer with a percentage width is
+                  under-defined inside a flex row, and Recharts' absolutely
+                  positioned svg then draws over the list beside it. */}
+              <ResponsiveContainer width="100%" height={230}>
                 <PieChart>
                   <Pie
                     data={cats.slice(0, 9)}
@@ -251,16 +255,16 @@ function Breakdown() {
                   <Tooltip formatter={(v: number) => fmtMoney(v)} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="max-h-64 flex-1 space-y-1 overflow-y-auto pr-1">
+              <div className="mt-1 grid max-h-56 grid-cols-1 gap-x-4 gap-y-0.5 overflow-y-auto pr-1 sm:grid-cols-2">
                 {cats.map((c) => (
                   <button
                     key={c.name}
-                    className="flex w-full items-center justify-between rounded px-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="flex w-full min-w-0 items-center justify-between gap-2 rounded px-1 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={() => openCategory(c)}
                     title="View these transactions"
                   >
                     <Badge color={c.color}>{c.name}</Badge>
-                    <span className="tabular-nums">{fmtMoney(c.total)}</span>
+                    <span className="shrink-0 tabular-nums">{fmtMoney(c.total)}</span>
                   </button>
                 ))}
               </div>

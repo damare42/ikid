@@ -103,4 +103,35 @@
     box-shadow: none !important;
     break-inside: avoid;
   }
+
+  /* Recharts measures its container once and draws an <svg> at that size, then
+     positions it absolutely. The print viewport is the paper, not the window,
+     so on the way to a PDF the container narrows while the svg keeps the width
+     it was drawn at — and an absolutely positioned overflow doesn't clip, it
+     lands on whatever is beside or below it. "Save as PDF" is the one path
+     where the user can't just resize to fix it.
+
+     Holding the container to its own box and letting the svg scale inside it
+     keeps the chart in its lane whatever the paper does. */
+  .recharts-responsive-container,
+  .recharts-wrapper {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  .recharts-wrapper svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Colour is the whole point of a spending report; without this most browsers
+     drop backgrounds and every category chip prints as an empty outline. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Don't split a chart from the heading that says what it is. */
+  h3 {
+    break-after: avoid;
+  }
 }
