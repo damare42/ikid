@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+**The demo banner's ⓘ flickered on hover**
+
+Opening the panel inline made the banner taller, which moved the button out
+from under the cursor, which fired `mouseleave`, which closed it, which moved
+the button back under the cursor. A hover that reflows the layout containing
+the hovered element is a feedback loop and oscillates at frame rate. The panel
+is positioned against the banner now, so it takes no space and the button never
+moves; a 120ms close delay keeps it reachable with the pointer.
+
+
 **Two more sideways-scrolling pages, and the cause behind twelve latent ones**
 
 `/analytics` was 201px over. The container was `grid gap-4 lg:grid-cols-2` —

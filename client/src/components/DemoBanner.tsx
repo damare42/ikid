@@ -22,7 +22,7 @@
  *              slate-300 on slate-900 11.19:1   body
  *              slate-950 on amber-300  8.93:1   chip
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DemoLoadResultDTO, DemoStatusDTO } from "@shared/demo";
 import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
@@ -68,7 +68,9 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="no-print border-l-2 border-amber-600 bg-amber-50 px-4 py-2 dark:border-amber-300 dark:bg-slate-900">
+    // `relative` so the ⓘ panel can be positioned against the banner rather
+    // than inserted into it — see DetailToggle.
+    <div className="no-print relative border-l-2 border-amber-600 bg-amber-50 px-4 py-2 dark:border-amber-300 dark:bg-slate-900">
       <div
         role="status"
         className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-2 gap-y-1"
@@ -102,19 +104,34 @@ export default function DemoBanner() {
  * Hover alone would have been wrong. A phone has no hover, and the phone is
  * where the space was being wasted — so the detail would have become
  * unreachable on exactly the device the change was made for. This opens on
- * hover *and* on click/tap, and closes on Escape and on blur, which is also
- * what WCAG 1.4.13 asks of content shown on hover: dismissible, hoverable,
- * persistent.
+ * hover *and* on click/tap, and closes on Escape, which is also what WCAG
+ * 1.4.13 asks of content shown on hover: dismissible, hoverable, persistent.
  *
- * It expands inline underneath rather than floating in a positioned tooltip.
- * A popover anchored to an icon near the right edge of a 375px screen has to
- * be measured and flipped to avoid running off; a block that takes the banner's
- * full width cannot go wrong, and this text is a paragraph, not a label.
+ * The panel is positioned against the banner instead of being inserted into
+ * it, and that is not a stylistic preference — the first version expanded
+ * inline and flickered violently on hover. Opening made the banner taller,
+ * which moved the button out from under the cursor, which fired mouseleave,
+ * which closed it, which moved the button back under the cursor, which fired
+ * mouseenter. A hover that changes the layout containing the thing being
+ * hovered is a feedback loop, and it will oscillate at frame rate.
+ *
+ * So: `absolute`, taking no space, leaving the button exactly where it was.
+ * The short close delay is belt and braces for the gap between the icon and
+ * the panel, and it keeps the panel reachable with the pointer.
  */
 function DetailToggle({ profile, range }: {
   profile: string; range?: { from: string; to: string } | null;
 }) {
   const [open, setOpen] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  const show = () => { window.clearTimeout(closeTimer.current); setOpen(true); };
+  const hide = () => {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpen(false), 120);
+  };
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
   return (
     <>
       <button
@@ -122,16 +139,22 @@ function DetailToggle({ profile, range }: {
         className="shrink-0 rounded-full border border-amber-800/40 px-[7px] text-[12px] font-bold leading-[18px] text-amber-800 hover:bg-amber-800 hover:text-white dark:border-amber-300/40 dark:text-amber-300 dark:hover:bg-amber-300 dark:hover:text-slate-950"
         aria-expanded={open}
         aria-label={open ? "Hide demo details" : "What is demo data?"}
-        onClick={() => setOpen((v) => !v)}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
+        onClick={() => (open ? setOpen(false) : show())}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
         onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
       >
         i
       </button>
       {open && (
-        <p className="basis-full text-[13px] text-slate-700 dark:text-slate-300">
+        <p
+          role="tooltip"
+          onMouseEnter={show}
+          onMouseLeave={hide}
+          className="absolute left-0 right-0 top-full z-30 border-l-2 border-amber-600 bg-amber-50 px-4 py-2 text-[13px] text-slate-700 shadow-lg dark:border-amber-300 dark:bg-slate-900 dark:text-slate-300"
+        >
           You are in the <b>{profile}</b> profile, filled with invented accounts and made-up
           merchants generated on this machine
           {range && <> covering {range.from} to {range.to}</>}
