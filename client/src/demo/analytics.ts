@@ -11,6 +11,7 @@ import {
   isExpense, isIncome, isInvestment, monthKeyOf, round2, type SlimTxn,
 } from "@engine/analyticsTypes.js";
 import { financialHealth } from "@engine/healthCore.js";
+import { buildInsights } from "@engine/insightsCore.js";
 import { num, route, str } from "./router.js";
 import { allTxns, asDate, categoryDTO, latestDate, merchantDTO, txnDTO, ymd } from "./data.js";
 import { handle } from "./router.js";
@@ -129,10 +130,9 @@ export function categoryBreakdown(from?: Date, to?: Date): CatRow[] {
 route("GET /api/analytics/categories", ({ query }) =>
   categoryBreakdown(dateParam(str(query, "from")), dateParam(str(query, "to"))));
 
-route("GET /api/analytics/merchants", ({ query }) => {
-  const limit = num(query, "limit") ?? 20;
+export function merchantBreakdown(from?: Date, to?: Date, limit = 20) {
   const map = new Map<string, { name: string; total: number; count: number }>();
-  for (const t of slim(dateParam(str(query, "from")), dateParam(str(query, "to")))) {
+  for (const t of slim(from, to)) {
     if (!isExpense(t)) continue;
     const p = map.get(t.merchantName) ?? { name: t.merchantName, total: 0, count: 0 };
     p.total = round2(p.total + -t.amount);
@@ -140,7 +140,10 @@ route("GET /api/analytics/merchants", ({ query }) => {
     map.set(t.merchantName, p);
   }
   return [...map.values()].sort((a, b) => b.total - a.total).slice(0, limit);
-});
+}
+
+route("GET /api/analytics/merchants", ({ query }) =>
+  merchantBreakdown(dateParam(str(query, "from")), dateParam(str(query, "to")), num(query, "limit") ?? 20));
 
 route("GET /api/analytics/category-merchants", ({ query }) => {
   const categoryId = num(query, "categoryId");
@@ -199,7 +202,7 @@ route("GET /api/analytics/heatmap", ({ query }) => {
   return [...map.entries()].map(([date, total]) => ({ date, total }));
 });
 
-route("GET /api/analytics/recurring", () => {
+export function recurringPayments() {
   const byMerchant = new Map<string, SlimTxn[]>();
   for (const t of slim()) {
     if (!isExpense(t)) continue;
@@ -229,7 +232,9 @@ route("GET /api/analytics/recurring", () => {
     });
   }
   return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate);
-});
+}
+
+route("GET /api/analytics/recurring", () => recurringPayments());
 
 // ---------------------------------------------------------------------------
 // Conscious Spending Plan + month breakdown
@@ -436,32 +441,33 @@ route("GET /api/analytics/summary", async ({ query }) => {
 // Insights
 // ---------------------------------------------------------------------------
 
+/**
+ * The product's insight heuristics, not a shorter set of the demo's own.
+ *
+ * What was here compared the *running* month against the previous complete one,
+ * so on any day but the last of the month every category read as "down" — and
+ * it demanded a $40 **and** 25% movement where the product asks $25 and 10%,
+ * and produced only the category insights, none of the merchant, subscription,
+ * recurring-total or dining ones. A visitor judging whether this app notices
+ * anything useful about their spending was shown a quieter, slightly wrong
+ * version of it.
+ *
+ * Same two complete months the server uses, same thresholds, same code.
+ */
 route("GET /api/analytics/insights", () => {
   const now = latestDate();
-  const thisFrom = new Date(now.getFullYear(), now.getMonth(), 1);
-  const prevFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevTo = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-  const cur = categoryBreakdown(thisFrom, now);
-  const prev = categoryBreakdown(prevFrom, prevTo);
-  const prevByName = new Map(prev.map((c) => [c.name, c.total]));
-
-  const out: { id: string; kind: string; title: string; detail: string; amount?: number }[] = [];
-  for (const c of cur) {
-    const before = prevByName.get(c.name);
-    if (before == null || before === 0) continue;
-    const delta = round2(c.total - before);
-    // 25% and $40 together, so a rounding wobble on a small category doesn't
-    // masquerade as news.
-    if (Math.abs(delta) < 40 || Math.abs(delta) / before < 0.25) continue;
-    out.push({
-      id: `cat-${c.name}`,
-      kind: delta > 0 ? "increase" : "decrease",
-      title: `${c.name} ${delta > 0 ? "up" : "down"} ${Math.round((Math.abs(delta) / before) * 100)}%`,
-      detail: `${delta > 0 ? "Spent" : "Saved"} $${Math.abs(delta).toFixed(2)} ${delta > 0 ? "more" : "less"} than last month.`,
-      amount: delta,
-    });
-  }
-  return out.sort((a, b) => Math.abs(b.amount ?? 0) - Math.abs(a.amount ?? 0)).slice(0, 8);
+  const curFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const curTo = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  const prevFrom = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const prevTo = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59);
+  return buildInsights({
+    currentCategories: categoryBreakdown(curFrom, curTo),
+    previousCategories: categoryBreakdown(prevFrom, prevTo),
+    currentMerchants: merchantBreakdown(curFrom, curTo, 50),
+    previousMerchants: merchantBreakdown(prevFrom, prevTo, 50),
+    series: monthlySeries(12),
+    recurring: recurringPayments(),
+  });
 });
 
 route("GET /api/reports/csv", () => {

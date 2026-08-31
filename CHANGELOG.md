@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+**The demo's Insights page was a quieter, slightly wrong version of the product**
+
+Third instance of the same drift, found by auditing for it rather than
+stumbling into it. `generateInsights` was pure below its fetches, so the demo
+had written a short version of its own — and it disagreed:
+
+- it required a **$40 and 25%** movement where the product asks $25 and 10%
+- it compared the **running** month against the previous complete one, so on
+  any day but the last of the month every category read as "down"
+- it produced category movements only: no merchant movement, no unused
+  subscription warnings, no recurring total, no dining opportunity
+
+`insightsCore.ts` holds the heuristics; the service is now only the fetching,
+and the demo calls the same function over its own data. The demo's Insights
+page goes from a handful of category rows to 15 insights across five kinds.
+Pinned by `insights.test.ts`, including the boundaries each rule was written
+for and that the running month is never treated as complete.
+
+**Search existed only above 640px**
+
+The header search box is `hidden sm:block`, with nothing in its place — so on a
+phone the app had no way to search transactions at all. Same shape as the
+missing navigation, one control smaller. It's in the drawer now.
+
+**Seven more unbounded grids**
+
+The `/analytics` fix found twelve; a stricter check found seven the first
+pattern missed, including Transactions' filter bar and the Landing page.
+
+
 **The demo banner's ⓘ flickered on hover**
 
 Opening the panel inline made the banner taller, which moved the button out

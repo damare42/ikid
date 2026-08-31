@@ -293,7 +293,7 @@ export default function Landing() {
       {/* hero — two columns, no dead space */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-brand-400/15 blur-3xl" />
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-14 md:grid-cols-2 md:py-20">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-10 px-5 py-14 md:grid-cols-2 md:py-20">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-300/60 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-300" style={{ animation: "popIn .5s ease both" }}>
               🔒 100% local · no bank logins · no subscription
@@ -342,7 +342,7 @@ export default function Landing() {
               The features of a commercial finance app — minus the account, the fee, and the data harvesting.
             </p>
           </Reveal>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CARDS.map((c, i) => (
               <Reveal key={c.title} delay={i * 60}>
                 <div className="h-full rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg dark:border-slate-800 dark:bg-slate-900">
@@ -382,7 +382,7 @@ export default function Landing() {
           not the old brand green. Structure, not decoration — it separates
           "what it does" above from "questions" below. */}
       <section id="privacy" className="scroll-mt-16 bg-slate-900 text-slate-50">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-2 md:items-center">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl gap-8 px-5 py-16 md:grid-cols-2 md:items-center">
           <Reveal>
             <div>
               <h2 className="font-display text-3xl font-extrabold md:text-4xl">Private by architecture, not by promise</h2>

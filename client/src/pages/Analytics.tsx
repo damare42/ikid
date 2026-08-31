@@ -437,7 +437,7 @@ function Insights() {
     opportunity: { icon: "💰", cls: "border-brand-200 dark:border-brand-900" },
   };
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {data.map((i) => (
         <div key={i.id} className={`card border-2 ${KIND[i.kind].cls}`}>
           <div className="mb-1 flex items-center gap-2 font-semibold">

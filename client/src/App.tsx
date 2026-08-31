@@ -125,7 +125,10 @@ function NavItem({ item, iconOnly = false, touch = false, onNavigate }: {
  * a drawer you can't get out of is worse than no drawer, and on a phone the
  * back gesture won't help — the route didn't change.
  */
-function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MobileNav({ open, onClose, onSearch }: {
+  open: boolean; onClose: () => void; onSearch: (q: string) => void;
+}) {
+  const [q, setQ] = useState("");
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -162,6 +165,29 @@ function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
             ✕
           </button>
         </div>
+        {/* Search lives here on a phone because the header's search box is
+            `hidden sm:block` — so below 640px the app had no way to search
+            transactions at all. Hiding a primary action at a breakpoint and
+            providing nothing in its place is the same mistake the missing
+            navigation was, one control smaller. */}
+        <form
+          className="mb-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!q.trim()) return;
+            onSearch(q);
+            setQ("");
+            onClose();
+          }}
+        >
+          <input
+            className="input w-full"
+            placeholder="Search transactions…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search transactions"
+          />
+        </form>
         <div className="flex flex-col gap-4">
           {NAV_GROUPS.map((g) => (
             <div key={g.key}>
@@ -374,7 +400,11 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
 
   return (
     <div className="flex min-h-screen">
-      <MobileNav open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileNav
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onSearch={(q) => navigate(`/transactions?search=${encodeURIComponent(q)}`)}
+      />
 
       {/* Rail */}
       <aside

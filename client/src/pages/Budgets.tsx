@@ -33,7 +33,7 @@ export default function Budgets() {
       ) : !budgets || budgets.length === 0 ? (
         <Card><EmptyState icon="🎯" title="No budgets yet" hint="Set a monthly limit per category — Ikid tracks spending, remaining, and forecasts your end-of-month total." /></Card>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {budgets.map((b) => (
             <Card key={b.id}>
               <div className="mb-2 flex items-center justify-between">

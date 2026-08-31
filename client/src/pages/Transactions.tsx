@@ -152,7 +152,7 @@ export default function Transactions() {
       </div>
 
       <Card>
-        <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-8">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-8">
           <input className="input" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">All categories</option>
