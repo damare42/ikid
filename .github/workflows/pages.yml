@@ -1,12 +1,27 @@
 # Publishes site/ to GitHub Pages on every push to main.
-# The marketing site is a single static HTML file — no build step, no
-# dependencies, nothing to compromise.
+#
+# The marketing site is a single static HTML file. The hosted demo under
+# site/demo/ is not: it is built here from client/, shared/ and the pure
+# engines in server/src/services/, and site/demo/ is gitignored precisely so
+# that a stale build can't be committed.
+#
+# There is deliberately no `paths` filter. There used to be — `["site/**"]` —
+# which meant the workflow watched the one directory the demo is *not* built
+# from. Every fix to the application itself (the Planner, the chart palette,
+# the mobile navigation) landed on main and the live demo stayed on an old
+# bundle, silently, because nothing under site/ had changed. The demo is the
+# only thing most visitors ever see, so it was the part of the project most
+# likely to be wrong and least likely to look it.
+#
+# A paths list here is a second, hand-maintained copy of "what the demo build
+# depends on", and it was already wrong. This job is a checkout, an npm ci and
+# a vite build — a redundant deploy costs a minute, a stale demo costs the
+# visitor's whole impression of the app.
 name: Deploy site
 
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:

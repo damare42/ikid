@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+**The demo hadn't been deploying**
+
+The Pages workflow was filtered to `paths: ["site/**"]`, but the demo bundle is
+built by that workflow from `client/`, `shared/` and the pure engines in
+`server/src/services/` — `site/demo/` is gitignored so a stale build can't be
+committed. So the filter watched the one directory the demo is *not* built
+from. The last commit to touch `site/` was `fccefd9`; everything since — the
+Planner fix, the chart palette, the mobile navigation — landed on main without
+ever publishing.
+
+The filter is gone. A hand-maintained list of "what the demo depends on" is a
+second source of truth, and this one was already wrong. A redundant deploy
+costs a minute; a stale demo costs the visitor's only impression of the app.
+
 **Usable on a phone**
 
 Below 768px the sidebar was `hidden md:flex` with nothing behind it, so a
