@@ -59,7 +59,7 @@ function Trends() {
   if (!monthly) return <Spinner />;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <Card title="Monthly Income vs Expenses (click a month for the breakdown)">
         <ResponsiveContainer width="100%" height={240}>
           <BarChart
@@ -232,7 +232,7 @@ function Breakdown() {
           {(from || to) && <button className="btn-ghost" onClick={() => setRange({ from: "", to: "" })}>Clear</button>}
         </div>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Category Breakdown">
           {!cats ? <Spinner /> : (
             <div className="flex items-center">

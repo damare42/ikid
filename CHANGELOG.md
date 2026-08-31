@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+**Two more sideways-scrolling pages, and the cause behind twelve latent ones**
+
+`/analytics` was 201px over. The container was `grid gap-4 lg:grid-cols-2` —
+no base column count, so on a phone the grid has no explicit track, the
+implicit one sizes to `auto` (max-content), and a card holding a chart and a
+long unwrapping title computed a **556px track inside a 335px parent**. Adding
+`grid-cols-1` makes the track `1fr` and bounds it to the container. Twelve
+grids in the app had the same shape; all twelve are fixed, not just the two
+that happened to hold content wide enough to show it.
+
+`/settings` was 7px over: an `<input>` carries an intrinsic minimum width from
+its `size` attribute, so `flex-1` does not let it shrink below ~170px. Beside a
+`<select>` and a button that is enough to push past 375px. Six inputs given
+`min-w-0`.
+
+
 **The demo banner is one line now**
 
 It sat on every screen and repeated five lines of explanation on each one,

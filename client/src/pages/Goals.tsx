@@ -32,7 +32,7 @@ export default function Goals() {
       ) : !goals || goals.length === 0 ? (
         <Card><EmptyState icon="🏁" title="No goals yet" hint="Add a savings goal — Ikid projects your completion date and required monthly contribution." /></Card>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {goals.map((g) => (
             <Card key={g.id}>
               <div className="mb-2 flex items-start justify-between">

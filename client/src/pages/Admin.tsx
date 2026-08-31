@@ -68,7 +68,7 @@ export default function Admin() {
         <StatCard label="Events (7d)" value={String(overview.events7d)} sub={`${overview.totalEvents} all-time`} />
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Card title="Most-used features">
           {overview.byFeature.length === 0 ? (
             <div className="p-6 text-center text-sm text-slate-400">No activity recorded yet.</div>

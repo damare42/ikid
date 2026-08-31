@@ -99,7 +99,7 @@ function CspDetailModal({ csp, onClose, onOpenCategory }: {
         Take-home income: <b className="text-slate-800 dark:text-slate-100">{fmtMoney(csp.income)}</b>
         {" · "}savings is the leftover after spending and investing
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {csp.buckets.map((b) => (
           <section key={b.key} className="rounded-surface border border-slate-200 p-3 dark:border-slate-800">
             <div className="mb-1 flex items-center justify-between">
@@ -244,7 +244,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Cash flow */}
         <Card title={`Cash Flow — ${mode === "ytd" ? `${s.month.slice(0, 4)} year to date` : fmtMonth(s.month)}`}>
           {s.cashFlow.length === 0 ? (
@@ -538,7 +538,7 @@ export default function Dashboard() {
           </span>
         }
       >
-        <ul className="grid gap-1 text-sm text-slate-600 dark:text-slate-300 md:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-1 text-sm text-slate-600 dark:text-slate-300 md:grid-cols-3">
           {s.healthNotes.map((n) => <li key={n}>• {n}</li>)}
         </ul>
       </Card>

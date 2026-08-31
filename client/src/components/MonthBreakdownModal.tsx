@@ -40,7 +40,7 @@ export function MonthBreakdownModal({ month, onClose }: { month: string; onClose
       {!data ? (
         <Spinner />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <section>
             <div className="mb-2 flex items-baseline justify-between">
               <h3 className="font-semibold text-emerald-600 dark:text-emerald-400">Income</h3>

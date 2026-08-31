@@ -283,7 +283,7 @@ export default function Retirement() {
       )}
 
       {/* Inputs */}
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <Card title="👤 About you">
           <div className="grid grid-cols-2 gap-2">
             <Num label="Current age" value={currentAge} onChange={setCurrentAge} />

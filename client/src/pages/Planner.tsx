@@ -323,7 +323,7 @@ export default function Planner() {
         }}
       >
         <input
-          className="input flex-1"
+          className="input min-w-0 flex-1"
           placeholder='Try "buy a house for $450k with 10% down" or "stop working for 8 months"'
           value={input}
           onChange={(e) => setInput(e.target.value)}

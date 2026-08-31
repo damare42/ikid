@@ -55,7 +55,7 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
       {error && <ErrorNote message={error} />}
 
       <Card title="Preferences">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div>
             <label className="label">Currency</label>
             <select className="input w-full" value={settings.currency} onChange={(e) => patchSettings({ currency: e.target.value })}>
@@ -478,7 +478,7 @@ function ProfileEditor({ onMessage }: { onMessage: (m: string) => void }) {
       </div>
       <div className="flex flex-wrap gap-2">
         <input
-          className="input flex-1 max-w-xs"
+          className="input min-w-0 flex-1 max-w-xs"
           placeholder="New profile name"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -557,7 +557,7 @@ function SecurityEditor({ onMessage }: { onMessage: (m: string) => void }) {
           : <>Accounts are <b>off</b>. Set a password on this profile to require sign-in; other people can then use their own profiles as separate accounts.</>}
       </p>
       {error && <ErrorNote message={error} />}
-      <div className="grid gap-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
         {isProtected && (
           <div>
             <label className="label">Current password</label>
@@ -637,7 +637,7 @@ function MerchantsEditor({ merchants, onChanged }: {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <input
-          className="input flex-1"
+          className="input min-w-0 flex-1"
           placeholder="Filter merchants… (select 2+ to merge them)"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -699,8 +699,8 @@ function AccountsEditor({ accounts, onChanged }: { accounts: AccountDTO[]; onCha
           <span className="tabular-nums text-slate-500">{a.balance != null && a.balance.toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
         </div>
       ))}
-      <div className="flex gap-2 pt-1">
-        <input className="input flex-1" placeholder="New account name" value={name} onChange={(e) => setName(e.target.value)} />
+      <div className="flex flex-wrap gap-2 pt-1">
+        <input className="input min-w-0 flex-1" placeholder="New account name" value={name} onChange={(e) => setName(e.target.value)} />
         <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
           {["checking", "savings", "credit", "loan"].map((t) => <option key={t}>{t}</option>)}
         </select>
@@ -727,7 +727,7 @@ function CategoriesEditor({ categories, onChanged }: { categories: CategoryDTO[]
         {categories.map((c) => <Badge key={c.id} color={c.color}>{c.name}</Badge>)}
       </div>
       <div className="flex flex-wrap gap-2">
-        <input className="input flex-1" placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="input min-w-0 flex-1" placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} />
         <input type="color" className="input !p-1" value={color} onChange={(e) => setColor(e.target.value)} />
         <button
           className="btn-primary"
@@ -753,7 +753,7 @@ function RulesEditor({ rules, categories, onChanged }: {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        <input className="input flex-1" placeholder='Match phrase, e.g. "STARBUCKS"' value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+        <input className="input min-w-0 flex-1" placeholder='Match phrase, e.g. "STARBUCKS"' value={keyword} onChange={(e) => setKeyword(e.target.value)} />
         <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}>
           <option value="">Category…</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
