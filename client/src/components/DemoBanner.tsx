@@ -74,7 +74,14 @@ export default function DemoBanner() {
         className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-3 gap-y-1.5"
       >
         <DemoChip />
-        <p className="min-w-0 flex-1 text-[13px] text-slate-700 dark:text-slate-300">
+        {/* `basis-full sm:basis-0` is doing the work. With `flex-1 min-w-0`
+            alone the paragraph was allowed to shrink indefinitely rather than
+            wrap, so next to a shrink-0 chip and a shrink-0 button on a 375px
+            phone it rendered in a ~40px column — one word per line, filling the
+            entire first screen a visitor sees. Given a full-width basis it
+            wraps onto its own line instead, and from `sm` up it goes back to
+            sharing the row. */}
+        <p className="min-w-0 flex-1 basis-full text-[13px] text-slate-700 sm:basis-0 dark:text-slate-300">
           <span className="font-bold text-amber-800 dark:text-amber-300">
             None of these numbers are real.
           </span>{" "}

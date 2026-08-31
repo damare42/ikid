@@ -161,7 +161,7 @@ function GoalForm({ goal, onClose, onSaved }: { goal: GoalDTO | null; onClose: (
             <input className="input w-full" value={name} onChange={(e) => setName(e.target.value)} placeholder="House Down Payment" />
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <div>
             <label className="label">Target ($)</label>
             <input type="number" className="input w-full" value={target} onChange={(e) => setTarget(e.target.value)} />

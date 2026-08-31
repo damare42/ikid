@@ -67,6 +67,126 @@ const NAV_GROUPS = [
   },
 ];
 
+type NavEntry = { to: string; label: string; icon: string };
+
+/**
+ * One navigation link, shared by the desktop rail and the mobile drawer.
+ *
+ * Shared deliberately. The rail was `hidden md:flex` with nothing behind it, so
+ * for eighteen months a phone could reach the Dashboard and no other screen —
+ * the app had thirteen destinations and a phone visitor could see one. The
+ * drawer that fixes that must never drift from the rail, and the cheapest way
+ * to guarantee it is for both to render this.
+ *
+ * `touch` gives the drawer 44px rows (the WCAG 2.5.5 target size); the rail
+ * stays denser because a mouse is a precise instrument and vertical space in a
+ * 184px rail is scarce.
+ */
+function NavItem({ item, iconOnly = false, touch = false, onNavigate }: {
+  item: NavEntry; iconOnly?: boolean; touch?: boolean; onNavigate?: () => void;
+}) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === "/"}
+      onClick={onNavigate}
+      // Collapsed to icons the label has to survive somewhere, or the nav
+      // becomes a guessing game: title for pointer users, aria-label for
+      // screen readers.
+      title={iconOnly ? item.label : undefined}
+      aria-label={iconOnly ? item.label : undefined}
+      // Active state is NOT signalled by colour alone (WCAG 1.4.1): accent
+      // text + a 2px left rule + heavier weight.
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 border-l-2 transition-colors ${
+          touch ? "min-h-[44px] py-2 text-[15px]" : "py-[7px] text-[13px]"
+        } ${iconOnly ? "justify-center pl-0" : "pl-2"} ${
+          isActive
+            ? "border-brand-600 font-extrabold text-brand-700 dark:text-brand-400"
+            : "border-transparent font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+        }`
+      }
+    >
+      <span className="w-5 text-center">{item.icon}</span>
+      {!iconOnly && item.label}
+    </NavLink>
+  );
+}
+
+/**
+ * The phone's navigation: a slide-over holding every destination the rail has.
+ *
+ * A drawer rather than a bottom tab bar, because there are thirteen
+ * destinations in three groups. Tabs would mean choosing five winners and
+ * making the other eight unreachable — which is the bug being fixed, just with
+ * a smaller number.
+ *
+ * Closes on: choosing a link, tapping the scrim, and Escape. All three, because
+ * a drawer you can't get out of is worse than no drawer, and on a phone the
+ * back gesture won't help — the route didn't change.
+ */
+function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    // Stop the page behind from scrolling under the drawer.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="no-print fixed inset-0 z-30 md:hidden">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <nav
+        aria-label="Main"
+        className="absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col overflow-y-auto border-r border-slate-200 bg-white px-4 py-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+      >
+        <div className="mb-5 flex items-start justify-between gap-2">
+          <div>
+            <IkidLogo height={26} />
+            <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              local finance
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="-mr-1 rounded-chrome p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Close navigation"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          {NAV_GROUPS.map((g) => (
+            <div key={g.key}>
+              {/* Always expanded here. The rail's collapsible groups save
+                  vertical space on a screen that doesn't have much; a drawer
+                  scrolls, so hiding things behind a second tap only adds work. */}
+              <div className="px-1 pb-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                {g.label}
+              </div>
+              <div className="flex flex-col">
+                {g.items.map((n) => (
+                  <NavItem key={n.to} item={n} touch onNavigate={onClose} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 border-t border-slate-100 pt-3 text-[12px] text-slate-400 dark:border-slate-800">
+          100% local · SQLite · no cloud
+        </div>
+      </nav>
+    </div>
+  );
+}
+
 const ROUTE_LABELS: Record<string, string> = {
   ...Object.fromEntries(NAV_GROUPS.flatMap((g) => g.items.map((i) => [i.to, i.label]))),
   "/settings": "Settings",
@@ -210,7 +330,13 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
       return !prev;
     });
   }
+  const [menuOpen, setMenuOpen] = useState(false);
   const sectionLabel = ROUTE_LABELS[location.pathname] ?? "";
+
+  // Belt and braces: NavItem closes the drawer on tap, but anything else that
+  // navigates (a chart drilling into a category, the net-worth card) should
+  // leave it closed too.
+  useEffect(() => setMenuOpen(false), [location.pathname]);
 
   // Page-view telemetry (feature key only, no data).
   useEffect(() => {
@@ -248,6 +374,8 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
 
   return (
     <div className="flex min-h-screen">
+      <MobileNav open={menuOpen} onClose={() => setMenuOpen(false)} />
+
       {/* Rail */}
       <aside
         className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col border-r border-slate-200 bg-white py-6 transition-[width] duration-200 md:flex dark:border-slate-800 dark:bg-slate-900 ${
@@ -308,30 +436,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
               {(railCollapsed || isGroupOpen(g.key)) && (
                 <div className="flex flex-col">
                   {g.items.map((n) => (
-                    <NavLink
-                      key={n.to}
-                      to={n.to}
-                      end={n.to === "/"}
-                      // Collapsed to icons, the label has to survive somewhere
-                      // or the nav becomes a guessing game: title for pointer
-                      // users, aria-label for screen readers.
-                      title={railCollapsed ? n.label : undefined}
-                      aria-label={railCollapsed ? n.label : undefined}
-                      // Active state is NOT signalled by colour alone (WCAG 1.4.1):
-                      // accent text + a 2px left rule + heavier weight.
-                      className={({ isActive }) =>
-                        `flex items-center gap-2.5 border-l-2 py-[7px] text-[13px] transition-colors ${
-                          railCollapsed ? "justify-center pl-0" : "pl-2"
-                        } ${
-                          isActive
-                            ? "border-brand-600 font-extrabold text-brand-700 dark:text-brand-400"
-                            : "border-transparent font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-                        }`
-                      }
-                    >
-                      <span className="w-4 text-center">{n.icon}</span>
-                      {!railCollapsed && n.label}
-                    </NavLink>
+                    <NavItem key={n.to} item={n} iconOnly={railCollapsed} />
                   ))}
                 </div>
               )}
@@ -347,8 +452,22 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/85 px-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
+        <header className="no-print sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/85 px-4 backdrop-blur sm:px-5 dark:border-slate-800 dark:bg-slate-900/85">
+          {/* The only way into the rest of the app below 768px. */}
+          <button
+            className="-ml-1 rounded-chrome p-2 text-slate-600 hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open navigation"
+            aria-expanded={menuOpen}
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div className="truncate text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
           <form onSubmit={submitSearch} className="mx-auto hidden max-w-sm flex-1 sm:block">
             <input
               className="input w-full"

@@ -108,26 +108,31 @@ export default function Reports() {
         {goals && goals.length > 0 && (
           <>
             <h3 className="mb-2 mt-6 font-semibold">Goal Progress</h3>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800">
-                  <th className="th">Goal</th><th className="th text-right">Saved</th>
-                  <th className="th text-right">Target</th><th className="th text-right">Progress</th>
-                  <th className="th">Est. completion</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {goals.map((g) => (
-                  <tr key={g.id}>
-                    <td className="td">{g.icon} {g.name}</td>
-                    <td className="td text-right tabular-nums">{fmtMoney(g.currentSaved)}</td>
-                    <td className="td text-right tabular-nums">{fmtMoney(g.targetAmount)}</td>
-                    <td className="td text-right">{g.progressPct}%</td>
-                    <td className="td">{g.estimatedCompletion ? fmtMonth(g.estimatedCompletion) : "—"}</td>
+            <div className="overflow-x-auto">
+              {/* Scrolls sideways rather than squashing. On a phone these columns are
+                  wider than the screen, and a table that drags the whole page into
+                  horizontal scrolling is the worse of the two failures. */}
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="th">Goal</th><th className="th text-right">Saved</th>
+                    <th className="th text-right">Target</th><th className="th text-right">Progress</th>
+                    <th className="th">Est. completion</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {goals.map((g) => (
+                    <tr key={g.id}>
+                      <td className="td">{g.icon} {g.name}</td>
+                      <td className="td text-right tabular-nums">{fmtMoney(g.currentSaved)}</td>
+                      <td className="td text-right tabular-nums">{fmtMoney(g.targetAmount)}</td>
+                      <td className="td text-right">{g.progressPct}%</td>
+                      <td className="td">{g.estimatedCompletion ? fmtMonth(g.estimatedCompletion) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
 

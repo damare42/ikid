@@ -10,6 +10,7 @@ import type { DashboardSummary, MonthlyPoint, TransactionDTO } from "@shared/typ
 import {
   isExpense, isIncome, isInvestment, monthKeyOf, round2, type SlimTxn,
 } from "@engine/analyticsTypes.js";
+import { financialHealth } from "@engine/healthCore.js";
 import { num, route, str } from "./router.js";
 import { allTxns, asDate, categoryDTO, latestDate, merchantDTO, txnDTO, ymd } from "./data.js";
 import { handle } from "./router.js";
@@ -399,14 +400,18 @@ route("GET /api/analytics/summary", async ({ query }) => {
 
   const budgets = (await handle("GET", `/api/budgets?year=${y}&month=${m}`, undefined)) as DashboardSummary["budgets"];
 
-  // Health score: savings rate is most of it, with budget discipline as the
-  // rest. Deliberately simple — a score nobody can explain is worse than none.
-  const rate = income > 0 ? netSavings / income : 0;
-  const overspent = budgets.filter((b) => b.overBudget).length;
-  const healthScore = Math.max(0, Math.min(100, Math.round(rate * 250 + (overspent === 0 ? 25 : 0))));
-  const healthNotes: string[] = [];
-  healthNotes.push(rate >= 0.2 ? "Saving over 20% of income." : rate > 0 ? "Saving, but under 20% of income." : "Spending more than you earn this period.");
-  if (overspent > 0) healthNotes.push(`${overspent} budget${overspent === 1 ? "" : "s"} over limit.`);
+  // The product's score, not a second one. This file used to compute
+  // `rate * 250 + 25` clamped to 100, which put "100/100" directly above
+  // "3 budgets over limit" on the demo's own dashboard — a perfect score
+  // contradicting the line beneath it, using a formula the installed app has
+  // never used. The demo exists to show what the app does; a scoring rule of
+  // its own is the one thing it must not have.
+  const health = financialHealth({
+    savingsRate: income > 0 ? netSavings / income : 0,
+    spending,
+    budgets,
+    categoryTotals: categoryBreakdown(from, to),
+  });
 
   const pad = (n: number) => String(n).padStart(2, "0");
   const localDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -421,8 +426,8 @@ route("GET /api/analytics/summary", async ({ query }) => {
     to: localDate(to),
     recentTransactions: recent,
     budgets,
-    healthScore,
-    healthNotes,
+    healthScore: health.score,
+    healthNotes: health.notes,
   };
   return summary;
 });

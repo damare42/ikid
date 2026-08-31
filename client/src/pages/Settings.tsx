@@ -155,25 +155,30 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
         {!imports?.length ? (
           <div className="text-sm text-slate-500">No imports yet.</div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800">
-                <th className="th">File</th><th className="th">Account</th><th className="th">When</th>
-                <th className="th text-right">Rows</th><th className="th text-right">Dupes</th><th className="th" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {imports.map((im) => (
-                <ImportRow
-                  key={im.id}
-                  im={im}
-                  accounts={accounts ?? []}
-                  onChanged={() => { refreshImports(); refreshAccounts(); }}
-                  onMessage={setMsg}
-                />
-              ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            {/* Scrolls sideways rather than squashing. On a phone these columns are
+                wider than the screen, and a table that drags the whole page into
+                horizontal scrolling is the worse of the two failures. */}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800">
+                  <th className="th">File</th><th className="th">Account</th><th className="th">When</th>
+                  <th className="th text-right">Rows</th><th className="th text-right">Dupes</th><th className="th" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {imports.map((im) => (
+                  <ImportRow
+                    key={im.id}
+                    im={im}
+                    accounts={accounts ?? []}
+                    onChanged={() => { refreshImports(); refreshAccounts(); }}
+                    onMessage={setMsg}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 
@@ -652,23 +657,28 @@ function MerchantsEditor({ merchants, onChanged }: {
         )}
       </div>
       <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800">
-        <table className="w-full text-sm">
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {shown.map((m) => (
-              <tr
-                key={m.id}
-                className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                onClick={() => toggle(m.id, m.name)}
-              >
-                <td className="td w-8">
-                  <input type="checkbox" readOnly checked={selected.has(m.id)} />
-                </td>
-                <td className="td">{m.name}</td>
-                <td className="td text-right text-xs text-slate-400">{m._count.transactions} txns</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          {/* Scrolls sideways rather than squashing. On a phone these columns are
+              wider than the screen, and a table that drags the whole page into
+              horizontal scrolling is the worse of the two failures. */}
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {shown.map((m) => (
+                <tr
+                  key={m.id}
+                  className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  onClick={() => toggle(m.id, m.name)}
+                >
+                  <td className="td w-8">
+                    <input type="checkbox" readOnly checked={selected.has(m.id)} />
+                  </td>
+                  <td className="td">{m.name}</td>
+                  <td className="td text-right text-xs text-slate-400">{m._count.transactions} txns</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <p className="text-xs text-slate-500">
         Tick the variants of the same merchant, give them one name, and merge. "Auto-merge similar"

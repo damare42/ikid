@@ -169,51 +169,56 @@ function AssetTable({ title, items, onUpdate, onEdit, onDelete }: {
   if (items.length === 0) return null;
   return (
     <Card title={title}>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-left dark:border-slate-800">
-            <th className="th">Name</th>
-            <th className="th">Type</th>
-            <th className="th text-right">Value</th>
-            <th className="th text-right">Change</th>
-            <th className="th">Details</th>
-            <th className="th">Updated</th>
-            <th className="th text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {items.map((a) => (
-            <tr key={a.id}>
-              <td className="td font-medium">{a.icon} {a.name}</td>
-              <td className="td text-slate-500">{KIND_LABEL[a.kind] ?? a.kind}</td>
-              <td className="td text-right font-semibold tabular-nums">{fmtMoney(a.value)}</td>
-              <td className="td text-right"><ChangeChip a={a} /></td>
-              <td className="td text-xs text-slate-500">
-                {a.units != null && a.unitPrice != null && (
-                  <span>{a.units} × {fmtMoney(a.unitPrice)}</span>
-                )}
-                {a.payoff && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                    title={`Total interest remaining: ${fmtMoney(a.payoff.totalInterest)}`}>
-                    paid off {fmtMonth(a.payoff.payoffDate)} · {a.payoff.months} mo
-                  </span>
-                )}
-                {a.isLiability && !a.payoff && a.ratePct != null && a.monthlyPayment != null && (
-                  <span className="text-rose-500" title="Payment doesn't cover monthly interest">
-                    payment too low
-                  </span>
-                )}
-              </td>
-              <td className="td text-xs text-slate-400">{a.updatedAt}</td>
-              <td className="td text-right whitespace-nowrap">
-                <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onUpdate(a)}>Update value</button>
-                <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onEdit(a)}>Edit</button>
-                <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onDelete(a)}>✕</button>
-              </td>
+      <div className="overflow-x-auto">
+        {/* Scrolls sideways rather than squashing. On a phone these columns are
+            wider than the screen, and a table that drags the whole page into
+            horizontal scrolling is the worse of the two failures. */}
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-left dark:border-slate-800">
+              <th className="th">Name</th>
+              <th className="th">Type</th>
+              <th className="th text-right">Value</th>
+              <th className="th text-right">Change</th>
+              <th className="th">Details</th>
+              <th className="th">Updated</th>
+              <th className="th text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {items.map((a) => (
+              <tr key={a.id}>
+                <td className="td font-medium">{a.icon} {a.name}</td>
+                <td className="td text-slate-500">{KIND_LABEL[a.kind] ?? a.kind}</td>
+                <td className="td text-right font-semibold tabular-nums">{fmtMoney(a.value)}</td>
+                <td className="td text-right"><ChangeChip a={a} /></td>
+                <td className="td text-xs text-slate-500">
+                  {a.units != null && a.unitPrice != null && (
+                    <span>{a.units} × {fmtMoney(a.unitPrice)}</span>
+                  )}
+                  {a.payoff && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                      title={`Total interest remaining: ${fmtMoney(a.payoff.totalInterest)}`}>
+                      paid off {fmtMonth(a.payoff.payoffDate)} · {a.payoff.months} mo
+                    </span>
+                  )}
+                  {a.isLiability && !a.payoff && a.ratePct != null && a.monthlyPayment != null && (
+                    <span className="text-rose-500" title="Payment doesn't cover monthly interest">
+                      payment too low
+                    </span>
+                  )}
+                </td>
+                <td className="td text-xs text-slate-400">{a.updatedAt}</td>
+                <td className="td text-right whitespace-nowrap">
+                  <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onUpdate(a)}>Update value</button>
+                  <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onEdit(a)}>Edit</button>
+                  <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => onDelete(a)}>✕</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

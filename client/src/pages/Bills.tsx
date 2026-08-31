@@ -284,56 +284,61 @@ function BillsBody({ data, horizon }: { data: BillsSummary; horizon: Horizon }) 
 
           {priceMoves.length > 0 && (
             <Card title="Price changes">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800">
-                    <th className="th">Merchant</th>
-                    <th className="th">Changed</th>
-                    <th className="th text-right">Was</th>
-                    <th className="th text-right">Now</th>
-                    <th className="th text-right">Difference</th>
-                    <th className="th">Confirmed by</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {priceMoves.map(({ bill, change }) => {
-                    const up = change.to > change.from;
-                    return (
-                      <tr key={`${bill.merchant}-${change.date}`}>
-                        <td className="td font-medium">
-                          <button
-                            className="text-left hover:underline"
-                            onClick={() => openTransactions(bill)}
+              <div className="overflow-x-auto">
+                {/* Scrolls sideways rather than squashing. On a phone these columns are
+                    wider than the screen, and a table that drags the whole page into
+                    horizontal scrolling is the worse of the two failures. */}
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th className="th">Merchant</th>
+                      <th className="th">Changed</th>
+                      <th className="th text-right">Was</th>
+                      <th className="th text-right">Now</th>
+                      <th className="th text-right">Difference</th>
+                      <th className="th">Confirmed by</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {priceMoves.map(({ bill, change }) => {
+                      const up = change.to > change.from;
+                      return (
+                        <tr key={`${bill.merchant}-${change.date}`}>
+                          <td className="td font-medium">
+                            <button
+                              className="text-left hover:underline"
+                              onClick={() => openTransactions(bill)}
+                            >
+                              {bill.merchant}
+                            </button>
+                          </td>
+                          <td className="td whitespace-nowrap">{fmtDate(change.date)}</td>
+                          <td className="td text-right tabular-nums">{fmtMoney(change.from)}</td>
+                          <td className="td text-right tabular-nums">{fmtMoney(change.to)}</td>
+                          <td
+                            className={`td whitespace-nowrap text-right font-semibold tabular-nums ${
+                              up
+                                ? "text-rose-600 dark:text-rose-400"
+                                : "text-emerald-600 dark:text-emerald-400"
+                            }`}
                           >
-                            {bill.merchant}
-                          </button>
-                        </td>
-                        <td className="td whitespace-nowrap">{fmtDate(change.date)}</td>
-                        <td className="td text-right tabular-nums">{fmtMoney(change.from)}</td>
-                        <td className="td text-right tabular-nums">{fmtMoney(change.to)}</td>
-                        <td
-                          className={`td whitespace-nowrap text-right font-semibold tabular-nums ${
-                            up
-                              ? "text-rose-600 dark:text-rose-400"
-                              : "text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          <span aria-hidden="true">{up ? "▲" : "▼"}</span>{" "}
-                          {up ? "+" : ""}
-                          {fmtMoney(change.to - change.from, { maximumFractionDigits: 2 })} (
-                          {change.deltaPct > 0 ? "+" : ""}
-                          {change.deltaPct}%)
-                        </td>
-                        <td className="td text-xs text-slate-500 dark:text-slate-400">
-                          {change.chargesAtNewPrice === 1
-                            ? "1 charge — not repeated yet"
-                            : `${change.chargesAtNewPrice} charges`}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            <span aria-hidden="true">{up ? "▲" : "▼"}</span>{" "}
+                            {up ? "+" : ""}
+                            {fmtMoney(change.to - change.from, { maximumFractionDigits: 2 })} (
+                            {change.deltaPct > 0 ? "+" : ""}
+                            {change.deltaPct}%)
+                          </td>
+                          <td className="td text-xs text-slate-500 dark:text-slate-400">
+                            {change.chargesAtNewPrice === 1
+                              ? "1 charge — not repeated yet"
+                              : `${change.chargesAtNewPrice} charges`}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
               <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                 A change is only counted when the amount moves by more than 2% or 25¢, whichever is
                 larger — below that it is rounding, not repricing. One-off purchases from a merchant
@@ -344,59 +349,64 @@ function BillsBody({ data, horizon }: { data: BillsSummary; horizon: Horizon }) 
 
           {data.bills.length > 0 && (
             <Card title="All bills">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800">
-                    <th className="th">Merchant</th>
-                    <th className="th">Cadence</th>
-                    <th className="th text-right">Expected</th>
-                    <th className="th">Next</th>
-                    <th className="th">Status</th>
-                    <th className="th text-right">Seen</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {data.bills.map((b) => (
-                    <tr key={b.merchant}>
-                      <td className="td font-medium">
-                        <button
-                          className="text-left hover:underline"
-                          onClick={() => openTransactions(b)}
-                          title={CONFIDENCE_NOTE[b.confidence]}
-                        >
-                          {b.merchant}
-                        </button>
-                        {b.confidence !== "high" && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {b.confidence === "low" ? "date is a guess" : "date moves a little"}
-                          </div>
-                        )}
-                      </td>
-                      <td className="td whitespace-nowrap">{CADENCE_LABEL[b.cadence]}</td>
-                      <td className="td text-right tabular-nums">
-                        {b.variableAmount && "~"}
-                        {fmtMoney(b.expectedAmount)}
-                        {b.variableAmount && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {fmtMoney(b.amountRange.min)}–{fmtMoney(b.amountRange.max)}
-                          </div>
-                        )}
-                      </td>
-                      <td className="td whitespace-nowrap text-sm">
-                        {b.upcoming[0]
-                          ? whenLabel(b.upcoming[0].date, b.upcoming[0].windowDays)
-                          : `not within ${horizon} days`}
-                      </td>
-                      <td className="td">
-                        <StatusBadge status={b.status} />
-                      </td>
-                      <td className="td text-right text-xs tabular-nums text-slate-500 dark:text-slate-400">
-                        {b.chargeCount}× since {fmtDate(b.firstDate)}
-                      </td>
+              <div className="overflow-x-auto">
+                {/* Scrolls sideways rather than squashing. On a phone these columns are
+                    wider than the screen, and a table that drags the whole page into
+                    horizontal scrolling is the worse of the two failures. */}
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th className="th">Merchant</th>
+                      <th className="th">Cadence</th>
+                      <th className="th text-right">Expected</th>
+                      <th className="th">Next</th>
+                      <th className="th">Status</th>
+                      <th className="th text-right">Seen</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {data.bills.map((b) => (
+                      <tr key={b.merchant}>
+                        <td className="td font-medium">
+                          <button
+                            className="text-left hover:underline"
+                            onClick={() => openTransactions(b)}
+                            title={CONFIDENCE_NOTE[b.confidence]}
+                          >
+                            {b.merchant}
+                          </button>
+                          {b.confidence !== "high" && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {b.confidence === "low" ? "date is a guess" : "date moves a little"}
+                            </div>
+                          )}
+                        </td>
+                        <td className="td whitespace-nowrap">{CADENCE_LABEL[b.cadence]}</td>
+                        <td className="td text-right tabular-nums">
+                          {b.variableAmount && "~"}
+                          {fmtMoney(b.expectedAmount)}
+                          {b.variableAmount && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {fmtMoney(b.amountRange.min)}–{fmtMoney(b.amountRange.max)}
+                            </div>
+                          )}
+                        </td>
+                        <td className="td whitespace-nowrap text-sm">
+                          {b.upcoming[0]
+                            ? whenLabel(b.upcoming[0].date, b.upcoming[0].windowDays)
+                            : `not within ${horizon} days`}
+                        </td>
+                        <td className="td">
+                          <StatusBadge status={b.status} />
+                        </td>
+                        <td className="td text-right text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                          {b.chargeCount}× since {fmtDate(b.firstDate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {data.bills.some((b) => b.status === "late") && (
                 <div className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-300">
                   <span aria-hidden="true">▲</span> Overdue means the charge was expected and hasn&apos;t

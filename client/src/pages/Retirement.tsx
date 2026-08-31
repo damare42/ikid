@@ -298,17 +298,17 @@ export default function Retirement() {
               <Num label="401k + Trad IRA" value={tradBal} onChange={setTradBal} />
               <Num label="Contribution /yr" value={tradCon} onChange={setTradCon} hint="incl. employer match" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Num label="Roth balance" value={rothBal} onChange={setRothBal} />
               <Num label="…of which basis" value={rothBasis} onChange={setRothBasis} hint="your contributions" />
               <Num label="Contribution /yr" value={rothCon} onChange={setRothCon} />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Num label="Brokerage" value={brokBal} onChange={setBrokBal} />
               <Num label="Cost basis %" value={brokBasisPct} onChange={setBrokBasisPct} hint="unrealized-gain share" />
               <Num label="Contribution /yr" value={brokCon} onChange={setBrokCon} />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Num label="HSA" value={hsaBal} onChange={setHsaBal} />
               <Num label="Contribution /yr" value={hsaCon} onChange={setHsaCon} />
               <Num label="Medical $/yr" value={hsaMed} onChange={setHsaMed} hint="qualified expenses" />

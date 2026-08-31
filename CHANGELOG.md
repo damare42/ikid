@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+**Usable on a phone**
+
+Below 768px the sidebar was `hidden md:flex` with nothing behind it, so a
+visitor on a phone could reach the Dashboard and none of the other twelve
+screens. Roughly half the people who open a demo link are on a phone.
+
+- A slide-over navigation covering every destination, sharing its link markup
+  with the desktop rail so the two can't drift. Closes on tap, scrim and Escape
+- The demo banner rendered in a ~40px column on a phone — one word per line,
+  filling the entire first screen. `flex-1` let it shrink instead of wrap; it
+  now takes a full-width basis until `sm`
+- Six tables that would have dragged the whole page into horizontal scrolling
+  now scroll within their own card
+- Form rows of three number inputs go two-across on a phone
+
+**The health score stopped contradicting itself**
+
+The demo scored `savingsRate * 250` clamped to 100, so its dashboard read
+**100/100 directly above "3 budgets over limit"** — using a formula the
+installed app has never used. Same class of drift as the Planner bug.
+
+- `healthCore.ts` holds the product's real formula; server and demo both call
+  it. The demo's dashboard now reads 65/100 with three notes that add up
+- Pinned by `health-score.test.ts`, including that a perfect score is
+  impossible while a budget is over
+
+**Import explains itself before you drop a file**
+
+The app's most prominent button opened a dropzone reading "Drop a CSV or PDF
+statement here", and only objected after a file was chosen. For an app whose
+claim is that your data never leaves your machine, inviting a stranger to drag
+a real bank statement into a page on github.io and explaining afterwards is the
+wrong order. In demo builds it now says up front why it's off, and what the
+feature does when you run it yourself.
+
 **The demo's Planner works**
 
 It rendered blank. `/api/planner/status` returned `{ profile: "demo" }` where

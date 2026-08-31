@@ -820,7 +820,7 @@ function Compound({ initial, onSave }: CalcProps) {
 
       {result && valid && (
         <>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <StatCard label={`Balance in ${y} years`} value={fmtMoney(result.finalBalance)} tone="good" />
             <StatCard label="You contribute" value={fmtMoney(result.totalContributed)} />
             <StatCard

@@ -12,6 +12,7 @@ import {
 } from "./analyticsTypes.js";
 import { budgetStatus } from "./budgetService.js";
 import type { DashboardSummary, MonthlyPoint } from "../../../shared/types.js";
+import { financialHealth } from "./healthCore.js";
 
 export type { SlimTxn } from "./analyticsTypes.js";
 
@@ -428,23 +429,14 @@ export async function dashboardSummary(month?: string, ytd = false): Promise<Das
   const netSavings = round2(income - spending);
   const savingsRate = income > 0 ? Math.max(-1, netSavings / income) : 0;
 
-  // Financial health score (0-100)
-  const notes: string[] = [];
-  let score = 0;
-  const srPts = Math.max(0, Math.min(40, savingsRate * 200)); // 20% savings rate = full 40
-  score += srPts;
-  notes.push(`Savings rate ${(savingsRate * 100).toFixed(0)}% → ${srPts.toFixed(0)}/40`);
-  const withinBudget = budgets.length ? budgets.filter((b) => !b.overBudget).length / budgets.length : 1;
-  score += withinBudget * 30;
-  notes.push(`${Math.round(withinBudget * 100)}% of budgets on track → ${(withinBudget * 30).toFixed(0)}/30`);
-  const discretionary = ["Dining", "Coffee", "Entertainment", "Shopping", "Subscriptions", "Travel"];
-  const discSpend = [...catTotals.values()]
-    .filter((c) => discretionary.includes(c.name))
-    .reduce((s, c) => s + c.total, 0);
-  const discShare = spending > 0 ? discSpend / spending : 0;
-  const discPts = Math.max(0, 30 - discShare * 60); // 0% discretionary = 30, 50% = 0
-  score += discPts;
-  notes.push(`Discretionary spending ${(discShare * 100).toFixed(0)}% of total → ${discPts.toFixed(0)}/30`);
+  // Financial health score (0-100). The arithmetic lives in healthCore so the
+  // demo runs this one rather than a formula of its own.
+  const health = financialHealth({
+    savingsRate,
+    spending,
+    budgets,
+    categoryTotals: [...catTotals.values()],
+  });
 
   // Build local-date strings (avoid toISOString timezone shifts).
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -462,7 +454,7 @@ export async function dashboardSummary(month?: string, ytd = false): Promise<Das
     largestCategories: [...catTotals.values()].sort((a, b) => b.total - a.total).slice(0, 6),
     recentTransactions: recent.map(toTransactionDTO),
     budgets,
-    healthScore: Math.round(score),
-    healthNotes: notes,
+    healthScore: health.score,
+    healthNotes: health.notes,
   };
 }

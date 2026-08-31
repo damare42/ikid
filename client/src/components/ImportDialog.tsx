@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AccountDTO, AccountStatusDTO, CategoryDTO, ImportPreview, ParsedRow } from "@shared/types";
-import { api } from "../lib/api";
+import { api, IS_DEMO } from "../lib/api";
 import { fmtDate, fmtMoney } from "../lib/format";
 import { freshness } from "../pages/Accounts";
 import { ErrorNote, Modal, Spinner } from "./ui";
@@ -89,6 +89,45 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
   function toggleAllDuplicates() {
     const next = !allDupForced;
     setRows((rs) => rs.map((r) => (r.duplicate ? { ...r, force: next } : r)));
+  }
+
+  // In the hosted demo, importing is the one headline feature that genuinely
+  // cannot run — and it was the app's most prominent button, opening a dropzone
+  // that said "Drop a CSV or PDF statement here" and only objected *after* a
+  // file was chosen. For an app whose entire claim is "your data never leaves
+  // your machine", inviting a stranger to drag a real bank statement into a
+  // page on github.io and explaining afterwards is the wrong order. Refuse
+  // first, and use the space to say what the feature does when installed.
+  if (IS_DEMO) {
+    return (
+      <Modal title="Import statement" onClose={onClose}>
+        <div className="space-y-3 text-sm">
+          <p className="text-slate-700 dark:text-slate-300">
+            <b>Not in the demo — on purpose.</b> This demo is pre-filled with two years of
+            invented transactions so every screen has something to show. Importing here would
+            mean handing a real bank statement to a web page, and asking you to do that would
+            contradict the point of the app.
+          </p>
+          <div className="rounded-surface border border-slate-200 p-3 dark:border-slate-800">
+            <div className="mb-1.5 font-semibold">What it does when you run it yourself</div>
+            <ul className="list-disc space-y-1 pl-5 text-slate-600 dark:text-slate-400">
+              <li>Drop a CSV or PDF from any bank — the columns are detected, not configured.</li>
+              <li>Duplicates are matched on date, amount, description and merchant, so
+                  re-uploading an overlapping statement is safe.</li>
+              <li>Every import is one undoable batch.</li>
+              <li>The file is parsed on your own machine and stored in a SQLite file you own.</li>
+            </ul>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400">
+            Everything else in this demo is the real application — same code, same arithmetic,
+            running entirely in this browser tab.
+          </p>
+          <div className="flex justify-end pt-1">
+            <button className="btn-primary" onClick={onClose}>Keep looking around</button>
+          </div>
+        </div>
+      </Modal>
+    );
   }
 
   return (
