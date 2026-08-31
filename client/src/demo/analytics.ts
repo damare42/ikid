@@ -12,6 +12,8 @@ import {
 } from "@engine/analyticsTypes.js";
 import { financialHealth } from "@engine/healthCore.js";
 import { buildInsights } from "@engine/insightsCore.js";
+import { findRecurring, type RecurringCharge } from "@engine/recurringCore.js";
+import { CSP_BUCKETS, isFixedCost } from "@engine/cspCore.js";
 import { num, route, str } from "./router.js";
 import { allTxns, asDate, categoryDTO, latestDate, merchantDTO, txnDTO, ymd } from "./data.js";
 import { handle } from "./router.js";
@@ -202,36 +204,16 @@ route("GET /api/analytics/heatmap", ({ query }) => {
   return [...map.entries()].map(([date, total]) => ({ date, total }));
 });
 
+/** Grouping only — detection is the shared engine's, same as the server's. */
 export function recurringPayments() {
-  const byMerchant = new Map<string, SlimTxn[]>();
+  const byMerchant = new Map<string, RecurringCharge[]>();
   for (const t of slim()) {
     if (!isExpense(t)) continue;
     const list = byMerchant.get(t.merchantName) ?? [];
-    list.push(t);
+    list.push({ amount: -t.amount, date: ymd(t.date) });
     byMerchant.set(t.merchantName, list);
   }
-  const out: { merchant: string; avgAmount: number; count: number; lastDate: string; active: boolean; monthlyEstimate: number }[] = [];
-  const now = latestDate().getTime();
-  for (const [merchant, list] of byMerchant) {
-    if (list.length < 3) continue;
-    const amounts = list.map((t) => -t.amount).sort((a, b) => a - b);
-    const median = amounts[Math.floor(amounts.length / 2)];
-    if (amounts.filter((a) => Math.abs(a - median) / median <= 0.15).length < 3) continue;
-    const months = new Set(list.map((t) => monthKeyOf(t.date)));
-    if (months.size < 3) continue;
-    const perMonth = list.length / months.size;
-    if (perMonth > 2.5) continue;
-    const last = list[list.length - 1].date;
-    out.push({
-      merchant,
-      avgAmount: round2(amounts.reduce((s, a) => s + a, 0) / amounts.length),
-      count: list.length,
-      lastDate: last.toISOString().slice(0, 10),
-      active: now - last.getTime() < 45 * 24 * 3600 * 1000,
-      monthlyEstimate: round2(median * Math.min(perMonth, 1.5)),
-    });
-  }
-  return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate);
+  return findRecurring(byMerchant, latestDate());
 }
 
 route("GET /api/analytics/recurring", () => recurringPayments());
@@ -239,13 +221,6 @@ route("GET /api/analytics/recurring", () => recurringPayments());
 // ---------------------------------------------------------------------------
 // Conscious Spending Plan + month breakdown
 // ---------------------------------------------------------------------------
-
-const CSP_FIXED = new Set(
-  ["Housing", "Rent", "Mortgage", "Utilities", "Electricity", "Water", "Gas", "Internet",
-    "Phone", "Insurance", "Health", "Medical", "Pharmacy", "Transportation", "Car Payment",
-    "Groceries", "Subscriptions", "Debt", "Loan", "Loans", "Student Loans", "Childcare",
-    "Tuition", "Taxes", "Fees & Charges"].map((n) => n.toLowerCase()),
-);
 
 route("GET /api/analytics/csp", ({ query }) => {
   const ytd = str(query, "range") === "ytd";
@@ -273,7 +248,7 @@ route("GET /api/analytics/csp", ({ query }) => {
     if (t.amount >= 0) continue;
     const out = -t.amount;
     if (t.categoryName === "Investment") add("investments", t, out);
-    else if (isExpense(t)) add(CSP_FIXED.has(t.categoryName.toLowerCase()) ? "fixed" : "guiltFree", t, out);
+    else if (isExpense(t)) add(isFixedCost(t.categoryName) ? "fixed" : "guiltFree", t, out);
   }
 
   const sum = (k: string) => round2([...detail[k].values()].reduce((s, c) => s + c.total, 0));
@@ -281,13 +256,7 @@ route("GET /api/analytics/csp", ({ query }) => {
   const pct = (v: number) => (income > 0 ? Math.round((v / income) * 1000) / 10 : 0);
   const leftover = round2(income - sum("fixed") - sum("investments") - sum("guiltFree"));
 
-  const meta = [
-    { key: "fixed", label: "Fixed Costs", targetLow: 50, targetHigh: 60, color: "#64748b" },
-    { key: "investments", label: "Investments", targetLow: 10, targetHigh: 10, color: "#6366f1" },
-    { key: "savings", label: "Savings", targetLow: 5, targetHigh: 10, color: "#0d9488" },
-    { key: "guiltFree", label: "Guilt-Free Spending", targetLow: 20, targetHigh: 35, color: "#f59e0b" },
-  ];
-  const buckets = meta.map((b) => ({
+  const buckets = CSP_BUCKETS.map((b) => ({
     ...b,
     total: b.key === "savings" ? leftover : sum(b.key),
     pctOfIncome: pct(b.key === "savings" ? leftover : sum(b.key)),
@@ -304,6 +273,8 @@ route("GET /api/analytics/csp", ({ query }) => {
     allocated,
     unallocated: round2(income - allocated),
     buckets,
+    // See the note on the server's cspBreakdown.
+    complete: to.getTime() < latestDate().getTime(),
   };
 });
 

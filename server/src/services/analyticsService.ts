@@ -13,6 +13,9 @@ import {
 import { budgetStatus } from "./budgetService.js";
 import type { DashboardSummary, MonthlyPoint } from "../../../shared/types.js";
 import { financialHealth } from "./healthCore.js";
+import { findRecurring, type RecurringCharge, type RecurringPayment } from "./recurringCore.js";
+// Definitions, not arithmetic — and shared, so the demo can't hold a second copy.
+import { CSP_BUCKETS, isFixedCost } from "./cspCore.js";
 
 export type { SlimTxn } from "./analyticsTypes.js";
 
@@ -176,48 +179,26 @@ export async function largestPurchases(from?: Date, to?: Date, limit = 10) {
   return rows.map(toTransactionDTO);
 }
 
-export interface RecurringPayment {
-  merchant: string;
-  avgAmount: number;
-  count: number;
-  lastDate: string;
-  active: boolean; // seen in the last 45 days
-  monthlyEstimate: number;
-}
+export type { RecurringPayment } from "./recurringCore.js";
 
+/**
+ * Detection lives in recurringCore — pure, and shared with the hosted demo.
+ * This is only the grouping.
+ */
 export async function recurringPayments(): Promise<RecurringPayment[]> {
   const txns = await loadSlim();
-  const byMerchant = new Map<string, SlimTxn[]>();
+  const byMerchant = new Map<string, RecurringCharge[]>();
+  let newest = 0;
   for (const t of txns) {
     if (!isExpense(t)) continue;
     const list = byMerchant.get(t.merchantName) ?? [];
-    list.push(t);
+    list.push({ amount: -t.amount, date: t.date.toISOString().slice(0, 10) });
     byMerchant.set(t.merchantName, list);
+    newest = Math.max(newest, t.date.getTime());
   }
-  const out: RecurringPayment[] = [];
-  const now = Date.now();
-  for (const [merchant, list] of byMerchant) {
-    if (list.length < 3) continue;
-    const amounts = list.map((t) => -t.amount).sort((a, b) => a - b);
-    const median = amounts[Math.floor(amounts.length / 2)];
-    const similar = amounts.filter((a) => Math.abs(a - median) / median <= 0.15);
-    if (similar.length < 3) continue;
-    // spread across at least 3 distinct months with ~monthly cadence
-    const months = new Set(list.map((t) => monthKey(t.date)));
-    if (months.size < 3) continue;
-    const perMonth = list.length / months.size;
-    if (perMonth > 2.5) continue; // too frequent to be a subscription-style payment
-    const last = list[list.length - 1].date;
-    out.push({
-      merchant,
-      avgAmount: round2(amounts.reduce((s, a) => s + a, 0) / amounts.length),
-      count: list.length,
-      lastDate: last.toISOString().slice(0, 10),
-      active: now - last.getTime() < 45 * 24 * 3600 * 1000,
-      monthlyEstimate: round2(median * Math.min(perMonth, 1.5)),
-    });
-  }
-  return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate);
+  // "Active" is relative to the newest transaction on file, not to today: an
+  // export opened months later shouldn't report every subscription as dead.
+  return findRecurring(byMerchant, newest ? new Date(newest) : new Date());
 }
 
 export async function heatmap(year: number) {
@@ -236,19 +217,6 @@ export async function heatmap(year: number) {
  *   Fixed Costs 50–60% · Investments 10% · Savings 5–10% · Guilt-Free 20–35%
  * Percentages are of take-home income for the period.
  */
-/** Category names that count as Fixed Costs (case-insensitive, so custom
- *  categories like "Rent" or "Mortgage" land in the right bucket). */
-const CSP_FIXED = new Set(
-  [
-    "Housing", "Rent", "Mortgage", "Utilities", "Electricity", "Water", "Gas",
-    "Internet", "Phone", "Insurance", "Health", "Medical", "Pharmacy",
-    "Transportation", "Car Payment", "Groceries", "Subscriptions",
-    "Debt", "Loan", "Loans", "Student Loans", "Childcare", "Tuition",
-    "Taxes", "Fees & Charges",
-  ].map((n) => n.toLowerCase()),
-);
-const isFixedCost = (categoryName: string) => CSP_FIXED.has(categoryName.toLowerCase());
-
 export async function cspBreakdown(month?: string, ytd = false) {
   const now = new Date();
   const [y, m] = month ? month.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
@@ -294,13 +262,7 @@ export async function cspBreakdown(month?: string, ytd = false) {
   // Savings = whatever is left of income after all spending and investing.
   const leftover = round2(income - sum("fixed") - sum("investments") - sum("guiltFree"));
 
-  const meta = [
-    { key: "fixed", label: "Fixed Costs", targetLow: 50, targetHigh: 60, color: "#64748b" },
-    { key: "investments", label: "Investments", targetLow: 10, targetHigh: 10, color: "#6366f1" },
-    { key: "savings", label: "Savings", targetLow: 5, targetHigh: 10, color: "#0d9488" },
-    { key: "guiltFree", label: "Guilt-Free Spending", targetLow: 20, targetHigh: 35, color: "#f59e0b" },
-  ];
-  const buckets = meta.map((b) => ({
+  const buckets = CSP_BUCKETS.map((b) => ({
     ...b,
     total: b.key === "savings" ? leftover : sum(b.key),
     pctOfIncome: pct(b.key === "savings" ? leftover : sum(b.key)),
@@ -318,6 +280,12 @@ export async function cspBreakdown(month?: string, ytd = false) {
     allocated,
     unallocated: round2(income - allocated),
     buckets,
+    // Whether the period has actually finished. The targets are shares of a
+    // whole month's income, so measuring a month that is three days old
+    // against them says nothing — fixed costs land on the 1st and read as
+    // 100%, guilt-free spending reads as 0%, and the app draws confident
+    // conclusions from an accounting period it has barely started.
+    complete: to.getTime() < Date.now(),
   };
 }
 

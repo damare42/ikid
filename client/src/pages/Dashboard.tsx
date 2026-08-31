@@ -30,6 +30,8 @@ interface CspBreakdown {
   allocated: number;
   unallocated: number;
   buckets: CspBucket[];
+  /** False while the period is still running — see the note where it's used. */
+  complete: boolean;
 }
 
 function YearTotalsModal({ monthly, onClose }: { monthly: MonthlyPoint[]; onClose: () => void }) {
@@ -373,7 +375,16 @@ export default function Dashboard() {
         </Card>
 
         {/* Conscious Spending Plan */}
-        <Card title="Conscious Spending Plan">
+        <Card
+          title="Conscious Spending Plan"
+          action={
+            csp && !csp.complete ? (
+              <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+                month in progress
+              </span>
+            ) : undefined
+          }
+        >
           {!csp || csp.income <= 0 ? (
             <div className="p-6 text-center text-sm text-slate-500">
               No income recorded for this period yet — the plan compares each bucket to your take-home pay.
@@ -404,10 +415,17 @@ export default function Dashboard() {
                   {csp.buckets.map((b) => {
                     // Saving/investing above target is good; overspending fixed/guilt-free is not.
                     const saverBucket = b.key === "investments" || b.key === "savings";
-                    const good = saverBucket
+                    // …but only once the month has actually happened. The
+                    // targets are shares of a whole month's income, so on the
+                    // 3rd the rent has landed and fixed costs read as nearly
+                    // everything, while guilt-free reads as nothing. Colouring
+                    // that verdict green and red is the app being confident
+                    // about an accounting period it has barely started.
+                    const judge = csp.complete;
+                    const good = judge && (saverBucket
                       ? b.pctOfIncome >= b.targetLow
-                      : b.pctOfIncome >= b.targetLow && b.pctOfIncome <= b.targetHigh;
-                    const bad = !saverBucket && b.pctOfIncome > b.targetHigh;
+                      : b.pctOfIncome >= b.targetLow && b.pctOfIncome <= b.targetHigh);
+                    const bad = judge && !saverBucket && b.pctOfIncome > b.targetHigh;
                     return (
                       <div
                         key={b.key}
@@ -425,7 +443,8 @@ export default function Dashboard() {
                           </span>
                           <span
                             className={`font-semibold ${
-                              good ? "text-emerald-600 dark:text-emerald-400"
+                              !judge ? "text-slate-500 dark:text-slate-400"
+                              : good ? "text-emerald-600 dark:text-emerald-400"
                               : bad ? "text-rose-500"
                               : "text-amber-500"
                             }`}

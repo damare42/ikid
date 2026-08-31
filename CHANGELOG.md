@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+**Recurring payments were 85% of spending, because groceries counted**
+
+The detector asked for amount similarity: three charges within 15% of the
+median. On two years of data that is the wrong signal in both directions.
+
+A shop visited twice a month for two years is 46 charges, and three landing
+near the median is arithmetic rather than evidence — so groceries, fuel, dining
+and transit were all reported as subscriptions, and "you spend $4,071/month on
+recurring payments" appeared against $4,790/month of total spending. Meanwhile
+an electricity bill (38% of charges near its median) and a streaming service
+that had raised its price (58%) were excluded, though both plainly recur.
+
+The signal is *when*, not *how much*:
+
+| | gap between charges | variation |
+|---|---|---|
+| real billing | ~30.4 days | **0.03** |
+| groceries, fuel, dining | 6–65 days | 0.60–1.16 |
+
+`recurringCore.ts` tests cadence regularity instead, shared by server and demo.
+The demo now finds **13 payments totalling $2,840/month** — mortgage, car
+finance, insurance, utilities, fibre, gym, mobile, three streaming services —
+and no groceries. The estimate is also derived from the observed interval
+rather than `median × min(perMonth, 1.5)`, which inflated anything arriving
+more often than monthly and under-reported anything weekly.
+
+**The app judged months that hadn't finished**
+
+The Conscious Spending Plan compares each bucket to a share of a whole month's
+income and colours the result green or red. On the 3rd, rent has landed and
+fixed costs read as nearly everything while guilt-free reads as nothing — so
+the demo's dashboard showed "21.9%" against a "target 50–60%" in amber, an
+alarming verdict about an accounting period three days old. The breakdown now
+reports whether the period has closed, and the dashboard withholds the verdict
+and says "month in progress" until it has.
+
+**The last duplicated definitions**
+
+`cspCore.ts` holds the fixed-cost category list and the target bands, which the
+demo had been keeping a second copy of. They agreed — so had the health score,
+right up until it didn't.
+
+
 **The demo's Insights page was a quieter, slightly wrong version of the product**
 
 Third instance of the same drift, found by auditing for it rather than
