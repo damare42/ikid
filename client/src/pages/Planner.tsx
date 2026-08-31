@@ -3,7 +3,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { api } from "../lib/api";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card } from "../components/ui";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 interface ChartPoint {
   month: string;
@@ -186,7 +186,7 @@ export default function Planner() {
           </button>
           {currentId != null && (
             <button
-              className="btn-ghost !py-1 text-xs text-rose-500"
+              className="btn-ghost !py-1 text-xs text-rose-500 dark:text-rose-400"
               onClick={() => deleteConversation(currentId)}
               title="Delete this saved conversation"
             >
@@ -269,7 +269,7 @@ export default function Planner() {
                           <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={10} interval="preserveStartEnd" />
                           <YAxis fontSize={10} tickFormatter={(v) => fmtMoney(v)} width={70} />
                           <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(l) => fmtMonth(String(l))} />
-                          <Legend />
+                          <Legend formatter={legendLabel} />
                           {/* The scenario used to be green and the baseline grey, which told
                               the reader the proposal was the better one before the
                               engine had said so. Two neutral hues; the numbers argue. */}

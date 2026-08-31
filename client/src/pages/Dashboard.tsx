@@ -9,7 +9,7 @@ import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtMoney, fmtMonth, fmtSigned, fmtSignedCompact, monthInputValue, pct } from "../lib/format";
 import { Badge, Card, ErrorNote, Modal, ProgressBar, Spinner, StatCard } from "../components/ui";
 import { MonthBreakdownModal } from "../components/MonthBreakdownModal";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 interface CspBucket {
   key: string;
@@ -199,13 +199,13 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <div className="flex gap-1 rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
             <button
-              className={`rounded-md px-3 py-1 text-sm ${mode === "month" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500"}`}
+              className={`rounded-md px-3 py-1 text-sm ${mode === "month" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500 dark:text-slate-400"}`}
               onClick={() => setView({ range: "month" })}
             >
               Month
             </button>
             <button
-              className={`rounded-md px-3 py-1 text-sm ${mode === "ytd" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500"}`}
+              className={`rounded-md px-3 py-1 text-sm ${mode === "ytd" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500 dark:text-slate-400"}`}
               onClick={() => setView({ range: "ytd" })}
             >
               Year to date
@@ -340,13 +340,13 @@ export default function Dashboard() {
           action={
             <div className="flex gap-1 rounded-lg bg-slate-200 p-0.5 text-xs dark:bg-slate-800">
               <button
-                className={`rounded-md px-2 py-0.5 ${ivRange === "12m" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500"}`}
+                className={`rounded-md px-2 py-0.5 ${ivRange === "12m" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500 dark:text-slate-400"}`}
                 onClick={() => setIvRange("12m")}
               >
                 12 mo
               </button>
               <button
-                className={`rounded-md px-2 py-0.5 ${ivRange === "ytd" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500"}`}
+                className={`rounded-md px-2 py-0.5 ${ivRange === "ytd" ? "bg-white font-medium shadow dark:bg-slate-700" : "text-slate-500 dark:text-slate-400"}`}
                 onClick={() => setIvRange("ytd")}
               >
                 YTD
@@ -367,7 +367,7 @@ export default function Dashboard() {
               <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={11} />
               <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
               <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
-              <Legend />
+              <Legend formatter={legendLabel} />
               <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
               <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
             </BarChart>
@@ -445,7 +445,7 @@ export default function Dashboard() {
                             className={`font-semibold ${
                               !judge ? "text-slate-500 dark:text-slate-400"
                               : good ? "text-emerald-600 dark:text-emerald-400"
-                              : bad ? "text-rose-500"
+                              : bad ? "text-rose-500 dark:text-rose-400"
                               : "text-amber-500"
                             }`}
                           >
@@ -480,7 +480,7 @@ export default function Dashboard() {
                     <Badge color={b.categoryColor}>{b.categoryName}</Badge>
                     <span className="tabular-nums text-slate-500">
                       {fmtMoney(b.spent)} / {fmtMoney(b.monthlyLimit)}
-                      {b.overBudget && <span className="ml-2 font-semibold text-rose-500">over</span>}
+                      {b.overBudget && <span className="ml-2 font-semibold text-rose-500 dark:text-rose-400">over</span>}
                     </span>
                   </div>
                   <ProgressBar pct={b.pctUsed} />
@@ -511,7 +511,7 @@ export default function Dashboard() {
                   <td className="td">{t.merchant?.name ?? t.description}</td>
                   <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
                   <td className="td text-slate-500">{t.account?.name ?? "—"}</td>
-                  <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600" : ""}`}>
+                  <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600 dark:text-emerald-400" : ""}`}>
                     {fmtSigned(t.amount)}
                   </td>
                 </tr>

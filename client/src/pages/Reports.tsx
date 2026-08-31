@@ -7,7 +7,7 @@ import type { BudgetStatusDTO, GoalDTO, MonthlyPoint } from "@shared/types";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth, monthInputValue } from "../lib/format";
 import { Badge, Card, ProgressBar, Spinner } from "../components/ui";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 export default function Reports() {
   const c = useChartColors();
@@ -58,7 +58,7 @@ export default function Reports() {
             <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={11} />
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
-            <Legend />
+            <Legend formatter={legendLabel} />
             <Bar dataKey="income" name="Income" fill={c.in} />
             <Bar dataKey="expenses" name="Expenses" fill={c.out} />
           </BarChart>

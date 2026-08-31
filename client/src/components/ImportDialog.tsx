@@ -224,7 +224,7 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
                     <td className="td">
                       <input className="input !py-0.5 w-36" value={r.merchant} onChange={(e) => updateRow(i, { merchant: e.target.value })} />
                     </td>
-                    <td className={`td text-right tabular-nums ${r.amount < 0 ? "" : "text-emerald-600"}`}>{fmtMoney(r.amount, { maximumFractionDigits: 2 })}</td>
+                    <td className={`td text-right tabular-nums ${r.amount < 0 ? "" : "text-emerald-600 dark:text-emerald-400"}`}>{fmtMoney(r.amount, { maximumFractionDigits: 2 })}</td>
                     <td className="td">
                       <select
                         className="input !py-0.5"
@@ -245,7 +245,7 @@ export function ImportDialog({ onClose, onImported, initialAccountId }: {
                     </td>
                     <td className="td text-xs">
                       {!r.valid ? (
-                        <span className="text-rose-500" title={r.problems.join("; ")}>invalid</span>
+                        <span className="text-rose-500 dark:text-rose-400" title={r.problems.join("; ")}>invalid</span>
                       ) : r.duplicate ? (
                         <label className="flex cursor-pointer items-center gap-1" title="Flagged as a duplicate. Tick to import it anyway (e.g. two identical charges on the same day).">
                           <input

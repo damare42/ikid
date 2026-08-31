@@ -292,7 +292,7 @@ function PortableData({ onMessage, onError }: {
           {busy ? "Importing…" : "Import JSON (merge)"}
           <input type="file" accept=".json,application/json" className="hidden" onChange={pick("merge")} />
         </label>
-        <label className={`btn-ghost cursor-pointer text-rose-500 ${busy ? "pointer-events-none opacity-50" : ""}`}>
+        <label className={`btn-ghost cursor-pointer text-rose-500 dark:text-rose-400 ${busy ? "pointer-events-none opacity-50" : ""}`}>
           Import JSON (replace all)
           <input type="file" accept=".json,application/json" className="hidden" onChange={pick("replace")} />
         </label>
@@ -422,7 +422,7 @@ function ImportRow({ im, accounts, onChanged, onMessage }: {
       <td className="td text-right">{im.duplicateCount}</td>
       <td className="td text-right">
         <button
-          className="btn-ghost !px-2 !py-0.5 text-xs text-rose-500"
+          className="btn-ghost !px-2 !py-0.5 text-xs text-rose-500 dark:text-rose-400"
           onClick={async () => {
             if (!confirm(`Undo import "${im.filename}"? Its ${im.transactionCount} transactions will be deleted.`)) return;
             await api.delete(`/api/imports/${im.id}`);
@@ -578,7 +578,7 @@ function SecurityEditor({ onMessage }: { onMessage: (m: string) => void }) {
           {isProtected ? "Change password" : "Set password & require sign-in"}
         </button>
         {isProtected && (
-          <button className="btn-ghost text-rose-500" onClick={removePw}>
+          <button className="btn-ghost text-rose-500 dark:text-rose-400" onClick={removePw}>
             Remove password
           </button>
         )}

@@ -153,7 +153,7 @@ function MobileNav({ open, onClose, onSearch }: {
         <div className="mb-5 flex items-start justify-between gap-2">
           <div>
             <IkidLogo height={26} />
-            <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
               local finance
             </div>
           </div>
@@ -423,7 +423,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
                 fits the 44px of content the collapsed rail leaves. */}
             <IkidLogo height={railCollapsed ? 22 : 30} />
             {!railCollapsed && (
-              <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">local finance</div>
+              <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">local finance</div>
             )}
           </div>
           <button
@@ -497,7 +497,7 @@ function Shell({ auth }: { auth: AuthStatus | null }) {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <div className="truncate text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400">{sectionLabel}</div>
+          <div className="truncate text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{sectionLabel}</div>
           <form onSubmit={submitSearch} className="mx-auto hidden max-w-sm flex-1 sm:block">
             <input
               className="input w-full"

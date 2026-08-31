@@ -10,30 +10,47 @@ export interface DefaultCategory {
   color: string;
 }
 
+/**
+ * Category colours.
+ *
+ * Every hue here is the one originally chosen; several have been darkened or
+ * lightened, and nothing else about them changed. The originals were stock
+ * Tailwind hues, which are not accessible colours — measured on the live
+ * dashboard, Transportation rendered at 2.15:1 and Groceries at 2.28:1, and
+ * a category dot on its own 13% tint came out as low as 2.42:1.
+ *
+ * Each colour now clears 3:1 (WCAG 1.4.11, graphical objects) four ways: on
+ * white, on the dark panel, and as a dot on its own tint over each. Pinned by
+ * server/src/tests/contrast.test.ts.
+ *
+ * These are defaults, not rules. A user can pick any colour they like, which is
+ * exactly why `Badge` puts the colour in the dot and leaves the label in body
+ * text — no palette can guarantee a colour someone else chose is readable.
+ */
 export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   { name: "Housing", type: "expense", color: "#8b5cf6" },
-  { name: "Utilities", type: "expense", color: "#0ea5e9" },
-  { name: "Internet", type: "expense", color: "#06b6d4" },
-  { name: "Phone", type: "expense", color: "#14b8a6" },
-  { name: "Transportation", type: "expense", color: "#f59e0b" },
+  { name: "Utilities", type: "expense", color: "#0c8fca" },
+  { name: "Internet", type: "expense", color: "#0595ae" },
+  { name: "Phone", type: "expense", color: "#109889" },
+  { name: "Transportation", type: "expense", color: "#ba7808" },
   { name: "Insurance", type: "expense", color: "#64748b" },
   { name: "Health", type: "expense", color: "#ef4444" },
-  { name: "Dining", type: "expense", color: "#f97316" },
-  { name: "Coffee", type: "expense", color: "#a16207" },
-  { name: "Groceries", type: "expense", color: "#22c55e" },
-  { name: "Shopping", type: "expense", color: "#ec4899" },
-  { name: "Entertainment", type: "expense", color: "#d946ef" },
+  { name: "Dining", type: "expense", color: "#e05f06" },
+  { name: "Coffee", type: "expense", color: "#a66507" },
+  { name: "Groceries", type: "expense", color: "#1b9d4b" },
+  { name: "Shopping", type: "expense", color: "#ec4698" },
+  { name: "Entertainment", type: "expense", color: "#d73fee" },
   { name: "Subscriptions", type: "expense", color: "#6366f1" },
   { name: "Travel", type: "expense", color: "#3b82f6" },
   { name: "Fees & Charges", type: "expense", color: "#78716c" },
   { name: "Gifts & Charity", type: "expense", color: "#e11d48" },
-  { name: "Taxes", type: "expense", color: "#525252" },
-  { name: "Investment", type: "expense", color: "#10b981" },
-  { name: "Salary", type: "income", color: "#16a34a" },
-  { name: "Other Income", type: "income", color: "#84cc16" },
+  { name: "Taxes", type: "expense", color: "#816e6e" },
+  { name: "Investment", type: "expense", color: "#0d9b6c" },
+  { name: "Salary", type: "income", color: "#159d47" },
+  { name: "Other Income", type: "income", color: "#629810" },
   { name: "Savings", type: "transfer", color: "#0d9488" },
-  { name: "Transfers", type: "transfer", color: "#94a3b8" },
-  { name: "Unknown", type: "expense", color: "#9ca3af" },
+  { name: "Transfers", type: "transfer", color: "#788ba5" },
+  { name: "Unknown", type: "expense", color: "#808999" },
 ];
 
 /** keyword -> category name. Matching is case-insensitive substring. */

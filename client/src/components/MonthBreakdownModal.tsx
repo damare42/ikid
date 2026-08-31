@@ -90,7 +90,7 @@ export function MonthBreakdownModal({ month, onClose }: { month: string; onClose
 
           <div className="md:col-span-2 border-t border-slate-200 pt-3 text-right text-sm dark:border-slate-800">
             Saved (income − expenses):{" "}
-            <span className={`font-bold tabular-nums ${data.totalIncome - data.totalExpenses >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            <span className={`font-bold tabular-nums ${data.totalIncome - data.totalExpenses >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600"}`}>
               {fmtSigned(Math.round((data.totalIncome - data.totalExpenses) * 100) / 100)}
             </span>
             {data.totalInvestments > 0 && (

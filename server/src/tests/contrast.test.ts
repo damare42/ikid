@@ -10,8 +10,17 @@
  * Keep in sync with client/tailwind.config.js.
  */
 import { describe, expect, it } from "vitest";
+import { DEFAULT_CATEGORIES } from "../services/defaults.js";
 
 const AA = 4.5;
+
+/** `fg` laid over `bg` at the given alpha — what a translucent tint resolves to. */
+function blend(fg: string, bg: string, alpha: number): string {
+  const ch = (h: string) => h.replace("#", "").match(/../g)!.map((x) => parseInt(x, 16));
+  const [f, b] = [ch(fg), ch(bg)];
+  const out = f.map((v, i) => Math.round(v * alpha + b[i] * (1 - alpha)));
+  return "#" + out.map((v) => v.toString(16).padStart(2, "0")).join("");
+}
 
 /** WCAG relative luminance. */
 function luminance(hex: string): number {
@@ -108,6 +117,40 @@ describe("dark-mode text tokens meet WCAG AA", () => {
       expect(contrast(hex, PANEL_DARK)).toBeGreaterThanOrEqual(AA);
     });
   }
+});
+
+describe("user-chosen colours are never used as text", () => {
+  // Measured on the live demo: the category chips were painting their labels in
+  // the category's own colour, and the shipped defaults are stock Tailwind
+  // hues — Transportation came out at 2.15:1, Groceries 2.28, Utilities 2.77,
+  // Dining 2.80. The app rebuilt its own ramps precisely because stock hues
+  // fail as text, then handed the category defaults a way around it.
+  //
+  // Curating better defaults would not fix it. The colour is user-editable, so
+  // any rule that depends on it being legible is a rule a colour picker can
+  // break. `Badge` therefore puts the colour in a dot and leaves the label in
+  // body text. This test exists to show why that isn't a stylistic preference.
+  it("a category colour is legible as a dot, everywhere it is drawn", () => {
+    // The dot is a graphical object (WCAG 1.4.11, 3:1). It sits on a 13% tint
+    // of itself, and that chip sits on either the light card or the dark panel.
+    // Utilities used to fail this at 2.42:1 — which is what sent the default
+    // palette back for a lightness pass.
+    for (const { name, color } of DEFAULT_CATEGORIES) {
+      for (const [surface, label] of [[WHITE, "light"], [PANEL_DARK, "dark"]] as const) {
+        const tint = blend(color, surface, 0x22 / 255);
+        expect(contrast(color, tint), `${name} dot on its tint (${label})`).toBeGreaterThanOrEqual(3);
+        expect(contrast(color, surface), `${name} dot on the ${label} surface`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it("but is still not safe as text, which is why Badge doesn't use it that way", () => {
+    // Clearing 3:1 as a graphic is not the same as clearing 4.5:1 as text, and
+    // most of these don't. The colour is user-editable besides, so no palette
+    // can make a rule of it. Hence: colour in the dot, label in body text.
+    const readableAsText = DEFAULT_CATEGORIES.filter((c) => contrast(c.color, WHITE) >= AA);
+    expect(readableAsText.length).toBeLessThan(DEFAULT_CATEGORIES.length);
+  });
 });
 
 describe("semantic colours stay distinguishable", () => {

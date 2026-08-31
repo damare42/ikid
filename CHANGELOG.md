@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+**32 measured contrast failures, from three causes**
+
+Walked the live demo in both themes and computed the rendered contrast of every
+visible text node against its actual background — 22 failures in light, 10 in
+dark.
+
+*Category chips painted their label in the category's colour.* The shipped
+defaults are stock Tailwind hues, so Transportation rendered at **2.15:1**,
+Groceries 2.28, Utilities 2.77, Dining 2.80. The app rebuilt its own ramps
+precisely because stock hues fail as text, then handed the category defaults a
+way around it. `Badge` now puts the colour in the dot and leaves the label in
+body text — and that is not just a workaround, because the colour is
+user-editable: no palette can guarantee a colour someone else picked is legible.
+
+*The default palette wasn't accessible either.* The test written for the above
+caught the follow-on: Utilities' dot was only 2.42:1 against its own chip.
+Every default has been nudged in lightness — **hue preserved exactly**, 15 of 23
+changed — until each clears 3:1 on white, on the dark panel, and as a dot on its
+own tint over both.
+
+*Chart legends inherited the series colour.* Recharts paints legend labels in
+the fill colour, which quietly moves a value chosen for the 3:1 graphical rule
+into the 4.5:1 text rule. The dark-mode money-out crimson measured 3.56:1 as a
+legend label — a colour this project chose, used somewhere it didn't intend.
+Legend labels are body text now; the swatch carries the colour.
+
+Also: `text-rose-500` and `text-emerald-600` appeared as money and status text
+with no dark-mode variant (2.80 and 3.34 on the dark panel) across twelve files,
+and the 12px section kicker used `slate-400`, a token documented for icons at
+the 3:1 floor, as small text at 3.16:1.
+
+
 **Recurring payments were 85% of spending, because groceries counted**
 
 The detector asked for amount similarity: three charges within 15% of the

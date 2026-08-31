@@ -48,11 +48,11 @@ export default function Budgets() {
               <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
                 <div>
                   <div className="text-slate-500">Used</div>
-                  <div className={`font-semibold ${b.overBudget ? "text-rose-500" : ""}`}>{pct(b.pctUsed)}</div>
+                  <div className={`font-semibold ${b.overBudget ? "text-rose-500 dark:text-rose-400" : ""}`}>{pct(b.pctUsed)}</div>
                 </div>
                 <div>
                   <div className="text-slate-500">{b.remaining >= 0 ? "Remaining" : "Over by"}</div>
-                  <div className={`font-semibold ${b.remaining < 0 ? "text-rose-500" : "text-emerald-600"}`}>
+                  <div className={`font-semibold ${b.remaining < 0 ? "text-rose-500 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
                     {fmtMoney(Math.abs(b.remaining))}
                   </div>
                 </div>

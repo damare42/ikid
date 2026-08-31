@@ -265,7 +265,7 @@ export default function Transactions() {
                         : <span className="text-amber-500">unassigned</span>}
                     </td>
                     <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
-                    <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600" : ""}`}>{fmtSigned(t.amount)}</td>
+                    <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{fmtSigned(t.amount)}</td>
                     <td className="td">
                       <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={() => setEditing(t)}>Edit</button>
                     </td>

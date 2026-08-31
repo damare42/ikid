@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney } from "../lib/format";
 import { Card, ErrorNote, StatCard } from "../components/ui";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 /**
  * 🧭 Retirement — methodical early-retirement planning across account types.
@@ -271,7 +271,7 @@ export default function Retirement() {
                 🧭 {c.name}
               </button>
               <button
-                className="rounded-full px-1 text-slate-400 opacity-0 transition-opacity hover:text-rose-500 group-hover:opacity-100"
+                className="rounded-full px-1 text-slate-400 opacity-0 transition-opacity hover:text-rose-500 dark:text-rose-400 group-hover:opacity-100"
                 onClick={() => deletePlan(c.id)}
                 title="Delete"
               >
@@ -477,7 +477,7 @@ export default function Retirement() {
                 <XAxis dataKey="age" fontSize={11} />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={85} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
-                <Legend />
+                <Legend formatter={legendLabel} />
                 {/* Three annotations, one annotation colour. They were amber, cool
                     grey and purple — three hues that looked like three more series
                     on a chart that already has four. They are labelled and sit at
@@ -506,7 +506,7 @@ export default function Retirement() {
                   <XAxis dataKey="age" fontSize={11} />
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(a) => `Age ${a}`} />
-                  <Legend />
+                  <Legend formatter={legendLabel} />
                   {/* Tax and penalty really are money out, so crimson is correct and
                       stays; the two stack, so the penalty takes the deeper stop of
                       the same colour rather than a different meaning. The Roth

@@ -212,7 +212,7 @@ function BudgetMock() {
         ))}
         <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800">
           <span>🏠 House down payment</span>
-          <span className="text-emerald-600">done Aug 2029 →</span>
+          <span className="text-emerald-600 dark:text-emerald-400">done Aug 2029 →</span>
         </div>
       </div>
     </MockWindow>

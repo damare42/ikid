@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card, EmptyState, ErrorNote, Modal, Spinner, StatCard } from "../components/ui";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 const ASSET_KINDS: { value: AssetKind; label: string }[] = [
   { value: "cash", label: "💵 Cash / bank" },
@@ -101,7 +101,7 @@ export default function NetWorth() {
                   <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={11} />
                   <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                   <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
-                  <Legend />
+                  <Legend formatter={legendLabel} />
                   <Bar dataKey="assets" name="Assets" fill={c.in} fillOpacity={0.55} barSize={14} />
                   <Bar dataKey="liabilities" name="Liabilities" fill={c.out} fillOpacity={0.55} barSize={14} />
                   <Area type="monotone" dataKey="netWorth" name="Net worth" stroke="none" fill="url(#nwFill)" />
@@ -153,7 +153,7 @@ function ChangeChip({ a }: { a: AssetDTO }) {
   // For liabilities, a falling balance is good news.
   const good = a.isLiability ? diff < 0 : diff > 0;
   return (
-    <span className={`text-xs tabular-nums ${good ? "text-emerald-600" : "text-rose-500"}`}>
+    <span className={`text-xs tabular-nums ${good ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
       {diff > 0 ? "▲" : "▼"} {fmtMoney(Math.abs(diff))}
     </span>
   );
@@ -203,7 +203,7 @@ function AssetTable({ title, items, onUpdate, onEdit, onDelete }: {
                     </span>
                   )}
                   {a.isLiability && !a.payoff && a.ratePct != null && a.monthlyPayment != null && (
-                    <span className="text-rose-500" title="Payment doesn't cover monthly interest">
+                    <span className="text-rose-500 dark:text-rose-400" title="Payment doesn't cover monthly interest">
                       payment too low
                     </span>
                   )}

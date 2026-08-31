@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney, fmtMonth } from "../lib/format";
 import { Card, ErrorNote, StatCard } from "../components/ui";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 /** Deterministic calculators backed by the server's tested finmath engine. */
 
@@ -327,7 +327,7 @@ function Amortization({ initial, onSave }: CalcProps) {
                 <YAxis yAxisId="pay" fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <YAxis yAxisId="bal" orientation="right" fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
-                <Legend />
+                <Legend formatter={legendLabel} />
                 {/* Categorical, not semantic. This used to be green principal
                     on crimson interest, which read as "good money / bad money"
                     — but both bars are cash leaving your account on the same
@@ -471,7 +471,7 @@ function DebtPayoff() {
                     onClick={() => setStrategy(s)}
                   >
                     {s === "avalanche" ? "🏔️ Avalanche (highest rate)" : "❄️ Snowball (smallest first)"}
-                    {result.cheaper === s && <span className="ml-1.5 text-emerald-600">✓ cheaper</span>}
+                    {result.cheaper === s && <span className="ml-1.5 text-emerald-600 dark:text-emerald-400">✓ cheaper</span>}
                   </button>
                 ))}
               </div>
@@ -628,7 +628,7 @@ function Fire({ initial, onSave }: CalcProps) {
                 <XAxis dataKey="age" fontSize={11} tickFormatter={(v) => `${Math.round(v)}`} />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={85} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(v) => `Age ${v}`} />
-                <Legend />
+                <Legend formatter={legendLabel} />
                 {/* The FIRE number is a target you are trying to reach. It was
                     drawn in the money-out crimson, which framed the goal as a
                     warning. Annotation colour instead. */}
@@ -643,7 +643,7 @@ function Fire({ initial, onSave }: CalcProps) {
               </AreaChart>
             </ResponsiveContainer>
             {!result.achievable && !result.alreadyFire && (
-              <div className="mt-2 text-xs text-rose-500">
+              <div className="mt-2 text-xs text-rose-500 dark:text-rose-400">
                 At this pace the FIRE number isn't reached by age 100 — try a higher monthly contribution,
                 lower retirement spending, or check the Coast FIRE tab for a longer-horizon plan.
               </div>
@@ -751,7 +751,7 @@ function Coast({ initial, onSave }: CalcProps) {
                 <XAxis dataKey="age" fontSize={11} tickFormatter={(v) => `${Math.round(v)}`} />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={85} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(v) => `Age ${v}`} />
-                <Legend />
+                <Legend formatter={legendLabel} />
                 {result.coastAge != null && !result.alreadyCoasting && (
                   <ReferenceLine
                     x={result.series.reduce((best, pt) => (Math.abs(pt.age - result.coastAge!) < Math.abs(best - result.coastAge!) ? pt.age : best), result.series[0].age)}
@@ -849,7 +849,7 @@ function Compound({ initial, onSave }: CalcProps) {
                 <XAxis dataKey="year" fontSize={11} tickFormatter={(v) => `Yr ${v}`} />
                 <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={80} />
                 <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(y) => `Year ${y}`} />
-                <Legend />
+                <Legend formatter={legendLabel} />
                 <Area type="monotone" dataKey="balance" name="Balance" stroke={c.series[0]} fill="url(#cgBal)" strokeWidth={2} />
                 <Area type="monotone" dataKey="contributed" name="Contributed" stroke={c.muted} fill="url(#cgCon)" strokeWidth={2} />
               </AreaChart>

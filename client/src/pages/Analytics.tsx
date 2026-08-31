@@ -9,7 +9,7 @@ import { useFetch } from "../hooks/useFetch";
 import { fmtDate, fmtMoney, fmtMonth } from "../lib/format";
 import { Badge, Card, ProgressBar, Spinner } from "../components/ui";
 import { MonthBreakdownModal } from "../components/MonthBreakdownModal";
-import { useChartColors } from "../lib/chartColors";
+import { legendLabel, useChartColors } from "../lib/chartColors";
 
 type Tab = "trends" | "breakdown" | "recurring" | "insights";
 
@@ -74,7 +74,7 @@ function Trends() {
             <XAxis dataKey="month" tickFormatter={fmtMonth} fontSize={11} />
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} labelFormatter={(m) => fmtMonth(String(m))} />
-            <Legend />
+            <Legend formatter={legendLabel} />
             <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
             <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
           </BarChart>
@@ -112,7 +112,7 @@ function Trends() {
             <XAxis dataKey="month" fontSize={11} />
             <YAxis fontSize={11} tickFormatter={(v) => fmtMoney(v)} width={70} />
             <Tooltip formatter={(v: number) => fmtMoney(v)} />
-            <Legend />
+            <Legend formatter={legendLabel} />
             <Bar dataKey="income" name="Income" fill={c.in} radius={[3, 3, 0, 0]} />
             <Bar dataKey="expenses" name="Expenses" fill={c.out} radius={[3, 3, 0, 0]} />
             <Bar dataKey="savings" name="Savings" fill={c.series[0]} radius={[3, 3, 0, 0]} />

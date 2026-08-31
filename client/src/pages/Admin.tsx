@@ -128,8 +128,8 @@ export default function Admin() {
                   </td>
                   <td className="td">
                     {u.disabled
-                      ? <span className="text-rose-500">disabled</span>
-                      : <span className="text-emerald-600">active</span>}
+                      ? <span className="text-rose-500 dark:text-rose-400">disabled</span>
+                      : <span className="text-emerald-600 dark:text-emerald-400">active</span>}
                   </td>
                   <td className="td text-xs text-slate-500">{fmtDate(u.createdAt)}</td>
                   <td className="td text-xs text-slate-500">{fmtDate(u.lastLogin)}</td>

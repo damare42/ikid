@@ -72,15 +72,34 @@ export function ProgressBar({ pct, color }: { pct: number; color?: string }) {
   );
 }
 
-// Default is the warm neutral from the app's ramp, not Tailwind's stock cool
-// slate — the two are visibly different next to everything else on the page.
+/**
+ * A category chip: a coloured dot and a readable label.
+ *
+ * The label used to be painted in the category's own colour, which is a colour
+ * the *user* picks. Measured on the live dashboard that produced a wall of
+ * WCAG failures — Transportation at 2.15:1, Groceries 2.28, Utilities 2.77,
+ * Dining 2.80 — because the shipped defaults are stock Tailwind hues and stock
+ * Tailwind hues are not text colours. The app rebuilt its own ramps for exactly
+ * this reason and then handed the category defaults a way around it.
+ *
+ * No amount of curating the defaults fixes it, either: the colour is
+ * user-editable, so any rule that depends on it being legible is a rule the
+ * user can break with a colour picker.
+ *
+ * So the dot carries the colour and the label carries the meaning. The dot is a
+ * graphical object needing 3:1, and it sits on a 13%-tint of itself, which any
+ * hue clears comfortably. The label inherits normal body text.
+ *
+ * Default is the warm neutral from the app's ramp, not Tailwind's stock cool
+ * slate — the two are visibly different next to everything else on the page.
+ */
 export function Badge({ children, color = "#767272" }: { children: ReactNode; color?: string }) {
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold"
-      style={{ backgroundColor: color + "22", color }}
+      className="inline-flex items-center gap-1 rounded-chrome px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200"
+      style={{ backgroundColor: color + "22" }}
     >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
       {children}
     </span>
   );
