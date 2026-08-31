@@ -290,41 +290,46 @@ export default function Reconcile() {
           )}
 
           <Card title="Where the difference comes from">
-            <table className="w-full">
-              <caption className="sr-only">
-                Difference between the statement balance and the balance on file, broken into causes
-              </caption>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                <Line label="Balance on file (all transactions ikid has)" value={report.bookBalance} />
-                <Line label={`Statement closing balance on ${report.statementDate}`} value={report.statementBalance} />
-                <Line label="Difference" value={report.difference} strong />
-                <BucketLine
-                  bucket={report.uncleared}
-                  text={`Not yet cleared, on or before ${report.statementDate}`}
-                  open={open === "uncleared"}
-                  onToggle={() => toggleBucket("uncleared")}
-                />
-                <BucketLine
-                  bucket={report.afterStatement}
-                  text={`Dated after ${report.statementDate}`}
-                  open={open === "after"}
-                  onToggle={() => toggleBucket("after")}
-                />
-                <Line
-                  label="Unexplained residual"
-                  value={report.residual}
-                  strong
-                  tone={report.balanced ? "good" : "bad"}
-                />
-                <BucketLine
-                  bucket={report.clearedInPeriod}
-                  text={`Already cleared, on or before ${report.statementDate}`}
-                  open={open === "cleared"}
-                  onToggle={() => toggleBucket("cleared")}
-                  muted
-                />
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              {/* Scrolls sideways rather than squashing. On a phone these columns are
+                  wider than the screen, and a table that drags the whole page into
+                  horizontal scrolling is the worse of the two failures. */}
+              <table className="w-full">
+                <caption className="sr-only">
+                  Difference between the statement balance and the balance on file, broken into causes
+                </caption>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <Line label="Balance on file (all transactions ikid has)" value={report.bookBalance} />
+                  <Line label={`Statement closing balance on ${report.statementDate}`} value={report.statementBalance} />
+                  <Line label="Difference" value={report.difference} strong />
+                  <BucketLine
+                    bucket={report.uncleared}
+                    text={`Not yet cleared, on or before ${report.statementDate}`}
+                    open={open === "uncleared"}
+                    onToggle={() => toggleBucket("uncleared")}
+                  />
+                  <BucketLine
+                    bucket={report.afterStatement}
+                    text={`Dated after ${report.statementDate}`}
+                    open={open === "after"}
+                    onToggle={() => toggleBucket("after")}
+                  />
+                  <Line
+                    label="Unexplained residual"
+                    value={report.residual}
+                    strong
+                    tone={report.balanced ? "good" : "bad"}
+                  />
+                  <BucketLine
+                    bucket={report.clearedInPeriod}
+                    text={`Already cleared, on or before ${report.statementDate}`}
+                    open={open === "cleared"}
+                    onToggle={() => toggleBucket("cleared")}
+                    muted
+                  />
+                </tbody>
+              </table>
+            </div>
 
             <ul className="mt-3 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
               {report.explanation.map((line, i) => (

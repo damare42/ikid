@@ -54,25 +54,30 @@ function YearTotalsModal({ monthly, onClose }: { monthly: MonthlyPoint[]; onClos
 
   return (
     <Modal title={`Totals — ${fmtMonth(first)} to ${fmtMonth(last)}`} onClose={onClose}>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400 dark:border-slate-800">
-            <th className="py-1 text-left"></th>
-            <th className="py-1 text-right">Total</th>
-            <th className="py-1 text-right">Average</th>
-          </tr>
-        </thead>
-        <tbody>
-          <Row label="Income" total={totalIncome} avg={avgIncome} tone="text-emerald-600 dark:text-emerald-400" />
-          <Row label="Expenses" total={totalExpenses} avg={avgExpenses} tone="text-rose-600 dark:text-rose-400" />
-          <Row
-            label="Net saved"
-            total={totalSavings}
-            avg={avgIncome - avgExpenses}
-            tone={totalSavings >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}
-          />
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        {/* Scrolls sideways rather than squashing. On a phone these columns are
+            wider than the screen, and a table that drags the whole page into
+            horizontal scrolling is the worse of the two failures. */}
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400 dark:border-slate-800">
+              <th className="py-1 text-left"></th>
+              <th className="py-1 text-right">Total</th>
+              <th className="py-1 text-right">Average</th>
+            </tr>
+          </thead>
+          <tbody>
+            <Row label="Income" total={totalIncome} avg={avgIncome} tone="text-emerald-600 dark:text-emerald-400" />
+            <Row label="Expenses" total={totalExpenses} avg={avgExpenses} tone="text-rose-600 dark:text-rose-400" />
+            <Row
+              label="Net saved"
+              total={totalSavings}
+              avg={avgIncome - avgExpenses}
+              tone={totalSavings >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}
+            />
+          </tbody>
+        </table>
+      </div>
       <p className="mt-3 text-xs text-slate-400">
         Totals cover all {monthly.length} months shown (including the current month so far). Averages
         use the {n} complete months, so the in-progress month doesn't skew them. Savings rate over the
@@ -469,27 +474,32 @@ export default function Dashboard() {
 
       {/* Recent transactions */}
       <Card title="Recent Transactions">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800">
-              <th className="th">Date</th><th className="th">Merchant</th><th className="th">Category</th>
-              <th className="th">Account</th><th className="th text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {s.recentTransactions.map((t) => (
-              <tr key={t.id}>
-                <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
-                <td className="td">{t.merchant?.name ?? t.description}</td>
-                <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
-                <td className="td text-slate-500">{t.account?.name ?? "—"}</td>
-                <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600" : ""}`}>
-                  {fmtSigned(t.amount)}
-                </td>
+        <div className="overflow-x-auto">
+          {/* Scrolls sideways rather than squashing. On a phone these columns are
+              wider than the screen, and a table that drags the whole page into
+              horizontal scrolling is the worse of the two failures. */}
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-800">
+                <th className="th">Date</th><th className="th">Merchant</th><th className="th">Category</th>
+                <th className="th">Account</th><th className="th text-right">Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {s.recentTransactions.map((t) => (
+                <tr key={t.id}>
+                  <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
+                  <td className="td">{t.merchant?.name ?? t.description}</td>
+                  <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
+                  <td className="td text-slate-500">{t.account?.name ?? "—"}</td>
+                  <td className={`td text-right tabular-nums ${t.amount > 0 ? "text-emerald-600" : ""}`}>
+                    {fmtSigned(t.amount)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {breakdownMonth && (

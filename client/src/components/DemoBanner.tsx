@@ -68,35 +68,23 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="no-print border-l-2 border-amber-600 bg-amber-50 px-4 py-2.5 dark:border-amber-300 dark:bg-slate-900">
+    <div className="no-print border-l-2 border-amber-600 bg-amber-50 px-4 py-2 dark:border-amber-300 dark:bg-slate-900">
       <div
         role="status"
-        className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-3 gap-y-1.5"
+        className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-2 gap-y-1"
       >
         <DemoChip />
-        {/* `basis-full sm:basis-0` is doing the work. With `flex-1 min-w-0`
-            alone the paragraph was allowed to shrink indefinitely rather than
-            wrap, so next to a shrink-0 chip and a shrink-0 button on a 375px
-            phone it rendered in a ~40px column — one word per line, filling the
-            entire first screen a visitor sees. Given a full-width basis it
-            wraps onto its own line instead, and from `sm` up it goes back to
-            sharing the row. */}
-        <p className="min-w-0 flex-1 basis-full text-[13px] text-slate-700 sm:basis-0 dark:text-slate-300">
-          <span className="font-bold text-amber-800 dark:text-amber-300">
-            None of these numbers are real.
-          </span>{" "}
-          You are in the <b>{data.profile}</b> profile, filled with invented accounts and made-up
-          merchants generated on this machine
-          {data.range && (
-            <>
-              {" "}
-              covering {data.range.from} to {data.range.to}
-            </>
-          )}
-          . Your own data is in a separate database file and is untouched.
-        </p>
-        <button className="btn-ghost shrink-0" onClick={reset} disabled={busy}>
-          {busy ? "Regenerating…" : "↺ Reset demo data"}
+        {/* One line, always. The full paragraph moved behind the ⓘ: the banner
+            has to be on every screen, and a five-line block of explanation
+            repeated on every screen stops being read and starts being scrolled
+            past — on a phone it was consuming the entire first viewport.
+            What survives here is the only sentence that must land. */}
+        <span className="min-w-0 flex-1 text-[13px] font-bold text-amber-800 dark:text-amber-300">
+          None of these numbers are real.
+        </span>
+        <DetailToggle profile={data.profile} range={data.range} />
+        <button className="btn-ghost shrink-0 !py-1 text-xs" onClick={reset} disabled={busy}>
+          {busy ? "Regenerating…" : "↺ Reset"}
         </button>
       </div>
       {error && (
@@ -105,6 +93,52 @@ export default function DemoBanner() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The ⓘ that holds the rest of the explanation.
+ *
+ * Hover alone would have been wrong. A phone has no hover, and the phone is
+ * where the space was being wasted — so the detail would have become
+ * unreachable on exactly the device the change was made for. This opens on
+ * hover *and* on click/tap, and closes on Escape and on blur, which is also
+ * what WCAG 1.4.13 asks of content shown on hover: dismissible, hoverable,
+ * persistent.
+ *
+ * It expands inline underneath rather than floating in a positioned tooltip.
+ * A popover anchored to an icon near the right edge of a 375px screen has to
+ * be measured and flipped to avoid running off; a block that takes the banner's
+ * full width cannot go wrong, and this text is a paragraph, not a label.
+ */
+function DetailToggle({ profile, range }: {
+  profile: string; range?: { from: string; to: string } | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className="shrink-0 rounded-full border border-amber-800/40 px-[7px] text-[12px] font-bold leading-[18px] text-amber-800 hover:bg-amber-800 hover:text-white dark:border-amber-300/40 dark:text-amber-300 dark:hover:bg-amber-300 dark:hover:text-slate-950"
+        aria-expanded={open}
+        aria-label={open ? "Hide demo details" : "What is demo data?"}
+        onClick={() => setOpen((v) => !v)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
+      >
+        i
+      </button>
+      {open && (
+        <p className="basis-full text-[13px] text-slate-700 dark:text-slate-300">
+          You are in the <b>{profile}</b> profile, filled with invented accounts and made-up
+          merchants generated on this machine
+          {range && <> covering {range.from} to {range.to}</>}
+          . Your own data is in a separate database file and is untouched.
+        </p>
+      )}
+    </>
   );
 }
 

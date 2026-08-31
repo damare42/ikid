@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+**The demo banner is one line now**
+
+It sat on every screen and repeated five lines of explanation on each one,
+which on a phone meant the whole first viewport was a disclaimer. The sentence
+that must land — "None of these numbers are real." — stays visible; the rest
+moved behind an ⓘ that opens on hover *and* on tap, since a phone has no hover
+and the phone is where the space was being wasted.
+
+**Four pages scrolled sideways on a phone**
+
+Measured on the live demo at 375px rather than guessed:
+
+| route | overflow | cause |
+|---|---|---|
+| `/` | 212px | two unwrapped tables |
+| `/settings` | 52px | button rows that wouldn't wrap |
+| `/retirement` | 39px | a 288px tooltip centred on an icon near the edge |
+| `/planner` | 36px | the conversation toolbar |
+
+The `/retirement` one is the interesting one: the popover was still
+`invisible`, and visibility doesn't remove an element from layout, so the page
+scrolled 39px with nothing on screen to explain why. It's pinned between the
+screen edges on a phone and anchored to its icon from `sm` up.
+
+The `/` tables were missed by the earlier static pass because it grepped
+per-file, and `Dashboard.tsx` already contained "overflow-x-auto" for the stat
+strip — so a file-level check called it handled while its two tables hung 212px
+off the side. Six more tables found the same way.
+
+
 **The demo hadn't been deploying**
 
 The Pages workflow was filtered to `paths: ["site/**"]`, but the demo bundle is

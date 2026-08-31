@@ -115,7 +115,7 @@ export default function Settings({ onThemeChange }: { onThemeChange: (t: string)
       <Card
         title={`Categorization Rules (${rules?.length ?? 0})`}
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button className="btn-ghost !py-1 text-xs" onClick={() => recategorize(false)}>Apply to Unknown</button>
             <button className="btn-ghost !py-1 text-xs" onClick={() => recategorize(true)}>Re-apply to all</button>
             <button className="btn-ghost !py-1 text-xs" onClick={detectTransfers} title="Flag card payments and savings moves so they don't count as income or spending">Detect transfers</button>
@@ -476,7 +476,7 @@ function ProfileEditor({ onMessage }: { onMessage: (m: string) => void }) {
           <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-800">{me?.id ?? "—"}</code>
         </span>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           className="input flex-1 max-w-xs"
           placeholder="New profile name"
@@ -573,7 +573,7 @@ function SecurityEditor({ onMessage }: { onMessage: (m: string) => void }) {
           <PasswordInput value={confirm} onChange={setConfirm} />
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button className="btn-primary" onClick={setPw} disabled={password.length < 4}>
           {isProtected ? "Change password" : "Set password & require sign-in"}
         </button>
@@ -635,7 +635,7 @@ function MerchantsEditor({ merchants, onChanged }: {
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           className="input flex-1"
           placeholder="Filter merchants… (select 2+ to merge them)"
@@ -726,7 +726,7 @@ function CategoriesEditor({ categories, onChanged }: { categories: CategoryDTO[]
       <div className="flex flex-wrap gap-1.5">
         {categories.map((c) => <Badge key={c.id} color={c.color}>{c.name}</Badge>)}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input className="input flex-1" placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} />
         <input type="color" className="input !p-1" value={color} onChange={(e) => setColor(e.target.value)} />
         <button
@@ -752,7 +752,7 @@ function RulesEditor({ rules, categories, onChanged }: {
   );
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input className="input flex-1" placeholder='Match phrase, e.g. "STARBUCKS"' value={keyword} onChange={(e) => setKeyword(e.target.value)} />
         <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}>
           <option value="">Category…</option>
@@ -772,20 +772,25 @@ function RulesEditor({ rules, categories, onChanged }: {
       </div>
       <input className="input w-full" placeholder="Filter rules…" value={filter} onChange={(e) => setFilter(e.target.value)} />
       <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800">
-        <table className="w-full text-sm">
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {shown.map((r) => (
-              <tr key={r.id}>
-                <td className="td font-mono text-xs">{r.keyword}</td>
-                <td className="td">→ {r.categoryName}</td>
-                <td className="td text-xs text-slate-400">{r.source}</td>
-                <td className="td text-right">
-                  <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={async () => { await api.delete(`/api/rules/${r.id}`); onChanged(); }}>✕</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          {/* Scrolls sideways rather than squashing. On a phone these columns are
+              wider than the screen, and a table that drags the whole page into
+              horizontal scrolling is the worse of the two failures. */}
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {shown.map((r) => (
+                <tr key={r.id}>
+                  <td className="td font-mono text-xs">{r.keyword}</td>
+                  <td className="td">→ {r.categoryName}</td>
+                  <td className="td text-xs text-slate-400">{r.source}</td>
+                  <td className="td text-right">
+                    <button className="btn-ghost !px-2 !py-0.5 text-xs" onClick={async () => { await api.delete(`/api/rules/${r.id}`); onChanged(); }}>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

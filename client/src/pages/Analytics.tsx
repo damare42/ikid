@@ -284,23 +284,28 @@ function Breakdown() {
 
       <Card title="Largest Purchases">
         {!largest ? <Spinner /> : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800">
-                <th className="th">Date</th><th className="th">Description</th><th className="th">Category</th><th className="th text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {largest.map((t) => (
-                <tr key={t.id}>
-                  <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
-                  <td className="td">{t.merchant?.name ?? t.description}</td>
-                  <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
-                  <td className="td text-right font-semibold tabular-nums">{fmtMoney(Math.abs(t.amount))}</td>
+          <div className="overflow-x-auto">
+            {/* Scrolls sideways rather than squashing. On a phone these columns are
+                wider than the screen, and a table that drags the whole page into
+                horizontal scrolling is the worse of the two failures. */}
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800">
+                  <th className="th">Date</th><th className="th">Description</th><th className="th">Category</th><th className="th text-right">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {largest.map((t) => (
+                  <tr key={t.id}>
+                    <td className="td whitespace-nowrap">{fmtDate(t.date)}</td>
+                    <td className="td">{t.merchant?.name ?? t.description}</td>
+                    <td className="td">{t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}</td>
+                    <td className="td text-right font-semibold tabular-nums">{fmtMoney(Math.abs(t.amount))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </div>
@@ -389,29 +394,34 @@ function Recurring() {
   const total = data.filter((r) => r.active).reduce((s, r) => s + r.monthlyEstimate, 0);
   return (
     <Card title={`Recurring Payments — ~${fmtMoney(total)}/month active`}>
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-slate-200 dark:border-slate-800">
-            <th className="th">Merchant</th><th className="th text-right">Avg amount</th>
-            <th className="th text-right">Times seen</th><th className="th">Last charge</th><th className="th">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {data.map((r) => (
-            <tr key={r.merchant}>
-              <td className="td font-medium">{r.merchant}</td>
-              <td className="td text-right tabular-nums">{fmtMoney(r.avgAmount)}</td>
-              <td className="td text-right">{r.count}</td>
-              <td className="td">{fmtDate(r.lastDate)}</td>
-              <td className="td">
-                {r.active
-                  ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">active</span>
-                  : <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300">inactive</span>}
-              </td>
+      <div className="overflow-x-auto">
+        {/* Scrolls sideways rather than squashing. On a phone these columns are
+            wider than the screen, and a table that drags the whole page into
+            horizontal scrolling is the worse of the two failures. */}
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-200 dark:border-slate-800">
+              <th className="th">Merchant</th><th className="th text-right">Avg amount</th>
+              <th className="th text-right">Times seen</th><th className="th">Last charge</th><th className="th">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {data.map((r) => (
+              <tr key={r.merchant}>
+                <td className="td font-medium">{r.merchant}</td>
+                <td className="td text-right tabular-nums">{fmtMoney(r.avgAmount)}</td>
+                <td className="td text-right">{r.count}</td>
+                <td className="td">{fmtDate(r.lastDate)}</td>
+                <td className="td">
+                  {r.active
+                    ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">active</span>
+                    : <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300">inactive</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

@@ -93,7 +93,16 @@ function InfoTip({ children }: { children: React.ReactNode }) {
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none invisible absolute left-1/2 top-6 z-50 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 text-left text-[11px] font-normal leading-5 text-slate-600 opacity-0 shadow-xl transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+        // Fixed to the viewport on a phone, anchored to the icon from `sm` up.
+        //
+        // A 288px popover centred on its icon (`left-1/2 -translate-x-1/2`)
+        // runs off a 375px screen whenever the icon sits right of centre — and
+        // it did so while still `invisible`, because visibility doesn't remove
+        // an element from layout, dragging the whole page 39px sideways with
+        // nothing visible to explain why. Pinning it between the screen edges
+        // can't overflow at any width, and the flip happens at `sm`, where
+        // there is finally room to point at the thing being explained.
+        className="pointer-events-none invisible fixed inset-x-4 bottom-4 z-50 rounded-lg border border-slate-200 bg-white p-3 text-left text-[11px] font-normal leading-5 text-slate-600 opacity-0 shadow-xl transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-6 sm:w-72 sm:-translate-x-1/2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
       >
         {children}
       </span>
