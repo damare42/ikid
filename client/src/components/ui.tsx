@@ -93,12 +93,13 @@ export function StatCard({ label, value, sub, tone = "default" }: {
       </div>
       {/* Fluid and nowrap. A value like "+$1,057.95" was being clipped at a
           fixed text-3xl; shrinking is the right failure, since a slightly
-          smaller number is readable and half a number is not. The row is five
-          cards now rather than seven, so the type can be legible again — this
-          reads ~22px at 1200px wide and still shrinks on a narrow window. */}
+          smaller number is readable and half a number is not.
+          The floor is 1.25rem rather than 1.125: the cards sit two-across on a
+          phone now instead of five-in-a-scroller, so there is room for the
+          number to be a headline again rather than a compromise. */}
       <div
         className={`whitespace-nowrap font-heading font-extrabold leading-[1.15] tracking-tight tabular-nums ${toneCls}`}
-        style={{ fontSize: "clamp(1.125rem, 1.4vw + 0.35rem, 1.625rem)" }}
+        style={{ fontSize: "clamp(1.25rem, 1.4vw + 0.35rem, 1.625rem)" }}
       >
         {value}
       </div>

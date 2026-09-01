@@ -55,7 +55,11 @@ export default function Transactions() {
     () =>
       qs({
         search, categoryId, merchantId, ...accountParams, from, to,
-        minAmount, maxAmount, sortBy, sortDir, page, pageSize: 50,
+        minAmount, maxAmount, sortBy, sortDir, page,
+        // 50 rows is a lot of scrolling before the pager, and on a phone it is
+        // several screens of near-identical lines. 25 fits a laptop viewport
+        // and keeps the pager somewhere you'll actually meet it.
+        pageSize: 25,
       }),
     [search, categoryId, merchantId, accountFilter, from, to, minAmount, maxAmount, sortBy, sortDir, page],
   );

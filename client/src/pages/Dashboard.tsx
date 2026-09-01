@@ -228,31 +228,45 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      {/* One row, always — a flex strip rather than a grid that reflows into
-          two and three rows on narrower windows.
+      {/* Two across on a phone, five across from `sm`.
 
-          Each card is `flex-1` with a floor, so they share the width equally
-          when there is room and stop shrinking when there isn't; below that the
-          strip scrolls sideways. Scrolling is the honest failure here: five
-          money figures cannot be legible in 60px each on a phone, and squeezing
-          them until they are unreadable is worse than asking for a swipe.
+          This was a single horizontally-scrolling strip, on the reasoning that
+          five money figures cannot be legible at 60px each so a swipe was the
+          honest failure. The premise was right and the conclusion was wrong:
+          the answer isn't to squeeze five into one row, it's to stop requiring
+          one row. Nobody swipes a dashboard — a number you have to scroll to is
+          a number you don't read, so the strip was hiding Net Worth from every
+          phone user rather than presenting it.
+
+          Two columns at 375px gives each card about 163px, which fits
+          "$60,677" at full size with room to spare. The pairing falls out
+          naturally: income against spending, then what's left against the rate
+          it represents, then net worth on its own line because it is a
+          different kind of number — a balance, not a flow.
 
           Budget status and health score used to sit here too, duplicating the
           budget list and the health breakdown further down the page. */}
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [&>*]:min-w-[8.25rem] [&>*]:flex-1">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <StatCard label="Income" value={fmtMoney(s.income)} tone="good" />
         <StatCard label="Spending" value={fmtMoney(s.spending)} />
         <StatCard label="Net Savings" value={fmtSignedCompact(s.netSavings)} tone={s.netSavings >= 0 ? "good" : "bad"} />
         <StatCard label="Savings Rate" value={pct(s.savingsRate * 100)} tone={s.savingsRate >= 0.15 ? "good" : s.savingsRate < 0 ? "bad" : "default"} />
         {hasNetWorth && (
-          <div className="cursor-pointer" onClick={() => navigate("/networth")} title="Open Net Worth">
+          // A button, not a div with onClick — it navigates, so it should be
+          // reachable by keyboard and announced as the link it is.
+          <button
+            type="button"
+            className="col-span-2 text-left sm:col-span-1"
+            onClick={() => navigate("/networth")}
+            title="Open Net Worth"
+          >
             <StatCard
               label="💎 Net Worth"
               value={fmtMoney(nw!.netWorth)}
               tone={nw!.netWorth >= 0 ? "good" : "bad"}
               sub="view details →"
             />
-          </div>
+          </button>
         )}
       </div>
 

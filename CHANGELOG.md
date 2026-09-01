@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+**The dashboard headline fits a phone instead of scrolling**
+
+The five stat cards were a horizontally-scrolling strip. I built it that way on
+the reasoning that five money figures cannot be legible at 60px each, so a swipe
+was the honest failure — the premise was right and the conclusion was wrong.
+Nobody swipes a dashboard. A number you have to scroll to is a number you don't
+read, so the strip wasn't presenting Net Worth to phone users, it was hiding it.
+
+Two across on a phone, five across from `sm`. At 375px each card gets 163px and
+the widest value — `+$21,801` — needs 99px, so the type floor went *up* from
+18px to 20px. The pairing falls out of the meaning: income against spending,
+then what's left against the rate it represents, then net worth on its own line
+because it is a balance rather than a flow.
+
+Net Worth is a `<button>` now instead of a div with a click handler, so it is
+reachable by keyboard and announced as the navigation it is.
+
+**Transactions loads 25 rows, not 50**
+
+Fifty is several phone screens of near-identical lines before the pager, which
+is a lot of scrolling to discover there is a page two.
+
+
 **Transactions: search out front, the other seven behind a funnel**
 
 The filter bar showed eight controls at once. On a phone that is a **362px
