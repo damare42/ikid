@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+**The HSA's place in the bridge, checked against IRS Pub 969**
+
+The projection was already right: it counts the HSA toward the penalty-free
+bridge only up to `annualMedical × bridgeYears`, never the whole balance. What
+was wrong was everything describing it.
+
+The rules, confirmed rather than recalled:
+
+- Qualified medical expenses — tax-free and penalty-free at **any age**.
+- Anything else before **65** — income tax **plus a 20% additional tax**. That
+  is double the 10% on a Traditional account, and the threshold is 65, not 59½.
+  So for general bridge spending the HSA is the *worst* account in the stack.
+
+Three corrections:
+
+- The label read `brokerage + Roth basis + HSA`, implying the whole balance.
+  Now `HSA (medical only)`.
+- Yesterday's `fundIn` list said "an HSA, for medical costs" — in a list of
+  places to put money to close the gap. Beyond projected medical spending, extra
+  HSA contributions are capped out of the bridge entirely, so that is the same
+  error just fixed for Traditional accounts, and I introduced it. The HSA has
+  moved to `notIn` with the 20% and the age 65 stated.
+- The footnote now says the earnings in a Roth are not withdrawable
+  penalty-free, only the basis.
+
+One thing deliberately not modelled: qualified expenses incurred any time after
+the HSA was opened can be reimbursed later with **no deadline**, so receipts
+paid out of pocket become a stock of tax-free withdrawals available at any age.
+That genuinely enlarges the bridge — but only for someone who kept the receipts,
+which the app cannot know, so it does not assume it. The engine says so where
+the cap is applied.
+
+
 **The bridge plan says which account to put the money in**
 
 It read: *"To close the $70,718 gap by age 48, invest about $279.15/mo more for

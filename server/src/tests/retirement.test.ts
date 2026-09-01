@@ -263,3 +263,75 @@ describe("the bridge plan says where the money goes", () => {
     }
   });
 });
+
+/**
+ * The HSA's place in the bridge.
+ *
+ * An HSA is tax- and penalty-free *for qualified medical expenses* at any age.
+ * For anything else before 65 it costs income tax plus a 20% additional tax
+ * (IRS Pub 969) — twice the 10% on a Traditional account, and note the
+ * threshold is 65, not 59½. So only the part you will actually spend on medical
+ * costs during the bridge is genuinely reachable, and counting the whole
+ * balance would overstate the one number this calculation exists to produce.
+ */
+describe("the HSA counts toward the bridge only as far as medical spending", () => {
+  const base: RetirementParams = {
+    currentAge: 40, retireAge: 50, endAge: 90, filingStatus: "single",
+    annualSpending: 40_000, ratePct: 0, ladder: false, fillBracket: 12, rmdAge: 75,
+    accounts: {
+      trad: { balance: 500_000, contribution: 0 },
+      roth: { balance: 0, basis: 0, contribution: 0 },
+      brokerage: { balance: 100_000, basisPct: 100, contribution: 0 },
+      hsa: { balance: 60_000, contribution: 0, annualMedical: 2_000 },
+    },
+  };
+
+  it("caps the HSA at medical spend across the bridge years, not the balance", () => {
+    // Retiring at 50 leaves 10 bridge years to 60. At $2,000/yr of medical
+    // costs only $20,000 of a $60,000 HSA is reachable without the 20% tax.
+    const r = simulateRetirement(base);
+    expect(r.bridgeAvailableAtRetirement).toBeCloseTo(100_000 + 20_000, -2);
+    expect(r.bridgeAvailableAtRetirement).toBeLessThan(100_000 + 60_000);
+  });
+
+  it("counts nothing from the HSA when there is no medical spending", () => {
+    const r = simulateRetirement({
+      ...base,
+      accounts: { ...base.accounts, hsa: { balance: 60_000, contribution: 0, annualMedical: 0 } },
+    });
+    expect(r.bridgeAvailableAtRetirement).toBeCloseTo(100_000, -2);
+  });
+
+  it("counts the whole balance only when medical spending would exhaust it", () => {
+    // $8,000/yr over 10 bridge years is $80,000 of medical costs against a
+    // $60,000 balance — all of it gets spent medically, so all of it counts.
+    const r = simulateRetirement({
+      ...base,
+      accounts: { ...base.accounts, hsa: { balance: 60_000, contribution: 0, annualMedical: 8_000 } },
+    });
+    expect(r.bridgeAvailableAtRetirement).toBeCloseTo(160_000, -2);
+  });
+
+  it("shrinks the HSA's contribution as the bridge shortens", () => {
+    const early = simulateRetirement({ ...base, retireAge: 45 });
+    const late = simulateRetirement({ ...base, retireAge: 57 });
+    const hsaEarly = early.bridgeAvailableAtRetirement - 100_000;
+    const hsaLate = late.bridgeAvailableAtRetirement - 100_000;
+    expect(hsaLate).toBeLessThan(hsaEarly);
+  });
+
+  it("does not tell you to put more into an HSA to close the gap", () => {
+    // The mistake this guards against is the one already fixed for Traditional:
+    // money that cannot close the gap must not appear as advice that it can.
+    // Beyond projected medical costs, extra HSA contributions are capped out of
+    // the bridge entirely.
+    const plan = computeBridgePlan({
+      currentAge: 40, retireAge: 50, annualSpending: 40_000,
+      ladder: false, realRatePct: 5, haveAtRetirement: 50_000, bridgeTaxes: 0,
+    });
+    expect(plan.fundIn.join(" ")).not.toMatch(/HSA/i);
+    expect(plan.notIn.join(" ")).toMatch(/HSA/i);
+    expect(plan.notIn.join(" ")).toMatch(/20%/);
+    expect(plan.notIn.join(" ")).toMatch(/\b65\b/);
+  });
+});

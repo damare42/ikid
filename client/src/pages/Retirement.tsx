@@ -448,7 +448,7 @@ export default function Retirement() {
 
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       <StatCard label={`Penalty-free pot needed at ${retireAge}`} value={fmtMoney(bp.targetPot)} sub={`${bp.yearsToFund} yrs spending + conversion tax`} />
-                      <StatCard label="On track to have" value={fmtMoney(bp.haveAtRetirement)} sub="brokerage + Roth basis + HSA" tone={funded ? "good" : "default"} />
+                      <StatCard label="On track to have" value={fmtMoney(bp.haveAtRetirement)} sub="brokerage + Roth basis + HSA (medical only)" tone={funded ? "good" : "default"} />
                       <StatCard label={funded ? "Surplus" : "Shortfall"} value={fmtMoney(funded ? bp.haveAtRetirement - bp.targetPot : bp.gap)} tone={funded ? "good" : "bad"} />
                     </div>
 
@@ -483,7 +483,7 @@ export default function Retirement() {
                     )}
 
                     <p className="text-xs text-slate-400">
-                      Put bridge money in a <b>taxable brokerage</b> first (accessible any age, often 0% long-term gains early on), then <b>Roth contributions</b> (your basis is always penalty-free) and your <b>HSA</b> for medical. Traditional 401k/IRA dollars don't help the bridge — that's exactly what the ladder converts out of.
+                      Put bridge money in a <b>taxable brokerage</b> first (accessible any age, often 0% long-term gains early on), then <b>Roth contributions</b> (your basis is always withdrawable; the earnings are not). Your <b>HSA</b> counts only up to the medical costs you'll actually have in those years — beyond that it isn't bridge money, because a non-medical withdrawal before <b>65</b> costs income tax plus a <b>20%</b> penalty, twice the 10% on a Traditional account. Traditional 401k/IRA dollars don't help the bridge at all — that's exactly what the ladder converts out of.
                     </p>
                   </div>
                 );

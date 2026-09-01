@@ -163,7 +163,28 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
     } else {
       // -------- retirement year --------
       if (age === p.retireAge) {
-        bridgeAvailableAtRetirement = r2(brok + rothBasis + Math.min(hsa, p.accounts.hsa.annualMedical * Math.max(1, ACCESS_AGE - p.retireAge)));
+        // The HSA counts toward the bridge only up to the medical costs you
+        // will actually incur during it — never the whole balance.
+        //
+        // An HSA is tax-free and penalty-free *for qualified medical expenses*
+        // at any age. For anything else before 65 it costs income tax plus a
+        // 20% additional tax (IRS Pub 969) — double the 10% on a Traditional
+        // account, and note the threshold is 65, not 59½. So the balance beyond
+        // projected medical spending is not bridge money at all; treating it as
+        // such would overstate what you can reach without penalty, which is the
+        // one number this whole calculation exists to get right.
+        //
+        // Not modelled, and worth knowing: qualified expenses incurred any time
+        // after the HSA was opened can be reimbursed later with no deadline, so
+        // receipts paid out of pocket become a stock of tax-free withdrawals
+        // available at any age. That legitimately enlarges the bridge, but only
+        // if you kept the receipts — which the app can't know, so it doesn't
+        // assume it.
+        const hsaForBridge = Math.min(
+          hsa,
+          p.accounts.hsa.annualMedical * Math.max(1, ACCESS_AGE - p.retireAge),
+        );
+        bridgeAvailableAtRetirement = r2(brok + rothBasis + hsaForBridge);
       }
 
       // RMDs are forced first (ordinary income whether spent or not).
@@ -419,10 +440,22 @@ export function computeBridgePlan(opts: {
     fundIn: [
       "a taxable brokerage account",
       "Roth IRA contributions (your basis, not the earnings)",
-      "an HSA, for medical costs",
     ],
     notIn: [
       "a Traditional 401k or IRA — locked until 59½, and adding to it grows the pot you can't reach",
+      // The HSA is listed here, not above, and the distinction is not pedantry.
+      //
+      // Non-medical HSA withdrawals before 65 cost income tax *plus a 20%
+      // additional tax* — twice the 10% on a Traditional account, and the
+      // exception age is 65, not 59½ (IRS Pub 969). So for general bridge
+      // spending the HSA is the worst account in the stack, not a fallback.
+      //
+      // It does help the bridge, but only up to the medical costs you will
+      // actually incur in those years, which is exactly the cap the projection
+      // applies. Contributing beyond that does not close this gap — the same
+      // mistake as putting bridge money in a Traditional account, which is why
+      // it would be wrong to list it as somewhere to "put more".
+      "an HSA beyond your projected medical spending — non-medical withdrawals before 65 cost income tax plus a 20% penalty, and the bridge already counts the medical part",
     ],
     monthlyToClose,
     lumpTodayToClose,
