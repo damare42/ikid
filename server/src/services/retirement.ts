@@ -83,6 +83,20 @@ export interface BridgePlan {
   monthsToRetire: number;
   monthlyToClose: number | null; // extra $/mo to invest until retirement
   lumpTodayToClose: number | null; // or invest this once, today
+  /**
+   * Where that money has to go, and where it must not.
+   *
+   * This travels with the number because without it the number is wrong. The
+   * bridge exists precisely because Traditional 401k/IRA money costs a 10%
+   * penalty plus income tax before 59½ — so "invest $279/mo more" carried out
+   * inside a Traditional 401k does not shrink the gap at all. It grows the pot
+   * you already cannot reach, and leaves the shortfall exactly where it was
+   * while looking like progress.
+   *
+   * Any consumer showing `monthlyToClose` must show this beside it.
+   */
+  fundIn: string[];
+  notIn: string[];
 }
 
 export interface RetirementResult {
@@ -397,6 +411,19 @@ export function computeBridgePlan(opts: {
     haveAtRetirement: r2(opts.haveAtRetirement),
     gap,
     monthsToRetire,
+    // Ordered by how freely the money comes out before 59½. Taxable first
+    // because it has no age rule at all and long-term gains are often taxed at
+    // 0% at early-retirement income levels; Roth *contributions* next because
+    // your own basis is always withdrawable penalty-free (earnings are not);
+    // HSA last because it is penalty-free only against qualified medical costs.
+    fundIn: [
+      "a taxable brokerage account",
+      "Roth IRA contributions (your basis, not the earnings)",
+      "an HSA, for medical costs",
+    ],
+    notIn: [
+      "a Traditional 401k or IRA — locked until 59½, and adding to it grows the pot you can't reach",
+    ],
     monthlyToClose,
     lumpTodayToClose,
   };

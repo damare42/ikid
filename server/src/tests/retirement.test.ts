@@ -210,3 +210,56 @@ describe("depletion", () => {
     expect(r.guidance.some((g) => g.includes("runs out"))).toBe(true);
   });
 });
+
+/**
+ * The bridge plan's advice is only correct for accounts you can reach before
+ * 59½, and the whole reason the bridge exists is that Traditional money can't
+ * be. "Invest $279/mo more" carried out inside a Traditional 401k closes none
+ * of the gap — it grows the pot that is already locked, while looking like
+ * progress. So the destination travels with the number rather than sitting in
+ * a footnote under it.
+ */
+describe("the bridge plan says where the money goes", () => {
+  const plan = computeBridgePlan({
+    currentAge: 35, retireAge: 48, annualSpending: 48_000,
+    ladder: true, realRatePct: 7, haveAtRetirement: 120_000, bridgeTaxes: 10_000,
+  });
+
+  it("names accounts reachable before 59½", () => {
+    expect(plan.gap).toBeGreaterThan(0);
+    expect(plan.monthlyToClose).toBeGreaterThan(0);
+    const where = plan.fundIn.join(" ").toLowerCase();
+    expect(where).toMatch(/taxable|brokerage/);
+    expect(where).toMatch(/roth/);
+  });
+
+  it("says Roth *contributions*, not Roth generally", () => {
+    // Earnings inside a Roth are not penalty-free before 59½; only the basis
+    // is. Saying "Roth" without that distinction is the same class of error as
+    // omitting the account entirely.
+    expect(plan.fundIn.join(" ")).toMatch(/basis|contribution/i);
+  });
+
+  it("names Traditional as the account that does NOT help", () => {
+    expect(plan.notIn.join(" ")).toMatch(/traditional/i);
+    expect(plan.notIn.join(" ")).toMatch(/59|locked|can't reach|cannot reach/i);
+    expect(plan.fundIn.join(" ")).not.toMatch(/traditional/i);
+  });
+
+  it("carries the guidance whenever it carries an amount", () => {
+    // If there is a number to act on, there is a destination beside it.
+    for (const opts of [
+      { haveAtRetirement: 0, bridgeTaxes: 0 },
+      { haveAtRetirement: 50_000, bridgeTaxes: 25_000 },
+    ]) {
+      const p = computeBridgePlan({
+        currentAge: 40, retireAge: 50, annualSpending: 40_000,
+        ladder: false, realRatePct: 5, ...opts,
+      });
+      if (p.monthlyToClose != null || p.lumpTodayToClose != null) {
+        expect(p.fundIn.length).toBeGreaterThan(0);
+        expect(p.notIn.length).toBeGreaterThan(0);
+      }
+    }
+  });
+});

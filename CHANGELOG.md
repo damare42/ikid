@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+**The bridge plan says which account to put the money in**
+
+It read: *"To close the $70,718 gap by age 48, invest about $279.15/mo more for
+the next 13 years."* Correct arithmetic, and following it inside a Traditional
+401k would have closed none of the gap — the bridge exists **because**
+Traditional money costs a 10% penalty plus income tax before 59½. Adding to it
+grows the pot you already can't reach while looking like progress.
+
+The guidance was on the page, as 11px grey text below the callout. That is
+backwards for a number whose correctness depends on it. The destination is in
+the sentence now — *"put about $279.15/mo more into a taxable brokerage account
+or Roth IRA"* — with the exclusion stated rather than implied.
+
+`BridgePlan` carries `fundIn` and `notIn`, so the constraint travels with the
+number for every consumer rather than living in one component's JSX. Pinned by
+tests, including that it says Roth *contributions*: earnings inside a Roth are
+not penalty-free before 59½, and saying just "Roth" is the same class of error
+as omitting the account.
+
+
 **The dashboard headline fits a phone instead of scrolling**
 
 The five stat cards were a horizontally-scrolling strip. I built it that way on

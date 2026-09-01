@@ -62,6 +62,8 @@ interface SimResult {
     monthsToRetire: number;
     monthlyToClose: number | null;
     lumpTodayToClose: number | null;
+    fundIn: string[];
+    notIn: string[];
   };
   warnings: string[];
   guidance: string[];
@@ -455,14 +457,28 @@ export default function Retirement() {
                         ✅ Your bridge is funded — you can retire at {retireAge} without ever paying the 10% early-withdrawal penalty.
                       </div>
                     ) : bp.monthlyToClose != null ? (
+                      // Where the money goes belongs in the sentence with the
+                      // amount, not in the footnote below it. This figure is
+                      // only correct for accounts you can reach before 59½:
+                      // $279/mo into a Traditional 401k closes none of the gap,
+                      // because the gap exists *because* that money is locked.
+                      // Advice whose correctness depends on a qualifier has to
+                      // carry the qualifier.
                       <div className="rounded-lg bg-amber-50 p-3 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-                        To close the {fmtMoney(bp.gap)} gap by age {retireAge}, invest about{" "}
-                        <b>{fmtMoney(bp.monthlyToClose)}/mo</b> more for the next {Math.round(bp.monthsToRetire / 12 * 10) / 10} years
-                        (at {ratePct}% real){bp.lumpTodayToClose != null && <> — or <b>{fmtMoney(bp.lumpTodayToClose)}</b> invested once today</>}.
+                        To close the {fmtMoney(bp.gap)} gap by age {retireAge}, put about{" "}
+                        <b>{fmtMoney(bp.monthlyToClose)}/mo</b> more into a{" "}
+                        <b>taxable brokerage account or Roth IRA</b> for the next{" "}
+                        {Math.round(bp.monthsToRetire / 12 * 10) / 10} years (at {ratePct}% real)
+                        {bp.lumpTodayToClose != null && <> — or <b>{fmtMoney(bp.lumpTodayToClose)}</b> into one today</>}.
+                        <div className="mt-1.5 text-[13px]">
+                          <b>Not</b> a Traditional 401k or IRA. That money is locked until 59½, so
+                          adding to it grows the pot you can't reach and leaves this gap exactly
+                          where it is.
+                        </div>
                       </div>
                     ) : (
                       <div className="rounded-lg bg-amber-50 p-3 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-                        You're {fmtMoney(bp.gap)} short and already at/near retirement — cover it with a lump sum, trim early-retirement spending, or push the date out.
+                        You're {fmtMoney(bp.gap)} short and already at/near retirement — cover it with a lump sum into a taxable or Roth account (not Traditional, which is what the gap is), trim early-retirement spending, or push the date out.
                       </div>
                     )}
 
