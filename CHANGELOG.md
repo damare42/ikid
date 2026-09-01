@@ -2,6 +2,61 @@
 
 ## Unreleased
 
+**The engine tests plans against history, not just averages**
+
+Every projection was a single smooth line: pick a return, grow the balance, read
+the answer. That is a fine way to *size* a goal and a poor way to *test* one,
+because withdrawals during a crash sell more shares to raise the same income and
+those shares aren't there for the recovery. Two retirees with identical 30-year
+average returns end up in very different places depending on the order the
+returns arrived.
+
+The app was quietly having it both ways: applying a 4% withdrawal rate *derived*
+from worst-case historical sequences, while projecting on an average one.
+
+- `marketHistory.ts` — S&P 500 total return, 10-year Treasury total return and
+  CPI, 1926–2024. Real years, so every output traces to something checkable.
+- `sequenceRisk.ts` — replays a plan across every start year in the record and
+  reports the success rate, the worst cohort, and how close the survivors came.
+  Deterministic; no RNG in an engine whose promise is auditable numbers.
+
+It reproduces the published results: 4% over 30 years at 75% equity survives
+**94.3%** of start years with **1966** as the binding cohort — Bengen's number
+and Bengen's year. Median outcome is to end with more than you started, which is
+the half of the story a success rate hides.
+
+And it answers a question the app had been ducking. A 35-year-old retiring at 53
+has a 42-year horizon; the record supports **3.49%**, not 4%. On 4% that plan
+fails 12% of the time, and the 1966 cohort runs out 26 years in.
+
+**Four standard rules, implemented properly**
+
+- **Emergency fund.** Was `avgMonthlyExpenses × 6`. Sized on *essential*
+  spending now — in a month with no income you stop buying the optional things —
+  and scaled by income stability: 3 months for two stable salaries, 12 for a
+  business owner. "Three to six months" compresses that range, and the
+  compression is where it goes wrong in both directions.
+- **Mortgage affordability.** The house scenario compared the mortgage payment
+  to current monthly savings. It now runs 28/36 against gross income on full
+  PITI including PMI below 20% down. A $450k house on $60k down turns out to
+  fail at 32.5% front-end, with the real ceiling at $394k.
+- **Invest vs prepay.** After-tax debt rate against after-tax expected return,
+  with a 2-point margin below which it says "close call" rather than pretending
+  to know — a guaranteed return and an expected one are not the same kind of
+  number. An unclaimed employer match outranks both.
+- **Savings rate → time to independence.** Reproduces the published table
+  (10% → 51 years, 50% → 17, 75% → 7). My first version mixed income-years with
+  spending-years and returned 10 years where the answer is 17; the test caught it.
+
+**Real and nominal returns are no longer the same field**
+
+`fireProjection` documented its rate as real; `compoundGrowth` took a bare rate
+the UI labelled "Annual return". Same engine, two meanings, no conversion — and
+a 30-year projection read in the wrong basis is out by about 2.4×, which looks
+entirely plausible. `rates.ts` carries the basis, converts through Fisher rather
+than subtraction, and results state which dollars they are in.
+
+
 **The dashboard opened on an empty month on the 1st**
 
 CI failed at 00:58 on the 1st of September asserting `income > 0`, and it was

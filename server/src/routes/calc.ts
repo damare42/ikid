@@ -4,6 +4,9 @@ import { z } from "zod";
 import { ApiError, asyncHandler, parse } from "../lib/errors.js";
 import { prisma } from "../lib/prisma.js";
 import { amortization, coastFire, compoundGrowth, fireProjection, loanPayoff } from "../services/finmath.js";
+import { safeRateForHorizon, testSequences } from "../services/sequenceRisk.js";
+import { affordability, emergencyFund, investVsPrepay, yearsToIndependence } from "../services/planningRules.js";
+import { dollarsLabel } from "../services/rates.js";
 import type { SavedCalcDTO } from "../../../shared/types.js";
 
 export const calcRouter = Router();
@@ -76,10 +79,19 @@ calcRouter.post("/compound", asyncHandler(async (req, res) => {
       monthly: z.number().min(0).max(1e6),
       ratePct: z.number().min(0).max(50),
       years: z.number().min(1).max(80),
+      // Which kind of return the caller typed. The engine treated this field as
+      // nominal here and as real in the FIRE calculator, with nothing
+      // converting between them — a 30-year projection read in the wrong basis
+      // is out by roughly (1.03)^30, about 2.4x, and looks entirely plausible.
+      basis: z.enum(["nominal", "real"]).default("nominal"),
     }),
     req.body,
   );
-  res.json(compoundGrowth(body.principal, body.monthly, body.ratePct, body.years));
+  res.json({
+    ...compoundGrowth(body.principal, body.monthly, body.ratePct, body.years),
+    basis: body.basis,
+    dollars: dollarsLabel(body.basis),
+  });
 }));
 
 calcRouter.post("/fire", asyncHandler(async (req, res) => {
@@ -94,7 +106,108 @@ calcRouter.post("/fire", asyncHandler(async (req, res) => {
     }),
     req.body,
   );
-  res.json(fireProjection(body));
+  const projection = fireProjection(body);
+
+  // The smooth projection answers "does this work on average". The history
+  // answers "does it work if I'm unlucky", which is the question the 4% rule
+  // was invented to settle — so the app should not quote that rule while
+  // hiding the evidence behind it.
+  const horizonYears = Math.max(1, Math.round(95 - (projection.fireAge ?? body.currentAge)));
+  const balance = projection.balanceAtFire ?? projection.fireNumber;
+  const history = projection.achievable
+    ? testSequences({
+        initialBalance: balance,
+        annualWithdrawal: body.annualSpending,
+        years: Math.min(horizonYears, 60),
+        equityPct: 75,
+      })
+    : null;
+
+  res.json({
+    ...projection,
+    dollars: dollarsLabel("real"),
+    history: history && {
+      successRate: history.successRate,
+      cohortCount: history.cohortCount,
+      firstStart: history.firstStart,
+      lastStart: history.lastStart,
+      horizonYears: Math.min(horizonYears, 60),
+      worst: history.worst,
+      median: history.median,
+      withdrawalRatePct: history.withdrawalRatePct,
+      // What the record actually supports for a retirement this long, which is
+      // usually below the 4% the user typed.
+      supportedRatePct: safeRateForHorizon(Math.min(horizonYears, 60), 75).maxSafePct,
+    },
+  });
+}));
+
+// ---------- the standard rules, made available ----------
+
+calcRouter.post("/emergency-fund", asyncHandler(async (req, res) => {
+  const body = parse(
+    z.object({
+      essentialMonthlyExpenses: z.number().min(0).max(1e6),
+      liquidSavings: z.number().min(0).max(1e9),
+      stability: z.enum(["dual-stable", "single-stable", "variable", "self-employed"]),
+      monthlySavingsCapacity: z.number().min(0).max(1e6).optional(),
+    }),
+    req.body,
+  );
+  res.json(emergencyFund(body));
+}));
+
+calcRouter.post("/affordability", asyncHandler(async (req, res) => {
+  const body = parse(
+    z.object({
+      grossAnnualIncome: z.number().positive().max(1e8),
+      otherMonthlyDebt: z.number().min(0).max(1e6),
+      downPayment: z.number().min(0).max(1e9),
+      homePrice: z.number().positive().max(1e9),
+      annualRatePct: z.number().min(0).max(30),
+      termYears: z.number().min(1).max(50).optional(),
+      propertyTaxPct: z.number().min(0).max(10).optional(),
+      insurancePct: z.number().min(0).max(10).optional(),
+      monthlyHoa: z.number().min(0).max(1e5).optional(),
+    }),
+    req.body,
+  );
+  res.json(affordability(body));
+}));
+
+calcRouter.post("/invest-vs-prepay", asyncHandler(async (req, res) => {
+  const body = parse(
+    z.object({
+      debtBalance: z.number().min(0).max(1e9),
+      debtRatePct: z.number().min(0).max(60),
+      monthlyAmount: z.number().min(0).max(1e6),
+      expectedReturnPct: z.number().min(0).max(30),
+      investmentTaxPct: z.number().min(0).max(60).optional(),
+      debtInterestDeductible: z.boolean().optional(),
+      marginalIncomeTaxPct: z.number().min(0).max(60).optional(),
+      employerMatchPct: z.number().min(0).max(200).optional(),
+    }),
+    req.body,
+  );
+  res.json(investVsPrepay(body));
+}));
+
+calcRouter.post("/independence", asyncHandler(async (req, res) => {
+  const body = parse(
+    z.object({
+      savingsRatePct: z.number().min(0).max(100),
+      realReturnPct: z.number().min(0).max(20),
+      withdrawalRatePct: z.number().min(1).max(20).default(4),
+      portfolioYearsOfSpending: z.number().min(0).max(100).default(0),
+    }),
+    req.body,
+  );
+  res.json({
+    years: yearsToIndependence(
+      body.savingsRatePct, body.realReturnPct, body.withdrawalRatePct, body.portfolioYearsOfSpending,
+    ),
+    dollars: dollarsLabel("real"),
+  });
 }));
 
 calcRouter.post("/coast", asyncHandler(async (req, res) => {
