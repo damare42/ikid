@@ -24,6 +24,9 @@ export default function Transactions() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<TransactionDTO | null>(null);
   const [adding, setAdding] = useState(false);
+  // Opens automatically when a filter arrives from a URL — a chart drilling
+  // into a category shouldn't leave the reason for the filtered list hidden.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Bulk account assignment
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [selectAllMatching, setSelectAllMatching] = useState(false);
@@ -128,6 +131,43 @@ export default function Transactions() {
     search || categoryId || merchantId || accountFilter || from || to || minAmount || maxAmount,
   );
 
+  function clearFilters() {
+    setCategoryId(""); setMerchantId(""); setAccountFilter("");
+    setFrom(""); setTo(""); setMinAmount(""); setMaxAmount("");
+  }
+
+  /**
+   * One chip per filter that is actually doing something, labelled with the
+   * value rather than the field — "Groceries", not "Category: Groceries".
+   *
+   * This is what makes hiding the controls safe. A filter you can't see and
+   * can't remember setting is how people conclude their data has vanished; a
+   * filter that names itself above the results, and clears on a tap, is just
+   * tidy.
+   */
+  const activeChips: { label: string; clear: () => void }[] = [
+    categoryId && {
+      label: categories?.find((c) => String(c.id) === categoryId)?.name ?? "Category",
+      clear: () => setCategoryId(""),
+    },
+    merchantId && {
+      label: merchants?.find((m) => String(m.id) === merchantId)?.name ?? "Merchant",
+      clear: () => setMerchantId(""),
+    },
+    accountFilter && {
+      label: accountFilter === "none"
+        ? "Unassigned"
+        : accounts?.find((a) => String(a.id) === accountFilter)?.name ?? "Account",
+      clear: () => setAccountFilter(""),
+    },
+    from && { label: `From ${from}`, clear: () => setFrom("") },
+    to && { label: `To ${to}`, clear: () => setTo("") },
+    minAmount && { label: `Min $${minAmount}`, clear: () => setMinAmount("") },
+    maxAmount && { label: `Max $${maxAmount}`, clear: () => setMaxAmount("") },
+  ].filter(Boolean) as { label: string; clear: () => void }[];
+
+  const filterCount = activeChips.length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between">
@@ -151,29 +191,106 @@ export default function Transactions() {
         <button className="btn-primary" onClick={() => setAdding(true)}>+ Add transaction</button>
       </div>
 
-      <Card>
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-8">
-          <input className="input" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">All categories</option>
-            {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <select className="input" value={merchantId} onChange={(e) => setMerchantId(e.target.value)}>
-            <option value="">All merchants</option>
-            {merchants?.filter((m) => m._count.transactions > 0).map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
-          <select className="input" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} title="Filter by account">
-            <option value="">All accounts</option>
-            <option value="none">⚠ Unassigned</option>
-            {accounts?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-          <input type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} title="From date" />
-          <input type="date" className="input" value={to} onChange={(e) => setTo(e.target.value)} title="To date" />
-          <input type="number" className="input" placeholder="Min $" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} />
-          <input type="number" className="input" placeholder="Max $" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} />
+      {/* Search stays out; the other seven live behind the funnel.
+          They were all on screen at once, which on a phone meant a 362px block
+          of controls — 45% of the viewport — before a single transaction. The
+          honest split is that searching is what people come here to do, and the
+          rest is refinement they reach for occasionally. Anything currently
+          applied is shown as a removable chip, so nothing is hidden while it is
+          actually affecting the list. */}
+      <Card className="!p-3">
+        <div className="flex items-center gap-2">
+          <input
+            className="input min-w-0 flex-1"
+            placeholder="Search transactions…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search transactions"
+          />
+          <button
+            className={`btn-ghost shrink-0 gap-1.5 ${filterCount > 0 ? "!border-brand-600 !text-brand-700 dark:!text-brand-400" : ""}`}
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            aria-label={filtersOpen ? "Hide filters" : "Show filters"}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span className="hidden sm:inline">Filter</span>
+            {filterCount > 0 && (
+              <span className="rounded-full bg-brand-600 px-1.5 text-[11px] font-bold leading-[16px] text-white">
+                {filterCount}
+              </span>
+            )}
+          </button>
         </div>
+
+        {activeChips.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {activeChips.map((chip) => (
+              <button
+                key={chip.label}
+                onClick={chip.clear}
+                className="inline-flex items-center gap-1 rounded-chrome bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                title={`Remove: ${chip.label}`}
+              >
+                {chip.label}
+                <span aria-hidden="true" className="text-slate-500">✕</span>
+              </button>
+            ))}
+            <button className="px-1 text-xs text-brand-700 hover:underline dark:text-brand-400" onClick={clearFilters}>
+              Clear all
+            </button>
+          </div>
+        )}
+
+        {filtersOpen && (
+          <div className="mt-3 grid grid-cols-1 gap-2 border-t border-slate-200 pt-3 sm:grid-cols-2 lg:grid-cols-3 dark:border-slate-800">
+            <label className="block">
+              <span className="label">Category</span>
+              <select className="input w-full" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+                <option value="">All categories</option>
+                {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="label">Merchant</span>
+              <select className="input w-full" value={merchantId} onChange={(e) => setMerchantId(e.target.value)}>
+                <option value="">All merchants</option>
+                {merchants?.filter((m) => m._count.transactions > 0).map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="label">Account</span>
+              <select className="input w-full" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
+                <option value="">All accounts</option>
+                <option value="none">⚠ Unassigned</option>
+                {accounts?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="label">From</span>
+              <input type="date" className="input w-full" value={from} onChange={(e) => setFrom(e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="label">To</span>
+              <input type="date" className="input w-full" value={to} onChange={(e) => setTo(e.target.value)} />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block">
+                <span className="label">Min $</span>
+                <input type="number" className="input w-full" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="label">Max $</span>
+                <input type="number" className="input w-full" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} />
+              </label>
+            </div>
+          </div>
+        )}
       </Card>
 
       {error && <ErrorNote message={error} />}

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useChartColors } from "../lib/chartColors";
 
 export function Card({ title, action, children, className = "" }: {
@@ -13,6 +13,58 @@ export function Card({ title, action, children, className = "" }: {
         </div>
       )}
       {children}
+    </div>
+  );
+}
+
+/**
+ * A card that starts folded, with a one-line summary of what's inside.
+ *
+ * Measured across the app, the pages people bounce off are the ones that put
+ * every control on screen at once: Retirement asked for seventeen numbers over
+ * 2,130px — 2.6 phone screens — before showing a single result, and Settings
+ * renders 266 controls in one page. Both are *dense*, not complicated; the
+ * information is fine, it just all arrives at once.
+ *
+ * The summary line is what makes folding honest rather than hiding. A section
+ * you can't see and can't tell the contents of is worse than a long page; a
+ * section that says "Retire at 45 · $48,000/yr · 5% real" tells you whether you
+ * need to open it.
+ */
+export function FoldingCard({
+  title, summary, children, defaultOpen = false, className = "",
+}: {
+  title: ReactNode;
+  /** What the section currently says, so it can stay shut. */
+  summary?: ReactNode;
+  children: ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`card ${className}`}>
+      <button
+        className="flex w-full items-center justify-between gap-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="min-w-0">
+          <span className="block font-heading text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            {title}
+          </span>
+          {!open && summary && (
+            <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">{summary}</span>
+          )}
+        </span>
+        <span
+          className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        >
+          ▾
+        </span>
+      </button>
+      {open && <div className="mt-3">{children}</div>}
     </div>
   );
 }

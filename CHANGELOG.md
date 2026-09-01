@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+**Transactions: search out front, the other seven behind a funnel**
+
+The filter bar showed eight controls at once. On a phone that is a **362px
+block — 45% of the viewport — before a single transaction**, and you scrolled
+564px to reach the first row.
+
+Search stays visible, because searching is what people come to this page to do.
+Category, merchant, account, date range and amount range moved behind a filter
+button carrying a count. Anything currently applied appears as a removable chip
+above the results, so nothing is hidden while it is still affecting the list —
+a filter you can't see and don't remember setting is how people conclude their
+data has vanished.
+
+**A clutter audit of the whole app, measured**
+
+Counted every control and how far you scroll before real content, at 375px:
+
+| page | controls | before first data |
+|---|---|---|
+| `/settings` | **266** (205 buttons) | 1,035px |
+| `/transactions` | 112 | 564px → now ~90px |
+| `/retirement` | 26 inputs | **2,130px — 2.6 phone screens** |
+| `/bills` | 48 buttons | page is 4,465px tall |
+
+Retirement was the worst: seventeen numbers over two and a half screens before
+a single result. Its Accounts and Strategy sections now fold, each showing a
+one-line summary of what's inside — "$425,000 invested · $46,300/yr going in" —
+so folding tells you what you're not looking at instead of hiding it. About You
+stays open; it is four fields and the ones people actually change.
+
+`FoldingCard` is in the shared UI for the same treatment elsewhere; Settings at
+266 controls is the obvious next candidate.
+
+
 **The engine tests plans against history, not just averages**
 
 Every projection was a single smooth line: pick a return, grow the balance, read

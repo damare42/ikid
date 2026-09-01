@@ -7,7 +7,7 @@ import type { SavedCalcDTO } from "@shared/types";
 import { api } from "../lib/api";
 import { useFetch } from "../hooks/useFetch";
 import { fmtMoney } from "../lib/format";
-import { Card, ErrorNote, StatCard } from "../components/ui";
+import { Card, ErrorNote, FoldingCard, StatCard } from "../components/ui";
 import { legendLabel, useChartColors } from "../lib/chartColors";
 
 /**
@@ -301,7 +301,10 @@ export default function Retirement() {
           </div>
         </Card>
 
-        <Card title="🏦 Accounts (balance + $/yr while working)">
+        <FoldingCard
+          title="🏦 Accounts"
+          summary={`${fmtMoney(Number(tradBal) + Number(rothBal) + Number(brokBal) + Number(hsaBal))} invested · ${fmtMoney(Number(tradCon) + Number(rothCon) + Number(brokCon) + Number(hsaCon))}/yr going in`}
+        >
           <div className="space-y-2 text-sm">
             <div className="grid grid-cols-2 gap-2">
               <Num label="401k + Trad IRA" value={tradBal} onChange={setTradBal} />
@@ -323,9 +326,12 @@ export default function Retirement() {
               <Num label="Medical $/yr" value={hsaMed} onChange={setHsaMed} hint="qualified expenses" />
             </div>
           </div>
-        </Card>
+        </FoldingCard>
 
-        <Card title="🧠 Strategy">
+        <FoldingCard
+          title="🧠 Strategy"
+          summary={`${ladder ? "Roth ladder on" : "No ladder"} · fill to ${fillBracket}% bracket · RMDs at ${rmdAge}`}
+        >
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={ladder} onChange={(e) => setLadder(e.target.checked)} />
@@ -374,7 +380,7 @@ export default function Retirement() {
               </InfoTip>
             </div>
           </div>
-        </Card>
+        </FoldingCard>
       </div>
 
       {!valid && (
