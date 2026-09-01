@@ -151,7 +151,12 @@ export default function Dashboard() {
   const c = useChartColors();
   // Month/range live in the URL so browser Back returns to the exact view.
   const [params, setParams] = useSearchParams();
-  const month = params.get("month") ?? monthInputValue();
+  // Deliberately not defaulted to the current month here. Asking the API for
+  // "this month" is wrong on the 1st, when nothing has happened in it yet and
+  // the dashboard comes up blank; with no month the API opens on the most
+  // recent one that has activity and tells us which it picked. The picker below
+  // shows that month, so the URL stays empty until the user chooses.
+  const chosenMonth = params.get("month");
   const mode: "month" | "ytd" = params.get("range") === "ytd" ? "ytd" : "month";
 
   function setView(patch: { month?: string; range?: "month" | "ytd" }) {
@@ -164,13 +169,18 @@ export default function Dashboard() {
     setParams(next);
   }
   const summaryUrl =
-    mode === "ytd" ? "/api/analytics/summary?range=ytd" : `/api/analytics/summary?month=${month}`;
+    mode === "ytd"
+      ? "/api/analytics/summary?range=ytd"
+      : `/api/analytics/summary${chosenMonth ? `?month=${chosenMonth}` : ""}`;
   const { data: s, loading, error } = useFetch<DashboardSummary>(summaryUrl);
+  // What the page is actually showing: the user's choice, else whatever the API
+  // resolved to, else this month while the first request is in flight.
+  const shownMonth = chosenMonth ?? (s && !s.month.endsWith("YTD") ? s.month : monthInputValue());
   const [ivRange, setIvRange] = useState<"12m" | "ytd">("12m");
   const ivMonths = ivRange === "ytd" ? new Date().getMonth() + 1 : 12;
   const { data: monthly } = useFetch<MonthlyPoint[]>(`/api/analytics/monthly?months=${ivMonths}`);
   const { data: csp } = useFetch<CspBreakdown>(
-    mode === "ytd" ? "/api/analytics/csp?range=ytd" : `/api/analytics/csp?month=${month}`,
+    mode === "ytd" ? "/api/analytics/csp?range=ytd" : `/api/analytics/csp?month=${shownMonth}`,
   );
   const { data: nw } = useFetch<NetWorthSummary>("/api/networth/summary");
   const hasNetWorth = !!nw && nw.assets.length > 0;
@@ -212,7 +222,7 @@ export default function Dashboard() {
             </button>
           </div>
           {mode === "month" && (
-            <input type="month" className="input" value={month} onChange={(e) => setView({ month: e.target.value })} />
+            <input type="month" className="input" value={shownMonth} onChange={(e) => setView({ month: e.target.value })} />
           )}
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
 import { budgetStatus } from "./budgetService.js";
 import type { DashboardSummary, MonthlyPoint } from "../../../shared/types.js";
 import { financialHealth } from "./healthCore.js";
+import { monthKeyOfDate, resolveMonth, type MonthActivity } from "./periodCore.js";
 import { findRecurring, type RecurringCharge, type RecurringPayment } from "./recurringCore.js";
 // Definitions, not arithmetic — and shared, so the demo can't hold a second copy.
 import { CSP_BUCKETS, isFixedCost } from "./cspCore.js";
@@ -219,7 +220,12 @@ export async function heatmap(year: number) {
  */
 export async function cspBreakdown(month?: string, ytd = false) {
   const now = new Date();
-  const [y, m] = month ? month.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
+  // Same default as the dashboard, so an API caller who names no month gets a
+  // spending plan for the period the summary is describing.
+  const resolved = ytd ? undefined : resolveMonth(month, await monthActivity(), now);
+  const [y, m] = resolved
+    ? resolved.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
   const from = ytd ? new Date(y, 0, 1) : new Date(y, m - 1, 1);
   const to = ytd ? now : new Date(y, m, 0, 23, 59, 59);
   const txns = await loadSlim(from, to);
@@ -351,9 +357,32 @@ export async function savingsAnalysis() {
   };
 }
 
+/**
+ * What each month holds, by the same definitions the dashboard displays —
+ * a month of transfers only would otherwise count as "active" and open on a
+ * screen of zeroes.
+ */
+export async function monthActivity(): Promise<MonthActivity[]> {
+  const txns = await loadSlim();
+  const map = new Map<string, MonthActivity>();
+  for (const t of txns) {
+    const key = monthKeyOfDate(t.date);
+    const m = map.get(key) ?? { key, hasIncome: false, hasSpending: false };
+    if (isIncome(t)) m.hasIncome = true;
+    if (isExpense(t)) m.hasSpending = true;
+    map.set(key, m);
+  }
+  return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
+}
+
 export async function dashboardSummary(month?: string, ytd = false): Promise<DashboardSummary> {
   const now = new Date();
-  const [y, m] = month ? month.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
+  // With no month asked for, open on one that has something in it — see
+  // periodCore. Today's month is empty for the first day or two of every month.
+  const resolved = ytd ? undefined : resolveMonth(month, await monthActivity(), now);
+  const [y, m] = resolved
+    ? resolved.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
   // Year-to-date mode: Jan 1 of the selected (or current) year through today.
   const from = ytd ? new Date(y, 0, 1) : new Date(y, m - 1, 1);
   const to = ytd ? now : new Date(y, m, 0, 23, 59, 59);

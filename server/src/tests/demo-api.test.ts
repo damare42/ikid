@@ -37,6 +37,25 @@ describe("the generated world", () => {
     expect(accounts.length).toBeGreaterThan(1);
   });
 
+  // This test failed in CI at 00:58 on the 1st of a month, and it was right to.
+  // The generated dataset stops at the day it was built and never invents the
+  // future, so the "current month" held nothing — and the dashboard, which
+  // asked for the current month, came up blank. Not a flaky test: every visitor
+  // on the 1st of a month would have seen an empty first screen.
+  //
+  // The fix is in periodCore: with no month requested, open on the most recent
+  // one that has activity. What this test pins is the consequence — the default
+  // dashboard always has numbers on it, whatever day it is run.
+  it("opens on a month with something in it, whatever the date", async () => {
+    const summary = (await get("/api/analytics/summary")) as {
+      month: string; income: number; spending: number;
+    };
+    expect(summary.income).toBeGreaterThan(0);
+    expect(summary.spending).toBeGreaterThan(0);
+    // And it must be a real month, not silently something else.
+    expect(summary.month).toMatch(/^\d{4}-\d{2}$/);
+  });
+
   it("obeys the app's accounting invariants, so no screen quietly lies", async () => {
     const summary = (await get("/api/analytics/summary")) as {
       income: number; spending: number; netSavings: number; savingsRate: number;

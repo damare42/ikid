@@ -14,6 +14,7 @@ import { financialHealth } from "@engine/healthCore.js";
 import { buildInsights } from "@engine/insightsCore.js";
 import { findRecurring, type RecurringCharge } from "@engine/recurringCore.js";
 import { CSP_BUCKETS, isFixedCost } from "@engine/cspCore.js";
+import { resolveMonth, type MonthActivity } from "@engine/periodCore.js";
 import { num, route, str } from "./router.js";
 import { allTxns, asDate, categoryDTO, latestDate, merchantDTO, txnDTO, ymd } from "./data.js";
 import { handle } from "./router.js";
@@ -44,6 +45,19 @@ function slim(from?: Date, to?: Date): SlimTxn[] {
 }
 
 const dateParam = (v?: string): Date | undefined => (v ? new Date(v) : undefined);
+
+/** Mirrors the server's monthActivity — same predicates, same meaning. */
+function monthActivity(): MonthActivity[] {
+  const map = new Map<string, MonthActivity>();
+  for (const t of slim()) {
+    const key = monthKeyOf(t.date);
+    const m = map.get(key) ?? { key, hasIncome: false, hasSpending: false };
+    if (isIncome(t)) m.hasIncome = true;
+    if (isExpense(t)) m.hasSpending = true;
+    map.set(key, m);
+  }
+  return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
+}
 
 // ---------------------------------------------------------------------------
 // Series
@@ -225,8 +239,11 @@ route("GET /api/analytics/recurring", () => recurringPayments());
 route("GET /api/analytics/csp", ({ query }) => {
   const ytd = str(query, "range") === "ytd";
   const now = latestDate();
-  const month = str(query, "month");
-  const [y, m] = month ? month.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
+  // Same default as the dashboard summary — see the note there.
+  const month = ytd ? undefined : resolveMonth(str(query, "month"), monthActivity(), now);
+  const [y, m] = month
+    ? month.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
   const from = ytd ? new Date(y, 0, 1) : new Date(y, m - 1, 1);
   const to = ytd ? now : new Date(y, m, 0, 23, 59, 59);
 
@@ -337,7 +354,11 @@ route("GET /api/analytics/savings", () => {
 route("GET /api/analytics/summary", async ({ query }) => {
   const now = latestDate();
   const ytd = str(query, "range") === "ytd";
-  const month = str(query, "month") ?? monthKeyOf(now);
+  // Same rule as the server: with no month asked for, open on one that has
+  // something in it. The generated dataset stops at the day it was built, so on
+  // the 1st of a month the "current" month is empty and the dashboard came up
+  // blank — which is exactly how CI found this.
+  const month = resolveMonth(str(query, "month"), monthActivity(), now);
   const [y, m] = month.split("-").map(Number);
   const from = ytd ? new Date(y, 0, 1) : new Date(y, m - 1, 1);
   const to = ytd ? now : new Date(y, m, 0, 23, 59, 59);

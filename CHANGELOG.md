@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+**The dashboard opened on an empty month on the 1st**
+
+CI failed at 00:58 on the 1st of September asserting `income > 0`, and it was
+right to. The demo's dataset stops at the day it is generated and never invents
+the future, so the "current month" held nothing — and the dashboard, which asked
+the API for the current month, came up blank: $0 income, $0 spending, an empty
+cash-flow chart, every spending-plan bucket at 0%.
+
+Not a flaky test. Every visitor on the 1st of a month would have seen that
+screen, and so would any real user who imports statements monthly rather than
+daily — for them it's the first week of every month, not one day.
+
+`periodCore.resolveMonth` now picks the month: this one as soon as it holds
+something, otherwise the most recent one that does, never a future one, and an
+explicit choice is always honoured. The dashboard stopped hard-coding today's
+month into the request.
+
+The first version of this fix defined "holds something" as *any* transaction,
+which was still wrong — September held two coffees and no salary, so the app
+opened on a month showing $0 income and a 0% savings rate, because every
+headline number there is a ratio of income. A month needs both sides of the
+ledger before it is worth opening on.
+
+The test fixtures are built from local calendar dates rather than `Z` instants:
+`2026-09-01T00:58:00Z` is the 31st of August in New York and the 1st of
+September in London, and a timezone disagreement between CI and a laptop is
+what produced this in the first place. The suite passes under UTC, New York and
+Tokyo.
+
+
 **Pie charts were drawn on top of the lists beside them**
 
 Four cards put a chart and its category list side by side in a flex row, with
