@@ -51,6 +51,14 @@ interface SimResult {
   bridgeYears: number;
   bridgeNeeded: number;
   bridgeAvailableAtRetirement: number;
+  accessRoutes: {
+    key: string;
+    name: string;
+    available: boolean;
+    amount: number | null;
+    summary: string;
+    flexibility: "free" | "some-planning" | "binding";
+  }[];
   bridgePlan: {
     needed: boolean;
     bridgeYears: number;
@@ -69,6 +77,13 @@ interface SimResult {
   guidance: string[];
   years: YearRow[];
 }
+
+/** What each route costs you *after* you use it — the axis people skip. */
+const FLEX_LABEL: Record<string, string> = {
+  "free": "no strings",
+  "some-planning": "needs planning ahead",
+  "binding": "irreversible for years",
+};
 
 function Num({ label, value, onChange, hint }: {
   label: string; value: string; onChange: (v: string) => void; hint?: string;
@@ -246,6 +261,11 @@ export default function Retirement() {
   }, [JSON.stringify(body)]);
 
   const retiredYears = result?.years.filter((y) => y.phase === "retired") ?? [];
+  // Optional-chained on purpose: people self-host this, and during an upgrade a
+  // new client can talk to a server that predates `accessRoutes`. A missing
+  // section is a fine degradation; a white screen is not.
+  const accessRoutes = result?.accessRoutes ?? [];
+  const openRoutes = accessRoutes.filter((r) => r.available);
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -471,9 +491,9 @@ export default function Retirement() {
                         {Math.round(bp.monthsToRetire / 12 * 10) / 10} years (at {ratePct}% real)
                         {bp.lumpTodayToClose != null && <> — or <b>{fmtMoney(bp.lumpTodayToClose)}</b> into one today</>}.
                         <div className="mt-1.5 text-[13px]">
-                          <b>Not</b> a Traditional 401k or IRA. That money is locked until 59½, so
-                          adding to it grows the pot you can't reach and leaves this gap exactly
-                          where it is.
+                          <b>Not</b> a Traditional 401k or IRA. Adding to it grows a pot this plan
+                          can't spend from before 59½, so the gap stays exactly where it is. (There
+                          are exceptions — see the routes below.)
                         </div>
                       </div>
                     ) : (
@@ -483,12 +503,65 @@ export default function Retirement() {
                     )}
 
                     <p className="text-xs text-slate-400">
-                      Put bridge money in a <b>taxable brokerage</b> first (accessible any age, often 0% long-term gains early on), then <b>Roth contributions</b> (your basis is always withdrawable; the earnings are not). Your <b>HSA</b> counts only up to the medical costs you'll actually have in those years — beyond that it isn't bridge money, because a non-medical withdrawal before <b>65</b> costs income tax plus a <b>20%</b> penalty, twice the 10% on a Traditional account. Traditional 401k/IRA dollars don't help the bridge at all — that's exactly what the ladder converts out of.
+                      Put bridge money in a <b>taxable brokerage</b> first (accessible any age, often 0% long-term gains early on), then <b>Roth contributions</b> (your basis is always withdrawable; the earnings are not). Your <b>HSA</b> counts only up to the medical costs you'll actually have in those years — beyond that it isn't bridge money, because a non-medical withdrawal before <b>65</b> costs income tax plus a <b>20%</b> penalty, twice the 10% on a Traditional account. Traditional 401k/IRA dollars are what the ladder converts out of, so they don't fund the seasoning window itself — but they aren't unreachable before 59½ either; the routes below say which doors are open to you.
                     </p>
                   </div>
                 );
               })()}
             </Card>
+          )}
+
+          {/* Ways to reach money before 59½.
+              The simulation spends taxable → Roth basis → ladder, and for a
+              long bridge that ordering is right. But presenting only what the
+              simulation uses let the page imply Traditional money is simply
+              locked, which is false for anyone leaving a job at 55+ and false
+              in general. Both extra doors are shown whether or not they are
+              open, because knowing the Rule of 55 exists and that you miss it
+              by one year is worth more than not knowing it exists — it is the
+              kind of thing you can still plan around. */}
+          {result.bridgePlan.needed && accessRoutes.length > 0 && (
+            <FoldingCard
+              title={`🚪 Reaching money before 59½ — ${openRoutes.length} of ${accessRoutes.length} routes open to you`}
+              summary={openRoutes.map((r) => r.name).join(" · ")}
+            >
+              <div className="space-y-2">
+                {accessRoutes.map((r) => (
+                  <div
+                    key={r.key}
+                    className={`rounded-lg border p-3 text-sm ${
+                      r.available
+                        ? "border-slate-200 dark:border-slate-700"
+                        : "border-dashed border-slate-200 opacity-70 dark:border-slate-800"
+                    }`}
+                  >
+                    {/* No colour on the cost label. It is a three-step caution
+                        scale, and the only three-step scale in the palette is
+                        the semantic in/out pair, which means money in and money
+                        out here — borrowing it would say "binding = a loss".
+                        The words already carry it. */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <b className={r.available ? "" : "text-slate-500 dark:text-slate-400"}>{r.name}</b>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{FLEX_LABEL[r.flexibility]}</span>
+                      {!r.available && <span className="text-xs text-slate-400">· not open to this plan</span>}
+                      {r.available && r.amount != null && (
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          · {r.key === "sepp" ? `≈${fmtMoney(r.amount)}/yr` : `≈${fmtMoney(r.amount)}`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-[13px] text-slate-600 dark:text-slate-300">{r.summary}</p>
+                  </div>
+                ))}
+                <p className="text-xs text-slate-400">
+                  Listed cheapest-first in what they cost you afterwards, and that ordering is the
+                  advice: nobody should start a 72(t) while a taxable account is sitting there. None
+                  of these waive income tax — they waive the 10% penalty only. The Rule of 55 and
+                  72(t) both have conditions this app can't verify from your balances, so treat them
+                  as leads to check with a professional, not as instructions.
+                </p>
+              </div>
+            </FoldingCard>
           )}
 
           {/* Balances chart */}

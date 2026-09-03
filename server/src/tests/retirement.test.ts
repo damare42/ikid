@@ -335,3 +335,44 @@ describe("the HSA counts toward the bridge only as far as medical spending", () 
     expect(plan.notIn.join(" ")).toMatch(/\b65\b/);
   });
 });
+
+/**
+ * The simulation draws taxable → Roth basis → ladder, and the page used to show
+ * only that. Which let it say Traditional money was simply out of reach before
+ * 59½ — false for anyone leaving a job at 55+, and false in general. The routes
+ * ride along on the result so the two can't drift apart again.
+ */
+describe("the early-access routes ride along with the simulation", () => {
+  it("sizes them from balances at retirement, not balances today", () => {
+    // The whole point is what will be there when you stop working. Sizing the
+    // routes off today's balances would understate every one of them by a
+    // decade of contributions and growth — and the first smoke test of this
+    // wiring did exactly that, silently, because both are plausible numbers.
+    const p = baseParams();
+    const r = simulateRetirement(p);
+    const taxable = r.accessRoutes.find((x) => x.key === "taxable")!;
+    expect(taxable.amount).toBeGreaterThan(p.accounts.brokerage.balance);
+    // The figure is what is there the day you stop working — before the first
+    // year of retirement spends any of it. So it matches the end of the last
+    // accumulating year, and sits *above* the end of the first retired year by
+    // roughly that year's withdrawals. Getting this backwards would understate
+    // the bridge by a year of spending, every time.
+    const lastWorking = r.years.filter((y) => y.phase === "accumulate").at(-1)!;
+    const firstRetired = r.years.find((y) => y.phase === "retired")!;
+    expect(taxable.amount).toBeCloseTo(lastWorking.brokerage, -2);
+    expect(taxable.amount!).toBeGreaterThan(firstRetired.brokerage);
+  });
+
+  it("opens the Rule of 55 for a 56-year-old and shuts it for a 45-year-old", () => {
+    const young = simulateRetirement(baseParams());
+    const older = simulateRetirement({ ...baseParams(), retireAge: 56 });
+    expect(young.accessRoutes.find((x) => x.key === "rule-of-55")!.available).toBe(false);
+    expect(older.accessRoutes.find((x) => x.key === "rule-of-55")!.available).toBe(true);
+  });
+
+  it("never leads with the irreversible one", () => {
+    const routes = simulateRetirement(baseParams()).accessRoutes;
+    expect(routes[0].flexibility).toBe("free");
+    expect(routes.at(-1)!.key).toBe("sepp");
+  });
+});

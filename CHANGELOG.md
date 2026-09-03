@@ -2,6 +2,58 @@
 
 ## Unreleased
 
+**Two more doors out of a 401k before 59½: the Rule of 55 and 72(t)**
+
+Checked the retirement section against a Money Guy Show episode on retiring
+early, on the theory that a planner's list of methods is a good audit of the
+app's. Five methods; the app had three (taxable brokerage, Roth conversion
+ladder, Coast FIRE in the Calculators). It had no notion of the other two, and
+the gap was not neutral — the bridge planner stated flatly:
+
+> Traditional 401k/IRA dollars don't help the bridge at all — that's exactly
+> what the ladder converts out of.
+
+Which is wrong in the expensive direction for the people the page is most for.
+Someone retiring at 56 with everything in a 401k was told to build a five-year
+conversion ladder when the **Rule of 55** would let them draw on that plan the
+day they walked out. And the ladder is not available at all to someone whose
+bridge is shorter than the five-year seasoning window — the page offered no
+alternative, when **72(t)** is exactly the alternative.
+
+New `services/earlyAccess.ts`, and `simulateRetirement` now returns
+`accessRoutes` alongside the projection, so the page and the demo can't drift
+apart. Rules verified against the IRS rather than recalled:
+
+- Rule of 55 — separation during or after the **calendar year** you turn 55
+  (50 for qualified public safety), and it is the calendar year, not the
+  birthday. It covers only the plan at the employer you left: not an IRA, not a
+  previous job's 401k. Rolling that 401k into an IRA forfeits it permanently,
+  which makes the single most standard piece of advice on leaving a job the
+  most expensive thing you can do at 55+ with plans to spend the money.
+- 72(t)/SEPP — payments must continue for the **longer of five years or until
+  59½**, with no additions and no other withdrawals; modifying the series
+  triggers the recapture tax, which is the 10% penalty applied retroactively to
+  every payment already taken, plus interest.
+
+Presentation choices worth recording:
+
+- The routes are ordered by how little each costs you in flexibility, and that
+  ordering *is* the advice. Nobody should start a 72(t) while a taxable account
+  is sitting there.
+- Closed routes are shown, greyed, rather than hidden. Learning that the Rule of
+  55 exists and that you miss it by a year is worth more than not learning it
+  exists — retirement dates are a thing people can still move.
+- The Rule of 55 carries **no dollar figure**. The plan tracks one pre-tax pot,
+  401k and Traditional IRA merged, and the exception reaches only the employer
+  plan. A number the app cannot stand behind is worse than no number.
+- No colour on the three-step cost scale. The only ordinal pair in the palette
+  is semantic in/out — money in, money out — so borrowing it would have said
+  "irreversible = a loss". The words carry it.
+
+A smoke test caught the wiring sized from *today's* balances rather than
+balances at retirement — both plausible numbers, silently a decade apart. Now
+pinned by a test.
+
 **The HSA's place in the bridge, checked against IRS Pub 969**
 
 The projection was already right: it counts the HSA toward the penalty-free

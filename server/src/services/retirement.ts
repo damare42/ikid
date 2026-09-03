@@ -23,6 +23,7 @@
 import {
   conversionHeadroom, federalTax, rmdAmount, IRMAA_TIER1, type FilingStatus,
 } from "./tax.js";
+import { earlyAccessRoutes, type AccessRoute } from "./earlyAccess.js";
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -110,6 +111,14 @@ export interface RetirementResult {
   bridgeNeeded: number; // spending those years must come from bridge assets
   bridgeAvailableAtRetirement: number; // accessible without penalty at retireAge
   bridgePlan: BridgePlan;
+  /**
+   * The ways this person could reach money before 59½, ordered by how little
+   * each costs them in flexibility. Includes the routes the simulation does
+   * not itself use — the Rule of 55 and 72(t) — because leaving them out let
+   * the page claim Traditional money was simply unreachable, and for a 56-year
+   * old walking away from a 401k that is wrong in the expensive direction.
+   */
+  accessRoutes: AccessRoute[];
   warnings: string[];
   guidance: string[];
   years: RetirementYear[];
@@ -138,6 +147,10 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
   let totalConversions = 0;
   let depletionAge: number | null = null;
   let bridgeAvailableAtRetirement = 0;
+  // Balances as they stand on the retirement date, kept so the early-access
+  // routes can be sized against what will actually be there rather than
+  // against today's balances.
+  let atRetirement = { brokerage: 0, rothBasis: 0, trad: 0 };
 
   for (let age = p.currentAge; age <= p.endAge; age++) {
     const retired = age >= p.retireAge;
@@ -185,6 +198,7 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
           p.accounts.hsa.annualMedical * Math.max(1, ACCESS_AGE - p.retireAge),
         );
         bridgeAvailableAtRetirement = r2(brok + rothBasis + hsaForBridge);
+        atRetirement = { brokerage: r2(brok), rothBasis: r2(rothBasis), trad: r2(trad) };
       }
 
       // RMDs are forced first (ordinary income whether spent or not).
@@ -373,7 +387,22 @@ export function simulateRetirement(p: RetirementParams): RetirementResult {
     depletionAge, totalPenalties, totalConversions, irmaa,
   });
 
+  // Every way of reaching money before 59½, not just the two this simulation
+  // spends from. The simulation draws taxable → Roth basis → ladder, and for a
+  // long bridge that is the right order. But it made the page say the ladder
+  // was the only door out of Traditional, which is false for anyone leaving a
+  // job at 55+ (Rule of 55) and false in general (72(t)). Someone retiring at
+  // 56 was being told to build a five-year ladder they don't need.
+  const accessRoutes = earlyAccessRoutes({
+    currentAge: p.currentAge,
+    retireAge: p.retireAge,
+    taxableBalance: atRetirement.brokerage,
+    rothBasis: atRetirement.rothBasis,
+    tradBalance: atRetirement.trad,
+  });
+
   return {
+    accessRoutes,
     success: depletionAge === null && totalPenalties === 0,
     depletionAge,
     endingBalance: last.total,
