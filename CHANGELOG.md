@@ -2,6 +2,51 @@
 
 ## Unreleased
 
+**One place that says where the site is deployed**
+
+Groundwork for moving off `damare42.github.io/ikid/` onto a real domain
+(`docs/CUSTOM-DOMAIN.md`), and a fix for a trap found while planning it.
+
+The deploy base `/ikid/` was written down three times: a `--base` flag in the
+demo build script, the same string hardcoded in the build verifier, and the
+absolute URLs in the site's `<head>`, `sitemap.xml` and `robots.txt`. Moving
+domains means changing all of them, and neither way of getting it wrong looks
+wrong:
+
+- Wrong base — a valid page whose every asset 404s. White screen, no server
+  error, nothing in the build to catch it.
+- Stale canonical tag — the site keeps telling search engines that the *old*
+  address is the real one, so the new domain never ranks. No visible symptom
+  at all, and a months-long feedback loop.
+
+Now `site.config.json` holds the origin and base, `vite.config.ts` and
+`verify-demo-build.mjs` both read it, and a new `scripts/verify-site-urls.mjs`
+asserts that `site/CNAME`, the config and every absolute URL agree — including
+the specific case of a custom domain left with a project-path base. It runs in
+the Pages workflow, so a half-finished domain move fails the deploy instead of
+shipping. Verified by actually performing a move against a placeholder domain
+and checking the guard fires in all three directions.
+
+Switching domains is now: write `site/CNAME`, edit two values, run one `sed`.
+
+**The online plan, rewritten against the code**
+
+`docs/ONLINE-PLAN.md` was drafted before a lot of what it proposed got built.
+Re-checked against the source: its Phase 1 is essentially done — Docker, Caddy
+with automatic HTTPS, backups, rate limiting, scrypt with per-credential salts,
+CORS and secure-cookie flags, per-account database isolation, data export.
+Phase 2 has not been started, and the gate is smaller and harder than the plan
+implied: **there is no email address on an account**. Not a feature so much as
+a missing column, and verification, password reset and breach notification all
+hang off it. Today a forgotten password means the data is gone permanently —
+fine for software you installed, not for a service someone signed up for. Nor
+is there account deletion or CSRF protection.
+
+So the plan now records a decision rather than a roadmap: move the site to a
+domain we own; defer the hosted app; keep `app.<domain>` unused so the option
+stays open. Plus a short list of what would change that decision, written down
+so the pause stays a position instead of becoming a drift.
+
 **Two more doors out of a 401k before 59½: the Rule of 55 and 72(t)**
 
 Checked the retirement section against a Money Guy Show episode on retiring

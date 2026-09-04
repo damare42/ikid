@@ -69,10 +69,20 @@ npm run preview:demo    # → http://localhost:4173/ikid/demo/
 ```
 
 **Opening `site/demo/index.html` directly will not work**, and neither will
-serving `site/` at a web root. The bundle is built with `--base=/ikid/demo/`
-because that is where it is deployed, so its asset URLs are absolute:
-`/ikid/demo/assets/…`. `preview:demo` runs Vite's preview server with the same
-base, which is the only local setup that matches production.
+serving `site/` at a web root. The bundle's asset URLs are absolute, so they
+depend on where the site is deployed: `/ikid/demo/assets/…` under the GitHub
+Pages project path today, `/demo/assets/…` under a custom domain.
+
+That base comes from **`site.config.json`** at the repo root, which
+`vite.config.ts` reads for the demo build and `verify-demo-build.mjs` reads to
+check the output. One value, two readers — it used to be a `--base` flag in the
+build script with the same string hardcoded again in the verifier and a third
+time in the site's canonical URLs, and a wrong base doesn't error. It emits a
+perfectly valid page whose every asset 404s. See
+[CUSTOM-DOMAIN.md](CUSTOM-DOMAIN.md).
+
+`preview:demo` runs Vite's preview server with the same base, which is the only
+local setup that matches production.
 
 That delegates to the `client` workspace and then runs
 `scripts/verify-demo-build.mjs`. **The working directory matters**: Tailwind
@@ -87,7 +97,7 @@ The verifier checks what a visitor actually receives:
 - utility classes are present in the CSS
 - the generated dataset is in the bundle
 - no server database code leaked in
-- asset URLs match the deploy base (`/ikid/demo/`)
+- asset URLs match the deploy base from `site.config.json`
 
 It runs locally and in the Pages workflow, because "it compiled" and "it looks
 right" are different questions.

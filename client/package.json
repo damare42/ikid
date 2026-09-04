@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "build:demo": "vite build --mode demo --base=/ikid/demo/ --outDir ../site/demo --emptyOutDir",
+    "build:demo": "vite build --mode demo --outDir ../site/demo --emptyOutDir",
     "preview:demo": "vite preview --outDir ../site/demo --base=/ikid/demo/ --port 4173"
   },
   "dependencies": {

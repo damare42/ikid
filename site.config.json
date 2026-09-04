@@ -1,0 +1,5 @@
+{
+  "$comment": "Where the public site is served from. Moving to a custom domain means editing ONLY this file (plus adding site/CNAME) — see docs/CUSTOM-DOMAIN.md. The demo's asset URLs and every canonical/og/sitemap URL are checked against these two values by scripts/verify-site-urls.mjs, so a half-finished move fails CI instead of shipping a site whose assets 404 and whose canonical tag still points at the old address.",
+  "origin": "https://damare42.github.io",
+  "base": "/ikid/"
+}

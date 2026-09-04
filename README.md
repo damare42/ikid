@@ -133,6 +133,7 @@ Conventions: **negative amount = money out**; transactions marked `isTransfer` (
 | `npm run build` | typecheck + production build of both packages |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
 | `npm run build:demo` | build the browser-only demo into `site/demo/` (see [docs/DEMO.md](docs/DEMO.md)) |
+| `node scripts/verify-site-urls.mjs` | check the site's URLs against `site.config.json` (see [docs/CUSTOM-DOMAIN.md](docs/CUSTOM-DOMAIN.md)) |
 | `npm run db:reset --prefix server` | wipe and reseed the database |
 
 ### If a build fails with "Cannot find module @rollup/rollup-…"

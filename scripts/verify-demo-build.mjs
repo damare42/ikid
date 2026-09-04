@@ -19,6 +19,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "site", "demo");
 const assets = path.join(dir, "assets");
 
+// The same file vite.config.ts reads for the demo's `base`. Read rather than
+// repeated, so this check can't quietly go on asserting the old path after a
+// move to a custom domain — which is precisely when it is most needed.
+const siteConfig = JSON.parse(fs.readFileSync(path.join(root, "site.config.json"), "utf8"));
+const demoAssetPath = `${siteConfig.base}demo/assets/`;
+
 const problems = [];
 const ok = [];
 
@@ -77,10 +83,10 @@ if (/PrismaClient|@prisma\/client/.test(bundle)) {
 const html = fs.existsSync(path.join(dir, "index.html"))
   ? fs.readFileSync(path.join(dir, "index.html"), "utf8")
   : "";
-if (html && !html.includes("/ikid/demo/assets/")) {
-  fail("index.html doesn't reference /ikid/demo/assets/ — the --base is wrong, so nothing will load.");
+if (html && !html.includes(demoAssetPath)) {
+  fail(`index.html doesn't reference ${demoAssetPath} — the base is wrong, so nothing will load.`);
 } else if (html) {
-  pass("asset paths match the deploy base");
+  pass(`asset paths match the deploy base (${demoAssetPath})`);
 }
 
 for (const m of ok) console.log(`  ok   ${m}`);

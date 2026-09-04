@@ -54,6 +54,15 @@ jobs:
           fi
           echo "site/ is clean."
 
+      # Every absolute URL on the site must agree with site.config.json, and
+      # with site/CNAME if a custom domain is configured. Moving domains means
+      # editing a CNAME, a base path and a handful of <head> URLs; miss the
+      # base and every asset 404s, miss the canonical and the site keeps
+      # telling search engines the old address is the real one. Neither
+      # failure looks like a failure, so neither is left to inspection.
+      - name: Assert the site's URLs match where it is deployed
+        run: node scripts/verify-site-urls.mjs
+
       # The interactive demo is the real client, built with an in-browser API
       # instead of a server. Built here rather than committed, so ~900KB of
       # generated JavaScript stays out of the repository and can never drift

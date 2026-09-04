@@ -1,148 +1,163 @@
-# Taking ikid online — an implementation plan (without losing the principles)
+# Taking ikid online — the plan, and the current decision
 
-This is the tactical companion to `GO-PUBLIC.md`. It maps a concrete build
-path onto ikid's actual code, so "hosted" never quietly becomes "surveilled."
+The tactical companion to `GO-PUBLIC.md`. Rewritten after a review of what has
+actually been built since the first draft, which turned out to be most of one
+phase and none of another.
 
-## The north star — what "same principles online" means
+## The decision, September 2026
 
-1. **Self-host stays first-class.** The Docker/local build is never second
-   best. Privacy-maximalists run their own instance; that option never dies.
-2. **Per-user isolation is absolute.** One user can never see another's data —
-   already true via per-request profile routing.
-3. **First-party only.** No third-party analytics, ad networks, or data
-   brokers. Ever. (PRINCIPLES rule 1 survives.)
-4. **Encryption in transit and at rest**, with an optional zero-knowledge tier
-   for people who want the server to hold only ciphertext.
-5. **Consent, export, delete.** Telemetry is opt-in, financial-data-free, and
-   aggregate. Every user can download everything and delete their account.
+**Move the site and demo to a domain we own, on GitHub Pages. Defer the hosted
+app.**
 
-## Decision 1 — the trust model (pick the destination first)
+Runbook: `docs/CUSTOM-DOMAIN.md`. It is an hour of work, ~$12/yr, and entirely
+reversible.
 
-| Model | Server sees your data? | Features | Effort | Best for |
-|---|---|---|---|---|
-| **A. Self-host only** | Only your own server does | All | ~Done | Privacy maximalists, you today |
-| **B. Managed, encrypted at rest** | Yes, to run planner/analytics server-side | All | Medium | Most people who want "just log in from anywhere" |
-| **C. Zero-knowledge (E2EE)** | No — only ciphertext | Limited (compute moves to the browser) | High | The "never trust the host" crowd |
+The reasoning is that these are two different projects wearing one word,
+"online". The site is a static page and a browser demo with no accounts, no
+server and no data — putting it on a real domain is a DNS change and a
+one-file config edit. The hosted app means holding other people's financial
+records on a machine we operate, which is a different undertaking with a
+different risk profile and no way to undo it once someone has trusted it with
+their data.
 
-**Recommendation: ship A now (you're ~90% there), then B for real online
-use, and keep C as a documented north-star.** C is the purest expression of
-the principles, but it breaks the server-side engines (planner, analytics,
-import parsing all run on plaintext today) — you'd have to move that math into
-the browser. Do C later as an optional "private vault" mode if there's demand,
-not as the v1 blocker.
+Doing the cheap half now costs nothing that the expensive half would need
+later, and buys the thing actually asked for: an address that isn't a GitHub
+username. Keeping `app.<domain>` unused keeps the other half open.
 
-Everything below assumes the **A → B** path.
+---
 
-## Decision 2 — the data store
+## Where this actually is
 
-Today each user is a separate SQLite file plus JSON side-stores
-(`accounts.json`, `sessions.json`, `analytics.jsonl`). Two ways to host:
+Written against the code, not the original plan's guesses.
 
-- **Keep SQLite-per-user** (e.g. with LiteFS/Litestream for replication). Least
-  code change; isolation is physical. Works well to low-thousands of users.
-- **Migrate to Postgres, one schema, `tenant_id` on every row + row-level
-  security.** The scalable, standard multi-tenant answer.
+### Built
 
-**Recommendation:** start B on **SQLite-per-user on a persistent volume** (tiny
-change — it's what the desktop/Docker build already does), and only move to
-Postgres when concurrency or ops pain demands it. The repository layer
-(`server/src/repositories/`) and the `prisma` proxy in `lib/prisma.ts` are the
-single seam you'd swap — services and routes don't touch the DB directly, so
-the migration stays contained.
+**Deployment.** Dockerfile, `deploy/docker-compose.prod.yml`, a Caddyfile with
+automatic HTTPS and a locked-down CSP, and `deploy/backup.sh`. Documented end
+to end in `docs/DEPLOY-ONLINE.md` for both a VPS and Fly.io.
 
-## The phased plan
+**Hardening.** `IKID_REQUIRE_AUTH`, `IKID_SECURE_COOKIES`, `IKID_TRUST_PROXY`,
+`IKID_ORIGIN` for CORS. Rate limiting on `/api/auth` and `/api` with separate
+budgets. scrypt password hashing with per-credential salts and an in-place
+upgrade path. CodeQL in CI, scoped so its output is readable.
 
-### Phase 0 — where you are
-Local + accounts + admin + local, financial-data-free analytics. Done.
+**Accounts.** Per-request profile routing, so every account is a physically
+separate database — isolation by construction rather than by a `WHERE` clause
+anyone can forget. Admin roles, account disable, session revocation, a
+sign-up toggle, first-account-becomes-admin bootstrap.
 
-### Phase 1 — Self-host beta (days, not weeks)
-Goal: you (and a few invited people) use it from anywhere, safely.
+**Data portability.** `GET /api/settings/export` and `export.json`, plus
+backup and restore.
 
-- Run the existing Docker image on a small VM (Fly.io, Render, a $5 VPS).
-- Put it behind HTTPS (Caddy or a platform-managed cert). Set
-  `IKID_SECURE_COOKIES=1`.
-- Force auth: `IKID_REQUIRE_AUTH=1` (already supported).
-- Close open registration: Admin → toggle **Allow new sign-ups** off; invite
-  people by creating their accounts.
-- Persist `/app/database` on a real volume; turn on daily volume snapshots.
-- Verify the multi-profile schema push on boot (already added) covers everyone.
+**The public face.** Landing page, and a demo that runs the real client against
+an in-browser API. 595 tests.
 
-Files touched: none new — this is config + ops. `docs/DEPLOY.md` already covers
-most of it.
+### Not built — and these are the gate
 
-### Phase 2 — Managed multi-tenant (the real "online" work)
-Goal: strangers can sign up and it stays isolated and safe.
+**No email address on an account.** Not a missing feature so much as a missing
+column, and everything for public sign-up hangs off it: verification, password
+reset, breach notification, and any way to tell a user anything. Today a
+forgotten password means the data is gone, permanently. That is defensible for
+software you installed yourself. It is not defensible for a service someone
+signed up for.
 
-Auth hardening (extend `authService.ts` / `routes/auth.ts`):
-- Email + password sign-up (add an `email` field to the account store).
-- Email verification and password reset (needs an outbound email provider —
-  first party, e.g. your own SMTP/Postmark; verification tokens only, no PII to
-  third parties beyond the email address you must send to).
-- Rate-limit login (partly done) and sign-up; add lockout backoff.
-- Optional TOTP 2FA.
-- Session revocation (done — `destroySessionsFor`), plus "log out everywhere."
-- CSRF review for cookie auth, or move to `Authorization: Bearer` tokens.
+**No account deletion.** Admin can disable an account; nothing hard-deletes it.
+Right-to-delete is table stakes for a finance service and legally required in
+several places.
 
-Tenancy & storage:
-- If staying on SQLite-per-user: nothing structural changes; just ensure the
-  data volume is durable and backed up, and cap per-account DB size.
-- If moving to Postgres: add `tenant_id`, enable row-level security, and swap
-  `clientFor(profile)` for a tenant-scoped client. This is the one real
-  refactor — isolated to `lib/prisma.ts` + repositories.
+**No CSRF protection.** Session auth is cookie-based, and there is no token on
+state-changing routes. Same-site cookie attributes cover much of it in current
+browsers, but "mostly, by default, in recent versions" is not a control.
 
-Encryption at rest:
-- Volume/disk encryption at minimum (most hosts offer it).
-- Optional field-level encryption for the most sensitive columns
-  (transaction descriptions, notes) with a per-user key derived from their
-  password at login — a stepping stone toward Model C.
+**No 2FA**, and no privacy policy, terms, or telemetry consent.
 
-### Phase 3 — Consent, telemetry, and legal
-- **Telemetry consent banner**, defaulting to the deployment's stance; the
-  local analytics layer already records only feature events — point it at the
-  server and gate it behind the user's choice.
-- **In-app feedback** (thumbs + text), voluntary.
-- **Privacy policy + terms**, a cookie/telemetry notice, and self-serve
-  **data export** (JSON of the user's own data) and **account deletion**
-  (hard-delete their DB/rows + analytics). These are table stakes and, in some
-  places, legally required for a finance app.
-- **Error reporting** with scrubbing — stack traces and route names only,
-  never request bodies or financial fields.
+So the original plan's Phase 1 is essentially done and Phase 2 has not been
+started. That is a comfortable place to pause, which is the other half of why
+pausing here is the right call.
 
-### Phase 4 — Security review & launch
-- Third-party (or serious self-run) audit: tenant isolation / IDOR, injection,
-  session fixation, dependency CVEs, secrets handling.
-- Load test, backup-restore drill, incident runbook.
-- Amend `PRINCIPLES.md` to state plainly what the hosted version stores and why
-  — a deliberate edit, per the manifesto's own rule.
+---
 
-## Auth hardening checklist (Phase 2, concrete)
+## Trust model — unchanged, and worth restating
 
-- [ ] `email` on accounts; unique; verification required before first login
-- [ ] Password reset via emailed single-use token (30-min expiry)
-- [ ] Argon2id or keep scrypt with higher params; per-user salt (have)
-- [ ] Sign-up + login rate limits and exponential lockout
-- [ ] Optional TOTP 2FA + recovery codes
-- [ ] "Log out everywhere" and a visible active-session list
-- [ ] Secure, HttpOnly, SameSite cookies over HTTPS only (flags exist)
-- [ ] CSRF token on state-changing routes (or Bearer tokens + CORS lockdown)
+| Model | Server sees your data? | Effort | Status |
+|---|---|---|---|
+| **A. Self-host only** | Only your own server | Done | Where we are |
+| **B. Managed, encrypted at rest** | Yes, to run the engines | 3–5 weeks | Deferred |
+| **C. Zero-knowledge (E2EE)** | No — ciphertext only | High | North star |
 
-## Cost & effort sketch
+A is shipped. B is the real "online" work. C stays documented rather than built
+because it breaks the server-side engines — import parsing, the planner and the
+analytics all run on plaintext today. Interestingly, the demo has since proved
+the C architecture is *possible*: it runs the whole client, including every
+financial engine, entirely in the browser against no server. That does not make
+C cheap, but it does mean it is no longer hypothetical.
 
-- **Phase 1:** an afternoon + ~$5–20/mo hosting.
-- **Phase 2:** the bulk — 2–4 focused weeks for email flows, tenancy, and
-  encryption, depending on SQLite-per-user vs Postgres.
-- **Phase 3:** ~1 week for consent/export/delete + legal copy.
-- **Phase 4:** a few days plus the audit (external audits cost real money;
-  budget for one before public launch).
+Nothing in the custom-domain move forecloses any of these.
 
-## What to build first (this week)
+---
 
-1. Stand up Phase 1 on a VM with HTTPS, `IKID_REQUIRE_AUTH=1`, invite-only.
-   You'll be "online" immediately, with zero principle compromises.
-2. Add an `email` field + verification scaffold to the account store — the
-   foundation every later phase needs.
-3. Add self-serve **export** and **delete** endpoints — cheap now, and they
-   force the isolation guarantees to stay honest.
+## If and when the app gets hosted
 
-Do those three and you have a private, hosted, principled ikid you can use from
-anywhere — with a clear, de-risked path to opening it up when you're ready.
+Roughly ordered by what blocks what. Sizes are rough.
+
+### Stage 1 — private, invited people only (about a day)
+
+Nothing new to build. Run the existing image on a small VM or Fly, with
+`IKID_REQUIRE_AUTH=1`, `IKID_SECURE_COOKIES=1`, a persistent volume at
+`/app/database`, sign-ups turned off, and `deploy/backup.sh` on a cron.
+`docs/DEPLOY-ONLINE.md` is the runbook. Point `app.<domain>` at it.
+
+This is the natural next step after the domain, and it carries almost no risk:
+the only people affected are people who were told about it.
+
+### Stage 2 — the account layer (2–3 weeks)
+
+The gate list above, roughly in dependency order:
+
+- [ ] `email` on accounts, unique, verification required before first login
+- [ ] Password reset by single-use emailed token, ~30-minute expiry
+- [ ] An outbound mail path — first-party SMTP or one provider, and note in
+      `PRINCIPLES.md` that an email address now leaves the box, because it does
+- [ ] Self-serve account deletion that actually hard-deletes the profile
+      database, the account record and the analytics rows
+- [ ] CSRF tokens on state-changing routes, or move to bearer tokens with CORS
+      locked down
+- [ ] Sign-up rate limiting and exponential lockout on repeated failures
+- [ ] Optional TOTP 2FA with recovery codes
+- [ ] Visible active-session list and "log out everywhere"
+
+### Stage 3 — the things that make it lawful (about a week)
+
+Privacy policy, terms, telemetry consent defaulting to off, error reporting
+with scrubbing (route names and stack traces, never bodies or amounts), and an
+amendment to `PRINCIPLES.md` stating plainly what a hosted instance stores and
+why. That last one is a deliberate edit, per the manifesto's own rule — the
+document is allowed to change, but not quietly.
+
+### Stage 4 — before strangers (days, plus the audit)
+
+Tenant-isolation review, a restore-from-backup drill against a real backup, a
+load test, an incident runbook, and a security review by someone who did not
+write the code.
+
+### Storage
+
+Stay on SQLite-per-user on a persistent volume. It is what the desktop and
+Docker builds already do, isolation is physical, and it is good to low
+thousands of accounts. Postgres with `tenant_id` and row-level security is the
+answer when concurrency or ops pain demands it, and the seam is
+`lib/prisma.ts` plus `server/src/repositories/` — services and routes never
+touch the database directly, so the migration stays contained. Do not pre-pay
+for it.
+
+---
+
+## What would change the decision
+
+Written down so the pause is a position rather than a drift:
+
+- Someone who is not us wants to use it and cannot self-host. That is the
+  signal that Stage 2 is worth three weeks.
+- Wanting our own data across two machines. Stage 1 alone solves it, today.
+- Nothing else. Not a tidier architecture, not the domain sitting there looking
+  empty.
