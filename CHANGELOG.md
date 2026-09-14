@@ -1,6 +1,49 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 — early-access routes, a real address, installable on a phone
+
+Desktop installers build from the `v0.7.0` tag as usual. There is no mobile app
+and no app store — "mobile" here means the same responsive client, installable
+to a home screen.
+
+**Installable on a phone**
+
+The app has been usable on a phone since the mobile navigation landed; it just
+couldn't be *kept* on one. Now it can: a web manifest, a maskable icon, and the
+Apple-specific tags iOS reads instead of the manifest. Add to Home Screen on
+iOS, Install on Android and desktop Chrome.
+
+Four decisions inside that are worth writing down:
+
+- **Every path in the manifest is relative.** One file has to serve the app at
+  a server root and the demo at `/ikid/demo/` — and `/demo/` after a domain
+  move. An absolute icon path works in one and 404s in the other, and a 404
+  icon doesn't error; the browser just quietly declines to install.
+- **The service worker never touches `/api`.** Chromium won't offer to install
+  without a service worker that has a real fetch handler, but a cache in front
+  of a finance app is a way to leave someone's transactions on a shared laptop
+  after they log out. The shell — HTML, hashed assets, icons — is identical for
+  every user and carries no account data. Nothing else is cached, in either
+  direction, and the bypass is tested by running the actual handler.
+- **No service worker in the desktop app.** Electron serves the client over
+  `http://localhost`, which counts as a secure origin, so it would register
+  there quite happily. It has nothing to offer an app that is already
+  installed, and one thing to cost: desktop updates replace the client bundle
+  wholesale, and a cache in front of that is how a freshly updated app keeps
+  serving the old build.
+- **The demo is deliberately *not* installable.** A home-screen icon is
+  divorced from the banner explaining that none of the data is real. Someone
+  would install what they took to be the app and then find their money is
+  somebody else's. The manifest link is stripped from the demo build and the
+  build verifier fails if it comes back. The service worker stays, so the demo
+  works with the network off — which for an app claiming your data never leaves
+  your machine is a demonstration rather than a promise.
+
+Icons are generated from the brand mark by `scripts/build-icons.sh`. Note that
+`client/public/brand/*.svg` are an older green palette referenced by nothing;
+generating from those would have put an icon on people's home screens in a
+colour that appears nowhere else in the product. A test pins the icon to the
+same red as the favicon.
 
 **One place that says where the site is deployed**
 

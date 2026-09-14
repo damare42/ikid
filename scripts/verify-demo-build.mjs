@@ -89,6 +89,18 @@ if (html && !html.includes(demoAssetPath)) {
   pass(`asset paths match the deploy base (${demoAssetPath})`);
 }
 
+// --- the demo is not installable ---
+// The manifest is what lets a browser offer "Add to Home Screen". An icon on a
+// home screen is divorced from the banner explaining that none of this data is
+// real, so someone would install what they took to be the app and then find
+// their money is somebody else's. vite.config.ts strips the manifest link for
+// the demo build; this checks it actually went.
+if (html && /<link rel="manifest"/.test(html)) {
+  fail("The demo links a web manifest — it would offer to install itself as the real app.");
+} else if (html) {
+  pass("not installable (manifest stripped)");
+}
+
 for (const m of ok) console.log(`  ok   ${m}`);
 for (const m of problems) console.error(`  FAIL ${m}`);
 if (problems.length) {

@@ -10,6 +10,7 @@ Ikid is a personal finance dashboard that runs **entirely on your computer**. Im
 | **The app itself** | <http://localhost:3001>, on your own machine, after the quick start below. |
 | **Source** | <https://github.com/damare42/ikid> |
 | **Hosted version** | There isn't one, deliberately. There's no ikid server holding anyone's data — if you want access from anywhere, you [host it yourself](docs/DEPLOY-ONLINE.md). |
+| **On a phone** | No app store, no native app. Open your own instance in a mobile browser and use **Add to Home Screen** (iOS) or **Install** (Android) — it opens full-screen like any other app. See [docs/MOBILE.md](docs/MOBILE.md). |
 
 The website is documentation, not a place to sign in. Nothing you can reach on
 the internet ever sees your transactions; the app only exists on machines you

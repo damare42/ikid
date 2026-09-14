@@ -1,7 +1,7 @@
 # Release checklist
 
 What to run before tagging, and what "green" looks like. Everything below was
-verified for **0.6.0** from a clean checkout (fresh `npm install`, no cached
+verified for **0.7.0** from a clean checkout (fresh `npm install`, no cached
 build artifacts).
 
 ## Automated gates
@@ -14,9 +14,9 @@ npm run lint           # eslint, client + server
 npm run build          # generate -> server typecheck -> client production build
 ```
 
-| Gate | 0.6.0 result |
+| Gate | 0.7.0 result |
 | --- | --- |
-| `npm test` | **147 passing**, 14 files |
+| `npm test` | **605 passing**, 33 files |
 | server typecheck | clean |
 | client typecheck | clean |
 | `npm run lint` | 0 errors |
@@ -63,8 +63,8 @@ Run `npm run dev`, then walk:
 ## Tagging
 
 ```bash
-git tag v0.6.0
-git push origin v0.6.0     # release workflow builds desktop installers
+git tag v0.7.0
+git push origin v0.7.0     # release workflow builds desktop installers
 ```
 
 Desktop installers are unsigned — first launch needs right-click → Open on

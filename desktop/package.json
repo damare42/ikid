@@ -1,8 +1,8 @@
 {
   "name": "ikid-desktop",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
-  "description": "ikid — local-first personal finance, as a desktop app",
+  "description": "ikid \u2014 local-first personal finance, as a desktop app",
   "main": "main.cjs",
   "scripts": {
     "build": "node build.mjs",
@@ -30,14 +30,31 @@
     ],
     "mac": {
       "category": "public.app-category.finance",
-      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
       "identity": null
     },
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }]
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Office"
     }
   }

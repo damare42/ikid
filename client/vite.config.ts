@@ -38,13 +38,26 @@ const siteConfig = JSON.parse(
  *
  * So the demo build strips the font links and falls back to the system stack,
  * exactly as site/index.html does.
+ *
+ * The manifest goes too, which makes the demo *not* installable — deliberately.
+ * The manifest is what lets a browser offer "Add to Home Screen", and an icon
+ * on a home screen is divorced from the banner explaining that none of this is
+ * real. Someone would install what they took to be the app, then wonder why
+ * their money is somebody else's and nothing they enter survives. The demo's
+ * job is to be tried in a browser; the app is what gets installed.
+ *
+ * The service worker still registers, so the demo works offline. That has no
+ * such downside and is a fair demonstration of the claim that nothing leaves
+ * your machine.
  */
-const stripWebfonts = () => ({
-  name: "ikid-strip-webfonts",
+const demoHtml = () => ({
+  name: "ikid-demo-html",
   transformIndexHtml(html: string) {
     return html
       .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.[^"]*"[^>]*>/g, "")
-      .replace(/\s*<link[^>]*href="https:\/\/fonts\.googleapis\.com[^"]*"[^>]*>/g, "");
+      .replace(/\s*<link[^>]*href="https:\/\/fonts\.googleapis\.com[^"]*"[^>]*>/g, "")
+      .replace(/\s*<link rel="manifest"[^>]*>/g, "")
+      .replace(/\s*<meta name="(apple-)?mobile-web-app-capable"[^>]*>/g, "");
   },
 });
 
@@ -54,7 +67,7 @@ export default defineConfig(({ mode }) => {
     // Only the demo is served from a subpath of a static site. The installed
     // app is served from its own server's root.
     ...(isDemo ? { base: `${siteConfig.base}demo/` } : {}),
-    plugins: [react(), ...(isDemo ? [stripWebfonts()] : [])],
+    plugins: [react(), ...(isDemo ? [demoHtml()] : [])],
     // The client reads import.meta.env.VITE_IKID_DEMO; set it from the mode so
     // there's one source of truth and no env var to forget.
     define: {

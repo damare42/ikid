@@ -11,6 +11,28 @@
       rel="stylesheet"
     />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='26' cy='68' r='11' fill='%238a1f0c'/%3E%3Ccircle cx='70' cy='30' r='11' fill='%23c62f14'/%3E%3Cpath d='M33,58 C44,38 52,46 62,38' fill='none' stroke='%23c62f14' stroke-width='5' stroke-dasharray='8 8' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+    <!--
+      Installable on a phone's home screen. Not an app-store app — no native
+      wrapper, no review, no separate build. The same responsive client,
+      launched without browser chrome.
+
+      Every href here is relative on purpose. The manifest's own URLs resolve
+      against the manifest, so one file works both for the app served from a
+      server root and for the demo served from /ikid/demo/ (or /demo/ after a
+      domain move). An absolute "/manifest.webmanifest" would 404 in the demo.
+    -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <!-- The manifest carries one static theme_color; these two follow the
+         system theme, matching body's bg-slate-100 / dark:bg-slate-950. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2f2" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161514" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- iOS reads the apple-prefixed pair rather than the manifest for these. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ikid" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   </head>
   <body>
     <div id="root"></div>
